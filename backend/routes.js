@@ -1,7 +1,7 @@
-const appRoutes = (app) => {
+const router = (app) => {
     app.get("/", (req, res) => {
         res.send("API Home");
     });
 };
 
-export default appRoutes;
+export default router;
