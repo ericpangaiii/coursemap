@@ -36,27 +36,38 @@ passport.use(
         
         // If user doesn't exist, create a new one
         if (!user) {
-          // Ensure we have the photo URL from profile
-          const photoUrl = profile.photos && profile.photos.length > 0 
-            ? profile.photos[0].value 
-            : '';
-            
-          user = await User.create({
+          // Extract user data directly from the profile
+          const userData = {
             googleId: profile.id,
-            displayName: profile.displayName,
-            email: profile.emails[0].value,
-            photo: photoUrl
-          });
+            name: profile.displayName || profile._json?.name || 'Unknown User',
+            email: profile.emails?.[0]?.value || `${profile.id}@example.com`,
+            displayPicture: profile.photos?.[0]?.value || ''
+          };
+          
+          console.log('Creating new user with data:', userData);
+          
+          // Create the user with explicit data
+          user = new User(userData);
+          await user.save();
+          
+          console.log('New user created successfully:', user);
         } else {
           // Update existing user's photo if it has changed
-          if (profile.photos && profile.photos.length > 0 && user.photo !== profile.photos[0].value) {
-            user.photo = profile.photos[0].value;
+          if (profile.photos && profile.photos.length > 0 && user.displayPicture !== profile.photos[0].value) {
+            user.displayPicture = profile.photos[0].value;
+            await user.save();
+          }
+          
+          // Also ensure name is updated if needed
+          if (profile.displayName && user.name !== profile.displayName) {
+            user.name = profile.displayName;
             await user.save();
           }
         }
         
         return done(null, user);
       } catch (error) {
+        console.error('Error creating/updating user:', error);
         return done(error, null);
       }
     }

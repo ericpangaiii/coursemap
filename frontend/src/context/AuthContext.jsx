@@ -6,13 +6,11 @@ const AuthContext = createContext();
 // Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Provider component to wrap the app
+// Provider component
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
-  // The navigate function won't work at the provider level since it's outside Router
-  // We'll handle navigation in components
 
   // Check authentication status on component mount
   useEffect(() => {
@@ -57,10 +55,12 @@ export const AuthProvider = ({ children }) => {
       if (data.success) {
         setUser(null);
         setAuthenticated(false);
-        // Navigation will happen in the component that calls this function
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Logout failed:', error);
+      return false;
     }
   };
 

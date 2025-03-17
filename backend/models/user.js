@@ -7,16 +7,21 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true
     },
-    displayName: {
+    name: {
       type: String,
-      required: true
+      required: true,
+      default: 'Unknown User'
     },
     email: {
       type: String,
       required: true,
       unique: true
     },
-    photo: String,
+    displayPicture: String,
+    program: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Program'
+    },
     createdAt: {
       type: Date,
       default: Date.now

@@ -7,10 +7,13 @@ const programSchema = new mongoose.Schema(
       required: true,
       unique: true
     },
-    title: {
+    name: {
       type: String,
       required: true,
       unique: true
+    },
+    description: {
+      type: String
     }
   },
   {
