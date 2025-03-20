@@ -26,11 +26,11 @@ const SignUpPage = () => {
         console.error('Error fetching programs:', err);
         // Fall back to dummy data if API fails
         setPrograms([
-          { _id: '1', code: 'BSCS', name: 'BS Computer Science' },
-          { _id: '2', code: 'BSEE', name: 'BS Electrical Engineering' },
-          { _id: '3', code: 'BSME', name: 'BS Mechanical Engineering' },
-          { _id: '4', code: 'BBA', name: 'Business Administration' },
-          { _id: '5', code: 'BSPSY', name: 'Psychology' }
+          { program_id: '1', acronym: 'BSCS', title: 'BS Computer Science' },
+          { program_id: '2', acronym: 'BSIT', title: 'BS Information Technology' },
+          { program_id: '3', acronym: 'BSCS-ST', title: 'BS Computer Science - Software Technology' },
+          { program_id: '4', acronym: 'BBA', title: 'Business Administration' },
+          { program_id: '5', acronym: 'BSPSY', title: 'Psychology' }
         ]);
       } finally {
         setIsLoading(false);
@@ -81,8 +81,8 @@ const SignUpPage = () => {
               </SelectTrigger>
               <SelectContent>
                 {programs.map((program) => (
-                  <SelectItem key={program._id} value={program._id}>
-                    {program.name}
+                  <SelectItem key={program.program_id} value={program.program_id}>
+                    {program.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -109,7 +109,7 @@ const SignUpPage = () => {
         </CardContent>
         <CardFooter className="flex justify-center border-t pt-4">
           <p className="text-sm text-gray-600">
-            Already have an account? <Link to="/sign-in" className="text-blue-600 hover:underline font-medium">Sign in here</Link>
+            Already have an account? <Link to="/sign-in" className="text-sm text-blue-600 hover:underline font-medium">Sign in here</Link>
           </p>
         </CardFooter>
       </Card>

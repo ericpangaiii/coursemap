@@ -15,7 +15,7 @@ const HomePage = () => {
 
     const savedProgram = localStorage.getItem('selectedProgram');
     
-    if (user && savedProgram && !user.program) {
+    if (user && savedProgram && !user.program_id) {
       // User has a saved program from sign-up but hasn't set it in their profile yet
       updateUserProgram(savedProgram);
     }
@@ -65,9 +65,9 @@ const HomePage = () => {
         <CardContent className="space-y-4">
           {user && (
             <div className="flex items-center space-x-4">
-              {user.displayPicture ? (
+              {user.display_picture ? (
                 <img 
-                  src={user.displayPicture} 
+                  src={user.display_picture} 
                   alt={user.name} 
                   className="w-16 h-16 rounded-full"
                   onError={(e) => {

@@ -2,16 +2,18 @@ import dotenv from 'dotenv';
 import express from "express";
 import cors from "cors";
 import session from 'express-session';
-import passport from './auth/passport.js';
-import router from "./routes.js"
-import authRoutes from "./auth/routes.js";
-import connectToMongoDB from "./database.js";
+import { configurePassport } from './controllers/auth-controllers.js';
+import router from "./routes.js";
+import { connectDatabase } from './database/index.js';
 
 // load port number from .env file
 dotenv.config();
 
 // initialize the express app
 const app = express();
+
+// Configure passport
+const passport = configurePassport();
 
 // Configure CORS properly
 const corsOptions = {
@@ -44,12 +46,11 @@ app.use(passport.session());
 
 // initialize the routers
 router(app);
-app.use('/auth', authRoutes);
 
-// connect to the database
-connectToMongoDB();
+// Connect to database
+connectDatabase()
 
-// start the server
+// Start the server
 app.listen(process.env.PORT, () => {
   console.log('Server has started on port ' + process.env.PORT);
 });
