@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -20,8 +19,8 @@ const SignInPage = () => {
 
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-xl">Welcome back</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle className="text-xl">Welcome to CourseMap</CardTitle>
+          <CardDescription>Sign in with your Google account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
@@ -40,7 +39,7 @@ const SignInPage = () => {
         </CardContent>
         <CardFooter className="flex justify-center border-t pt-4">
           <p className="text-sm text-gray-600">
-            Don't have an account yet? <Link to="/sign-up" className="text-blue-600 hover:underline font-medium">Sign up here</Link>
+            New and existing users can sign in with Google
           </p>
         </CardFooter>
       </Card>

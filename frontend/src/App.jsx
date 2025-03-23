@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
-import SignUpPage from './pages/SignUpPage';
+import DegreeSelectPage from './pages/DegreeSelectPage';
 import HomePage from './pages/HomePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
@@ -20,7 +20,14 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/sign-in" element={<SignInPage />} />
-        <Route path="/sign-up" element={<SignUpPage />} />
+        <Route 
+          path="/degree-select" 
+          element={
+            <ProtectedRoute>
+              <DegreeSelectPage />
+            </ProtectedRoute>
+          } 
+        />
         <Route 
           path="/home" 
           element={

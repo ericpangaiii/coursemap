@@ -89,20 +89,16 @@ export const googleCallback = (req, res, next) => {
         );
       }
       
-      // Check if this is a new user (just created) or an existing user
-      const isNewUser = user.created_at && 
-                      ((new Date().getTime() - new Date(user.created_at).getTime()) < 10000); // within 10 seconds
+      // Check if user has a program_id
+      const isNewUserWithoutProgram = !user.program_id;
       
-      // Determine success message based on whether it's a new or existing user
-      const successParam = isNewUser 
-        ? 'account_created' 
-        : 'login_success';
+      // Redirect new users without program to degree selection page, others to home
+      const redirectPath = isNewUserWithoutProgram ? 'degree-select' : 'home';
       
-      // Successful authentication, redirect to home page with success message
       return res.redirect(
         process.env.NODE_ENV === 'production'
-          ? `https://your-production-domain.com/home?success=${successParam}`
-          : `http://localhost:5173/home?success=${successParam}`
+          ? `https://your-production-domain.com/${redirectPath}`
+          : `http://localhost:5173/${redirectPath}`
       );
     });
   })(req, res, next);
