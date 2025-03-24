@@ -23,33 +23,15 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Auth routes */}
-        <Route path="/sign-in" element={<SignInPage />} />
-        <Route 
-          path="/degree-select" 
-          element={
-            <ProtectedRoute>
-              <DegreeSelectPage />
-            </ProtectedRoute>
-          } 
-        />
-
-        {/* App routes with sidebar layout */}
-        <Route 
-          element={
-            <ProtectedRoute>
-              <AppLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/home" element={<DashboardPage />} />
-          <Route path="/progress" element={<ProgressPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/courses" element={<CoursesPage />} />
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
         </Route>
-        
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/sign-in" replace />} />
+        <Route path="/sign-in" element={<SignInPage />} />
+        <Route path="/degree-select" element={<ProtectedRoute><DegreeSelectPage /></ProtectedRoute>} />
+        <Route path="/" element={<Navigate to="/sign-in" />} />
       </Routes>
     </Router>
   );

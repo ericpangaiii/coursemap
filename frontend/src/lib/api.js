@@ -36,7 +36,7 @@ export const authAPI = {
   },
 
   // Update user's program
-  updateProgram: async (programId) => {
+  updateProgram: async (programId, curriculumId = null) => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/update-program`, {
         method: 'POST',
@@ -44,7 +44,7 @@ export const authAPI = {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ programId }),
+        body: JSON.stringify({ programId, curriculumId }),
       });
       return await response.json();
     } catch (error) {
@@ -92,6 +92,57 @@ export const programsAPI = {
     } catch (error) {
       console.error(`Error fetching program with ID ${id}:`, error);
       return null;
+    }
+  }
+};
+
+// Curriculums API calls
+export const curriculumsAPI = {
+  // Get all curriculums
+  getAllCurriculums: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculums');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching curriculums:', error);
+      return [];
+    }
+  },
+
+  // Get curriculum by ID
+  getCurriculumById: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculum');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching curriculum with ID ${id}:`, error);
+      return null;
+    }
+  },
+
+  // Get curriculums by program ID
+  getCurriculumsByProgramId: async (programId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/programs/${programId}/curriculums`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculums for program');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching curriculums for program ${programId}:`, error);
+      return [];
     }
   }
 };

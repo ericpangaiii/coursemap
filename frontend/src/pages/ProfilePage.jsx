@@ -2,26 +2,46 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { programsAPI } from "@/lib/api";
+import { programsAPI, curriculumsAPI } from "@/lib/api";
+import { ReloadIcon } from "@radix-ui/react-icons";
+import PageHeader from "@/components/PageHeader";
 
 const ProfilePage = () => {
   const { user } = useAuth();
   const [programTitle, setProgramTitle] = useState("Not assigned");
+  const [curriculumName, setCurriculumName] = useState("Not assigned");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch program details if user has a program_id
-    if (user?.program_id) {
-      programsAPI.getProgramById(user.program_id)
-        .then(data => {
-          if (data && data.title) {
-            setProgramTitle(data.title);
+    // Set default loading state
+    setLoading(true);
+
+    const fetchData = async () => {
+      try {
+        // Fetch program details if user has a program_id
+        if (user?.program_id) {
+          const programData = await programsAPI.getProgramById(user.program_id);
+          if (programData && programData.title) {
+            setProgramTitle(programData.title);
           }
-        })
-        .catch(error => {
-          console.error("Error fetching program details:", error);
-        });
-    }
-  }, [user?.program_id]);
+        }
+
+        // Fetch curriculum details if user has a curriculum_id
+        if (user?.curriculum_id) {
+          const curriculumData = await curriculumsAPI.getCurriculumById(user.curriculum_id);
+          if (curriculumData && curriculumData.name) {
+            setCurriculumName(curriculumData.name);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [user?.program_id, user?.curriculum_id]);
 
   // Helper to get initials from name
   const getInitials = (name) => {
@@ -36,7 +56,7 @@ const ProfilePage = () => {
 
   return (
     <div className="w-full max-w-full">
-      <h1 className="text-2xl font-bold mb-6">Your Profile</h1>
+      <PageHeader title="Your Profile" />
       
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
@@ -57,7 +77,26 @@ const ProfilePage = () => {
             
             <div className="pt-4 border-t">
               <h3 className="font-medium mb-1">Program</h3>
-              <p className="text-base">{programTitle}</p>
+              {loading ? (
+                <div className="flex items-center text-sm text-gray-500">
+                  <ReloadIcon className="h-4 w-4 animate-spin mr-2" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <p className="text-base">{programTitle}</p>
+              )}
+            </div>
+            
+            <div className="pt-4 border-t">
+              <h3 className="font-medium mb-1">Curriculum</h3>
+              {loading ? (
+                <div className="flex items-center text-sm text-gray-500">
+                  <ReloadIcon className="h-4 w-4 animate-spin mr-2" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <p className="text-base">{curriculumName}</p>
+              )}
             </div>
           </CardContent>
         </Card>

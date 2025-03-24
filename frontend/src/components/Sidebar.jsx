@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { programsAPI } from "@/lib/api";
+import { ReloadIcon } from "@radix-ui/react-icons";
 import { 
   Sidebar as ShadcnSidebar, 
   SidebarContent,
@@ -21,10 +22,12 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const [programTitle, setProgramTitle] = useState("");
   const { state } = useSidebar();
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     // Fetch program details if user has a program_id
     if (user?.program_id) {
+      setLoading(true);
       programsAPI.getProgramById(user.program_id)
         .then(data => {
           if (data && data.title) {
@@ -33,13 +36,16 @@ const Sidebar = () => {
         })
         .catch(error => {
           console.error("Error fetching program details:", error);
+        })
+        .finally(() => {
+          setLoading(false);
         });
     }
   }, [user?.program_id]);
   
   // Navigation items with icons
   const navItems = [
-    { name: "Dashboard", path: "/home", icon: Home },
+    { name: "Dashboard", path: "/dashboard", icon: Home },
     { name: "Progress", path: "/progress", icon: BarChart2 },
     { name: "Profile", path: "/profile", icon: User },
     { name: "Courses", path: "/courses", icon: BookOpen },
@@ -85,7 +91,14 @@ const Sidebar = () => {
               </div>
             </div>
             <div className="text-xs text-gray-600 mt-2">
-              {programTitle || "No program selected"}
+              {loading ? (
+                <div className="flex items-center text-xs text-gray-500">
+                  <ReloadIcon className="h-3 w-3 animate-spin mr-1" />
+                  <span>Loading...</span>
+                </div>
+              ) : (
+                <div>{programTitle || "No program selected"}</div>
+              )}
             </div>
           </>
         )}

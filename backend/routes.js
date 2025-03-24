@@ -1,6 +1,7 @@
 import { getAllPrograms, getProgramById, createProgram, updateProgram, deleteProgram } from './controllers/program-controllers.js';
 import { getAllUsers, getUserById, createUser, updateUser } from './controllers/user-controllers.js';
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
+import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId } from './controllers/curriculum-controllers.js';
 
 const router = (app) => {
     app.get("/", (req, res) => {
@@ -19,6 +20,11 @@ const router = (app) => {
     app.get("/api/users/:id", getUserById);
     app.post("/api/users", createUser);
     app.put("/api/users/:id", updateUser);
+
+    // Curriculum Routes
+    app.get("/api/curriculums", getAllCurriculums);
+    app.get("/api/curriculums/:id", getCurriculumById);
+    app.get("/api/programs/:programId/curriculums", getCurriculumsByProgramId);
 
     // Auth Routes
     app.get("/auth/google", googleLogin);

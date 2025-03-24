@@ -55,12 +55,23 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Function to update user data in the context
+  const updateUser = (userData) => {
+    if (userData) {
+      setUser(prevUser => ({
+        ...prevUser,
+        ...userData
+      }));
+    }
+  };
+
   // Values to be provided to the context
   const value = {
     user,
     loading,
     authenticated,
-    logout
+    logout,
+    updateUser
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

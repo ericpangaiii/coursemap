@@ -109,8 +109,8 @@ export const googleCallback = (req, res, next) => {
       // Check if user has a program_id
       const isNewUserWithoutProgram = !user.program_id;
       
-      // Redirect new users without program to degree selection page, others to home
-      const redirectPath = isNewUserWithoutProgram ? 'degree-select' : 'home';
+      // Redirect new users without program to degree selection page, others to dashboard
+      const redirectPath = isNewUserWithoutProgram ? 'degree-select' : 'dashboard';
       
       return res.redirect(
         process.env.NODE_ENV === 'production'
@@ -127,7 +127,7 @@ export const updateUserProgram = async (req, res) => {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  const { programId } = req.body;
+  const { programId, curriculumId } = req.body;
   
   if (!programId) {
     return res.status(400).json({ error: 'Program ID is required' });
@@ -135,10 +135,17 @@ export const updateUserProgram = async (req, res) => {
 
   try {
     // Update the user's program in the database
-    const updateResult = await pool.query(
-      'UPDATE users SET program_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
-      [programId, req.user.id]
-    );
+    let updateQuery, updateParams;
+
+    if (curriculumId) {
+      updateQuery = 'UPDATE users SET program_id = $1, curriculum_id = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 RETURNING *';
+      updateParams = [programId, curriculumId, req.user.id];
+    } else {
+      updateQuery = 'UPDATE users SET program_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *';
+      updateParams = [programId, req.user.id];
+    }
+
+    const updateResult = await pool.query(updateQuery, updateParams);
 
     if (updateResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
@@ -148,6 +155,9 @@ export const updateUserProgram = async (req, res) => {
     
     // Update the user in the session
     req.user.program_id = programId;
+    if (curriculumId) {
+      req.user.curriculum_id = curriculumId;
+    }
     
     res.status(200).json({ 
       success: true, 
@@ -158,7 +168,8 @@ export const updateUserProgram = async (req, res) => {
         name: updatedUser.name,
         email: updatedUser.email,
         display_picture: updatedUser.display_picture || '',
-        program_id: updatedUser.program_id
+        program_id: updatedUser.program_id,
+        curriculum_id: updatedUser.curriculum_id || null
       }
     });
   } catch (error) {
@@ -181,7 +192,8 @@ export const getAuthStatus = (req, res) => {
         name: req.user.name,
         email: req.user.email,
         display_picture: req.user.display_picture || '',
-        program_id: req.user.program_id || null
+        program_id: req.user.program_id || null,
+        curriculum_id: req.user.curriculum_id || null
       }
     });
   }

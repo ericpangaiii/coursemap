@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) NOT NULL UNIQUE,
   display_picture VARCHAR(255),
   program_id INTEGER,
+  curriculum_id INTEGER,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -133,6 +134,10 @@ CREATE TABLE IF NOT EXISTS curriculum_structures (
 ALTER TABLE users 
 ADD CONSTRAINT fk_users_programs 
 FOREIGN KEY (program_id) REFERENCES programs(program_id) ON DELETE SET NULL;
+
+ALTER TABLE users 
+ADD CONSTRAINT fk_users_curriculums 
+FOREIGN KEY (curriculum_id) REFERENCES curriculums(curriculum_id) ON DELETE SET NULL;
 
 ALTER TABLE curriculums 
 ADD CONSTRAINT fk_curriculums_programs 
