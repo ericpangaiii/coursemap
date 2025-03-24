@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { authAPI, programsAPI } from '@/lib/api';
+import { APP_NAME } from '@/lib/config';
 
 const DegreeSelectPage = () => {
   const [programs, setPrograms] = useState([]);
@@ -25,24 +27,10 @@ const DegreeSelectPage = () => {
     const fetchPrograms = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:3000/api/programs');
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch programs');
-        }
-        
-        const data = await response.json();
+        const data = await programsAPI.getAllPrograms();
         setPrograms(data);
       } catch (err) {
         console.error('Error fetching programs:', err);
-        // Fall back to dummy data if API fails
-        setPrograms([
-          { program_id: '1', acronym: 'BSCS', title: 'BS Computer Science' },
-          { program_id: '2', acronym: 'BSIT', title: 'BS Information Technology' },
-          { program_id: '3', acronym: 'BSCS-ST', title: 'BS Computer Science - Software Technology' },
-          { program_id: '4', acronym: 'BBA', title: 'Business Administration' },
-          { program_id: '5', acronym: 'BSPSY', title: 'Psychology' }
-        ]);
       } finally {
         setIsLoading(false);
       }
@@ -62,17 +50,7 @@ const DegreeSelectPage = () => {
 
     try {
       setIsSubmitting(true);
-      
-      const response = await fetch('http://localhost:3000/auth/update-program', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ programId: selectedProgram }),
-      });
-
-      const data = await response.json();
+      const data = await authAPI.updateProgram(selectedProgram);
 
       if (data.success) {
         navigate('/home');
@@ -89,7 +67,7 @@ const DegreeSelectPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">CourseMap</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{APP_NAME}</h1>
       </div>
 
       <Card className="w-full max-w-md">

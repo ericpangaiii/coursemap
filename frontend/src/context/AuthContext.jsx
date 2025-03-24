@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
+import { authAPI } from '@/lib/api';
 
 // Create the auth context
 const AuthContext = createContext();
@@ -16,12 +17,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch('http://localhost:3000/auth/status', {
-          method: 'GET',
-          credentials: 'include',
-        });
-        
-        const data = await response.json();
+        const data = await authAPI.getAuthStatus();
         
         if (data.authenticated) {
           setUser(data.user);
@@ -45,12 +41,7 @@ export const AuthProvider = ({ children }) => {
   // Function to handle logout
   const logout = async () => {
     try {
-      const response = await fetch('http://localhost:3000/auth/logout', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      const data = await response.json();
+      const data = await authAPI.logout();
       
       if (data.success) {
         setUser(null);

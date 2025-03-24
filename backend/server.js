@@ -17,7 +17,7 @@ const passport = configurePassport();
 
 // Configure CORS properly
 const corsOptions = {
-  origin: "http://localhost:5173", // Frontend URL
+  origin: process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -29,7 +29,7 @@ app.use(express.json());
 
 // Configure session middleware
 app.use(session({
-  secret: 'coursemap_secret_key', // You should use a more secure secret in production
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -49,8 +49,15 @@ router(app);
 
 // Connect to database
 connectDatabase()
-
-// Start the server
-app.listen(process.env.PORT, () => {
-  console.log('Server has started on port ' + process.env.PORT);
-});
+  .then(() => {
+    // Start the server only after database connection is established
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server has started on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
+    });
+  })
+  .catch(error => {
+    console.error('Failed to connect to database:', error);
+    process.exit(1);
+  });

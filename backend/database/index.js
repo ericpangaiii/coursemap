@@ -2,6 +2,7 @@ import pkg from 'pg';
 const { Client } = pkg;
 import dotenv from 'dotenv';
 
+// Load environment variables
 dotenv.config();
 
 // Create the client with connection string

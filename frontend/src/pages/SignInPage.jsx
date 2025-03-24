@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { authAPI } from "@/lib/api";
+import { APP_NAME } from "@/lib/config";
 
 const SignInPage = () => {
   const handleGoogleSignIn = () => {
     try {
       // Redirect to the backend's Google auth route
-      window.location.href = 'http://localhost:3000/auth/google';
+      window.location.href = authAPI.getGoogleAuthUrl();
     } catch (error) {
       console.error('Failed to connect to authentication service:', error);
     }
@@ -14,13 +16,13 @@ const SignInPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900">CourseMap</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{APP_NAME}</h1>
       </div>
 
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-xl">Welcome to CourseMap</CardTitle>
-          <CardDescription>Sign in with your Google account</CardDescription>
+          <CardTitle className="text-xl">Welcome to {APP_NAME}</CardTitle>
+          <CardDescription>Sign in with your UP Mail account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
@@ -34,12 +36,12 @@ const SignInPage = () => {
               <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
               <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
             </svg>
-            Continue with Google
+            Continue with UP Mail
           </Button>
         </CardContent>
         <CardFooter className="flex justify-center border-t pt-4">
           <p className="text-sm text-gray-600">
-            New and existing users can sign in with Google
+            Sign in with your UP Mail account to access the system
           </p>
         </CardFooter>
       </Card>

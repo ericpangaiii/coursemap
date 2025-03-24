@@ -4,10 +4,17 @@ import dotenv from 'dotenv';
 import pool from '../database/index.js';
 import { findOrCreateUserByGoogleId } from './user-controllers.js';
 
+// Initialize dotenv
 dotenv.config();
 
 // Configure Passport
 export const configurePassport = () => {
+  // Verify Google OAuth environment variables
+  if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
+    console.error('Error: Google OAuth CLIENT_ID and CLIENT_SECRET must be set in .env');
+    process.exit(1);
+  }
+
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
@@ -59,13 +66,23 @@ export const googleLogin = (req, res, next) => {
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
+  // Verify frontend URLs are set
+  if (!process.env.FRONTEND_URL) {
+    console.error('Error: FRONTEND_URL must be set in .env');
+    return res.status(500).send('Server configuration error');
+  }
+
+  if (process.env.NODE_ENV === 'production' && !process.env.PRODUCTION_FRONTEND_URL) {
+    console.error('Warning: PRODUCTION_FRONTEND_URL not set for production');
+  }
+
   passport.authenticate('google', (err, user, info) => {
     if (err) {
       console.error('Authentication error:', err);
       return res.redirect(
         process.env.NODE_ENV === 'production'
-          ? 'https://your-production-domain.com/sign-in?error=authentication_failed'
-          : 'http://localhost:5173/sign-in?error=authentication_error'
+          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_error`
+          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_error`
       );
     }
     
@@ -73,8 +90,8 @@ export const googleCallback = (req, res, next) => {
       console.error('Authentication failed, no user returned');
       return res.redirect(
         process.env.NODE_ENV === 'production'
-          ? 'https://your-production-domain.com/sign-in?error=authentication_failed'
-          : 'http://localhost:5173/sign-in?error=authentication_failed'
+          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_failed`
+          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_failed`
       );
     }
     
@@ -84,8 +101,8 @@ export const googleCallback = (req, res, next) => {
         console.error('Login error:', loginErr);
         return res.redirect(
           process.env.NODE_ENV === 'production'
-            ? 'https://your-production-domain.com/sign-in?error=login_failed'
-            : 'http://localhost:5173/sign-in?error=login_failed'
+            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
+            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
         );
       }
       
@@ -97,8 +114,8 @@ export const googleCallback = (req, res, next) => {
       
       return res.redirect(
         process.env.NODE_ENV === 'production'
-          ? `https://your-production-domain.com/${redirectPath}`
-          : `http://localhost:5173/${redirectPath}`
+          ? `${process.env.PRODUCTION_FRONTEND_URL}/${redirectPath}`
+          : `${process.env.FRONTEND_URL}/${redirectPath}`
       );
     });
   })(req, res, next);

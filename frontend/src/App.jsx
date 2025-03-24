@@ -1,8 +1,12 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
 import DegreeSelectPage from './pages/DegreeSelectPage';
-import HomePage from './pages/HomePage';
+import DashboardPage from './pages/DashboardPage';
+import ProgressPage from './pages/ProgressPage';
+import ProfilePage from './pages/ProfilePage';
+import CoursesPage from './pages/CoursesPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './components/AppLayout';
 import { useAuth } from './context/AuthContext';
 
 const App = () => {
@@ -19,6 +23,7 @@ const App = () => {
   return (
     <Router>
       <Routes>
+        {/* Auth routes */}
         <Route path="/sign-in" element={<SignInPage />} />
         <Route 
           path="/degree-select" 
@@ -28,15 +33,23 @@ const App = () => {
             </ProtectedRoute>
           } 
         />
+
+        {/* App routes with sidebar layout */}
         <Route 
-          path="/home" 
           element={
             <ProtectedRoute>
-              <HomePage />
+              <AppLayout />
             </ProtectedRoute>
-          } 
-        />
-        <Route path="/" element={<SignInPage />} /> {/* Default to Sign-In page */}
+          }
+        >
+          <Route path="/home" element={<DashboardPage />} />
+          <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+        </Route>
+        
+        {/* Default redirect */}
+        <Route path="/" element={<Navigate to="/sign-in" replace />} />
       </Routes>
     </Router>
   );
