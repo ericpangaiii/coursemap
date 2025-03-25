@@ -13,7 +13,7 @@ const client = new Client({
     : undefined
 });
 
-// Separate function to connect to database
+// Function to connect to the database
 export const connectDatabase = async () => {
   try {
     await client.connect();

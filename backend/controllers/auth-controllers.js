@@ -157,6 +157,26 @@ export const updateUserProgram = async (req, res) => {
     req.user.program_id = programId;
     if (curriculumId) {
       req.user.curriculum_id = curriculumId;
+      
+      // Create a study plan for the user if they have a curriculum
+      try {
+        // Check if user already has a plan
+        const existingPlanResult = await pool.query(
+          'SELECT * FROM plans WHERE user_id = $1',
+          [req.user.id]
+        );
+        
+        if (existingPlanResult.rows.length === 0) {
+          // Create new plan
+          await pool.query(
+            'INSERT INTO plans (user_id, curriculum_id) VALUES ($1, $2)',
+            [req.user.id, curriculumId]
+          );
+        }
+      } catch (planError) {
+        console.error('Error creating plan:', planError);
+        // Continue even if plan creation fails
+      }
     }
     
     res.status(200).json({ 
@@ -167,7 +187,7 @@ export const updateUserProgram = async (req, res) => {
         google_id: updatedUser.google_id,
         name: updatedUser.name,
         email: updatedUser.email,
-        display_picture: updatedUser.display_picture || '',
+        photo: updatedUser.photo || '',
         program_id: updatedUser.program_id,
         curriculum_id: updatedUser.curriculum_id || null
       }
@@ -191,7 +211,7 @@ export const getAuthStatus = (req, res) => {
         google_id: req.user.google_id,
         name: req.user.name,
         email: req.user.email,
-        display_picture: req.user.display_picture || '',
+        photo: req.user.photo || '',
         program_id: req.user.program_id || null,
         curriculum_id: req.user.curriculum_id || null
       }

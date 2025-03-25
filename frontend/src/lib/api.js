@@ -144,6 +144,195 @@ export const curriculumsAPI = {
       console.error(`Error fetching curriculums for program ${programId}:`, error);
       return [];
     }
+  },
+
+  // Get curriculum structure for a specific curriculum
+  getCurriculumStructure: async (curriculumId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/structure`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculum structure');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error fetching curriculum structure:`, error);
+      return null;
+    }
+  },
+  
+  // Get current user's curriculum structure
+  getCurrentCurriculumStructure: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/my/curriculum/structure`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null; // No curriculum selected
+        }
+        throw new Error('Failed to fetch curriculum structure');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching current curriculum structure:', error);
+      return null;
+    }
+  },
+  
+  // Get courses for the current user's curriculum
+  getCurrentCurriculumCourses: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/my/curriculum/courses`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return []; // No curriculum selected
+        }
+        throw new Error('Failed to fetch curriculum courses');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching current curriculum courses:', error);
+      return [];
+    }
+  },
+};
+
+// Plans API calls
+export const plansAPI = {
+  // Get current user's plan
+  getCurrentPlan: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/my/plan`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null; // Plan not found
+        }
+        throw new Error('Failed to fetch plan');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching current plan:', error);
+      return null;
+    }
+  },
+
+  // Create a new plan
+  createPlan: async (curriculumId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/plans`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          curriculumId 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create plan');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating plan:', error);
+      return null;
+    }
+  },
+
+  // Add a course to the plan
+  addCourseToPlan: async (planId, courseId, year, semester, status = 'planned') => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/plans/courses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          planId, 
+          courseId, 
+          year, 
+          semester, 
+          status 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add course to plan');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error adding course to plan:', error);
+      return null;
+    }
+  },
+
+  // Update a course in the plan
+  updatePlanCourse: async (id, year, semester, status, grade) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/plans/courses/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ 
+          year, 
+          semester, 
+          status, 
+          grade 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update plan course');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating plan course:', error);
+      return null;
+    }
+  },
+
+  // Delete a course from the plan
+  deletePlanCourse: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/plans/courses/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete plan course');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error deleting plan course:', error);
+      return null;
+    }
   }
 };
 

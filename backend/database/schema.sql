@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   google_id VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
-  display_picture VARCHAR(255),
+  photo VARCHAR(255),
   program_id INTEGER,
   curriculum_id INTEGER,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -128,6 +128,37 @@ CREATE TABLE IF NOT EXISTS curriculum_structures (
   created_at TIMESTAMP,
   updated_at TIMESTAMP,
   CONSTRAINT curriculum_structures_pkey PRIMARY KEY (curriculum_id, year, sem)
+);
+
+-- Plans table
+CREATE SEQUENCE IF NOT EXISTS plans_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+CREATE TABLE IF NOT EXISTS plans (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  curriculum_id INTEGER NOT NULL,
+  status VARCHAR(50) DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_plans_users FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_plans_curriculums FOREIGN KEY (curriculum_id) REFERENCES curriculums(curriculum_id) ON DELETE CASCADE
+);
+
+-- Plan Courses table
+CREATE SEQUENCE IF NOT EXISTS plan_courses_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+CREATE TABLE IF NOT EXISTS plan_courses (
+  id SERIAL PRIMARY KEY,
+  plan_id INTEGER NOT NULL,
+  course_id INTEGER NOT NULL,
+  year INTEGER NOT NULL,
+  semester INTEGER NOT NULL,
+  status VARCHAR(50) DEFAULT 'planned', -- planned, in_progress, completed, dropped
+  grade VARCHAR(10),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_plan_courses_plans FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE,
+  CONSTRAINT fk_plan_courses_courses FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
 );
 
 -- Add foreign key constraints

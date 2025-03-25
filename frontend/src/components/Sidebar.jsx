@@ -75,15 +75,15 @@ const Sidebar = () => {
       )}>
         {state === "collapsed" ? (
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user?.display_picture} alt={user?.name} />
-            <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+            <AvatarImage src={user?.photo} alt={user?.name} />
+            <AvatarFallback>{getInitials(user?.name || "")}</AvatarFallback>
           </Avatar>
         ) : (
           <>
             <div className="flex items-center gap-3 mb-2">
               <Avatar className="h-10 w-10 shrink-0">
-                <AvatarImage src={user?.display_picture} alt={user?.name} />
-                <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+                <AvatarImage src={user?.photo} alt={user?.name} />
+                <AvatarFallback>{getInitials(user?.name || "")}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0 overflow-hidden">
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name || "Guest"}</p>

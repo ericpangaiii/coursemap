@@ -65,13 +65,13 @@ const ProfilePage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                {user?.display_picture && <AvatarImage src={user.display_picture} alt={user?.name} />}
-                <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>
+              <Avatar className="h-20 w-20">
+                {user?.photo && <AvatarImage src={user.photo} alt={user?.name} />}
+                {!user?.photo && <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>}
               </Avatar>
               <div>
-                <p className="text-xl font-semibold">{user?.name || "Anonymous User"}</p>
-                <p className="text-muted-foreground">{user?.email || "No email"}</p>
+                <h2 className="text-2xl font-bold">{user?.name}</h2>
+                <p className="text-gray-500">{user?.email}</p>
               </div>
             </div>
             

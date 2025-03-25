@@ -1,7 +1,8 @@
 import { getAllPrograms, getProgramById, createProgram, updateProgram, deleteProgram } from './controllers/program-controllers.js';
 import { getAllUsers, getUserById, createUser, updateUser } from './controllers/user-controllers.js';
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
-import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId } from './controllers/curriculum-controllers.js';
+import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses } from './controllers/curriculum-controllers.js';
+import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan } from './controllers/plan-controllers.js';
 
 const router = (app) => {
     app.get("/", (req, res) => {
@@ -25,6 +26,17 @@ const router = (app) => {
     app.get("/api/curriculums", getAllCurriculums);
     app.get("/api/curriculums/:id", getCurriculumById);
     app.get("/api/programs/:programId/curriculums", getCurriculumsByProgramId);
+    app.get("/api/curriculums/:curriculumId/structure", getCurriculumStructure);
+    app.get("/api/my/curriculum/structure", getCurrentUserCurriculumStructure);
+    app.get("/api/my/curriculum/courses", getCurrentUserCurriculumCourses);
+
+    // Plan Routes
+    app.get("/api/users/:userId/plan", getPlanByUserId);
+    app.get("/api/my/plan", getCurrentUserPlan);
+    app.post("/api/plans", createPlan);
+    app.post("/api/plans/courses", addCourseToPlan);
+    app.put("/api/plans/courses/:id", updatePlanCourse);
+    app.delete("/api/plans/courses/:id", deletePlanCourse);
 
     // Auth Routes
     app.get("/auth/google", googleLogin);

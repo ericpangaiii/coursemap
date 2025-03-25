@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
+import CourseworkPlanDisplay from "@/components/CourseworkPlan/CourseworkPlanDisplay";
 
 const DashboardPage = () => {
   return (
@@ -41,17 +42,10 @@ const DashboardPage = () => {
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Semester Plan</CardTitle>
-          <CardDescription>Courses you're planning to take this semester</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-500">
-            You haven't added any courses for the current semester yet. Visit the Courses page to browse and add courses to your plan.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-4">Your Plan of Coursework</h2>
+        <CourseworkPlanDisplay />
+      </div>
     </div>
   );
 };
