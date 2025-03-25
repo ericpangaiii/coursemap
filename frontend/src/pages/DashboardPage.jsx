@@ -43,7 +43,6 @@ const DashboardPage = () => {
       </div>
 
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">Your Plan of Coursework</h2>
         <CourseworkPlanDisplay />
       </div>
     </div>

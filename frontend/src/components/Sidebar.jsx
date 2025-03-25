@@ -136,9 +136,9 @@ const Sidebar = () => {
       {/* Logout button */}
       <SidebarFooter className={cn("p-4", state === "collapsed" ? "p-2" : "")}>
         <Button 
-          variant="outline" 
+          variant="outline"
           className={cn(
-            "text-red-500 hover:text-red-600 hover:bg-red-50",
+            "text-red-600 hover:text-red-700 hover:bg-red-50",
             state === "collapsed" ? "w-auto p-2 h-auto justify-center" : "w-full justify-start"
           )}
           onClick={handleLogout}

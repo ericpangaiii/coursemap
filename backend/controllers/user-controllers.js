@@ -41,11 +41,11 @@ export const getUserById = async (req, res) => {
 // Create a new user (usually done through auth, but included for completeness)
 export const createUser = async (req, res) => {
   try {
-    const { google_id, name, email, display_picture, program_id } = req.body;
+    const { google_id, name, email, photo, program_id } = req.body;
     
     const result = await pool.query(
-      'INSERT INTO users (google_id, name, email, display_picture, program_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [google_id, name, email, display_picture, program_id]
+      'INSERT INTO users (google_id, name, email, photo, program_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [google_id, name, email, photo, program_id]
     );
     
     res.status(201).json(result.rows[0]);
@@ -59,11 +59,11 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, display_picture, program_id } = req.body;
+    const { name, email, photo, program_id } = req.body;
     
     const result = await pool.query(
-      'UPDATE users SET name = $1, email = $2, display_picture = $3, program_id = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
-      [name, email, display_picture, program_id, id]
+      'UPDATE users SET name = $1, email = $2, photo = $3, program_id = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
+      [name, email, photo, program_id, id]
     );
     
     if (result.rows.length === 0) {
@@ -93,7 +93,7 @@ export const findOrCreateUserByGoogleId = async (googleId, profile) => {
     
     // If user doesn't exist, create new user
     const newUserResult = await pool.query(
-      'INSERT INTO users (google_id, name, email, display_picture) VALUES ($1, $2, $3, $4) RETURNING *',
+      'INSERT INTO users (google_id, name, email, photo) VALUES ($1, $2, $3, $4) RETURNING *',
       [googleId, profile.displayName, profile.emails[0].value, profile.photos[0].value]
     );
     

@@ -10,6 +10,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CourseTypeCard = ({ type, courses, stats }) => {
   const [open, setOpen] = useState(false);
@@ -66,7 +67,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
   const isElectiveType = standardType === 'elective' || 
                         standardType === 'ge_elective' || 
                         standardType === 'ge elective' || 
-                        standardType === 'geelective';
+                        standardType === 'geelective' ||
+                        standardType === 'major';
   
   // Determine whether to show the "Show more" button (for many courses)
   const shouldShowViewAll = courseList.length > 5;
@@ -91,7 +93,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
       return `No ${getTypeName(type).toLowerCase()} in your curriculum`;
     }
     
-    // For elective types, show how many to choose from
+    // For elective types and majors, show how many to choose from
     if (isElectiveType && stats.available > stats.total) {
       return `Choose ${stats.total} from ${stats.available} available courses`;
     }
@@ -167,7 +169,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
                     <button 
-                      className="text-sm text-blue-600 hover:text-blue-800 mt-4 flex items-center w-full justify-center py-2 border border-blue-100 rounded-md hover:bg-blue-50 transition-colors"
+                      className="text-sm text-blue-600 border border-blue-600 hover:bg-blue-50 mt-4 flex items-center w-full justify-center py-2 rounded-md transition-colors"
                     >
                       <List className="h-4 w-4 mr-1.5" />
                       View all {courseList.length} courses
@@ -178,30 +180,29 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                     onOpenAutoFocus={(e) => e.preventDefault()}
                   >
                     <DialogHeader>
-                      <div className="flex items-center mb-2">
-                        <div className={`w-2 h-6 rounded mr-2 ${getTypeColor(type)}`}></div>
-                        <DialogTitle>{getTypeName(type)}</DialogTitle>
-                      </div>
-                      <DialogDescription>{getCardDescription()}</DialogDescription>
+                      <DialogTitle className="flex items-center">
+                        <div className={`w-3 h-6 rounded mr-2 ${getTypeColor(type)}`}></div>
+                        {getTypeName(type)}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {isElectiveType && stats.available > stats.total
+                          ? `Choose ${stats.total} from ${stats.available} available courses based on your interests.`
+                          : `These are the ${getTypeName(type).toLowerCase()} you need to complete.`}
+                      </DialogDescription>
                     </DialogHeader>
-                    
-                    {isElectiveType && (
-                      <div className="mb-4 px-3 py-2 bg-blue-50 text-blue-800 rounded-md border border-blue-100 text-sm">
-                        <p>You need to select {stats.total} courses from these options.</p>
+                    <ScrollArea className="max-h-[70vh] mt-2">
+                      <div className="space-y-2 px-1">
+                        {courseList.map((course, index) => (
+                          <CourseItem 
+                            key={`${course.course_id}-${index}`}
+                            course={{
+                              ...course,
+                              course_type: course.course_type || type
+                            }} 
+                          />
+                        ))}
                       </div>
-                    )}
-                    
-                    <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                      {courseList.map((course, index) => (
-                        <CourseItem 
-                          key={`modal-${course.course_id}-${index}`}
-                          course={{
-                            ...course,
-                            course_type: course.course_type || type
-                          }} 
-                        />
-                      ))}
-                    </div>
+                    </ScrollArea>
                   </DialogContent>
                 </Dialog>
               )}
