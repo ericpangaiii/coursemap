@@ -211,9 +211,7 @@ export const getCurrentUserCurriculumCourses = async (req, res) => {
        FROM courses c
        JOIN curriculum_courses cc ON c.course_id = cc.course_id
        JOIN curriculums cu ON cc.curriculum_id = cu.curriculum_id
-       WHERE cu.curriculum_id = $1
-         AND c.is_active = TRUE
-       ORDER BY cc.year, cc.sem, cc.course_type`,
+       WHERE cu.curriculum_id = $1`,
       [curriculum_id]
     );
     

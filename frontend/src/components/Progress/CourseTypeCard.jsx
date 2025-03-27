@@ -11,54 +11,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getCourseTypeColor, getCourseTypeName } from "@/lib/utils";
 
 const CourseTypeCard = ({ type, courses, stats }) => {
   const [open, setOpen] = useState(false);
   
-  // Get a readable name for the course type
-  const getTypeName = (type) => {
-    // Standardize type name
-    let standardType = type.toLowerCase();
-    
-    // Special handling for GE Electives
-    if (standardType === "ge elective" || standardType === "geelective") {
-      standardType = "ge_elective";
-    }
-    
-    const names = {
-      'major': 'Major Courses',
-      'required': 'Required Courses',
-      'ge_elective': 'GE Electives',
-      'elective': 'Elective Courses',
-      'cognate': 'Cognate Courses',
-      'specialized': 'Specialized Courses',
-      'track': 'Track Courses'
-    };
-    return names[standardType] || type;
-  };
-
-  // Format course type for color
-  const getTypeColor = (type) => {
-    // Standardize type name
-    let standardType = type.toLowerCase();
-    
-    // Special handling for GE Electives
-    if (standardType === "ge elective" || standardType === "geelective") {
-      standardType = "ge_elective";
-    }
-    
-    const colors = {
-      'major': 'bg-red-500',
-      'required': 'bg-green-500',
-      'ge_elective': 'bg-yellow-500',
-      'elective': 'bg-purple-500',
-      'cognate': 'bg-indigo-500',
-      'specialized': 'bg-teal-500',
-      'track': 'bg-orange-500'
-    };
-    return colors[standardType] || 'bg-blue-500';
-  };
-
   // Ensure courses is an array
   const courseList = Array.isArray(courses) ? courses : [];
   
@@ -90,7 +47,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
       if (stats && stats.total > 0) {
         return `Need to take ${stats.total} courses`;
       }
-      return `No ${getTypeName(type).toLowerCase()} in your curriculum`;
+      return `No ${getCourseTypeName(type).toLowerCase()} in your curriculum`;
     }
     
     // For elective types and majors, show how many to choose from
@@ -98,12 +55,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
       return `Choose ${stats.total} from ${stats.available} available courses`;
     }
     
-    // If this is the required course type, use stats.total instead of courseList.length
-    if (standardType === 'required' && stats && stats.total) {
-      return `${stats.total} courses required`;
-    }
-    
-    return `${courseList.length} courses required`; 
+    // For all courses including required courses, use the actual count
+    return `${courseList.length} courses required`;
   };
 
   return (
@@ -111,9 +64,10 @@ const CourseTypeCard = ({ type, courses, stats }) => {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <CardTitle className="text-lg">{getTypeName(type)}</CardTitle>
+            <div className={`w-2 h-6 rounded mr-2 ${getCourseTypeColor(type)}`}></div>
+            <CardTitle className="text-lg">{getCourseTypeName(type)}</CardTitle>
             <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
-              {placeholderProgress.completed}/{stats.total || courseList.length}
+              {placeholderProgress.completed}/{standardType === 'required' ? courseList.length : stats.total}
             </div>
           </div>
           <div className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800">
@@ -127,7 +81,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
         {courseList.length === 0 ? (
           <p className="text-gray-500 text-sm">
             {stats && stats.total > 0 
-              ? `You need to take ${stats.total} ${getTypeName(type).toLowerCase()} according to your curriculum.`
+              ? `You need to take ${stats.total} ${getCourseTypeName(type).toLowerCase()} according to your curriculum.`
               : "No courses are assigned to this category in your curriculum."}
           </p>
         ) : (
@@ -140,7 +94,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                 <div 
-                  className={`h-2.5 rounded-full ${getTypeColor(type)}`} 
+                  className={`h-2.5 rounded-full ${getCourseTypeColor(type)}`} 
                   style={{ 
                     width: `${placeholderProgress.percentage}%`,
                     transition: 'width 1s ease-in-out'
@@ -159,7 +113,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                       ...course,
                       // Ensure the course_type is set if it isn't already
                       course_type: course.course_type || type
-                    }} 
+                    }}
+                    type={type} 
                   />
                 ))}
               </div>
@@ -181,13 +136,13 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   >
                     <DialogHeader>
                       <DialogTitle className="flex items-center">
-                        <div className={`w-3 h-6 rounded mr-2 ${getTypeColor(type)}`}></div>
-                        {getTypeName(type)}
+                        <div className={`w-3 h-6 rounded mr-2 ${getCourseTypeColor(type)}`}></div>
+                        {getCourseTypeName(type)}
                       </DialogTitle>
                       <DialogDescription>
                         {isElectiveType && stats.available > stats.total
                           ? `Choose ${stats.total} from ${stats.available} available courses based on your interests.`
-                          : `These are the ${getTypeName(type).toLowerCase()} you need to complete.`}
+                          : `These are the ${getCourseTypeName(type).toLowerCase()} you need to complete.`}
                       </DialogDescription>
                     </DialogHeader>
                     <ScrollArea className="max-h-[70vh] mt-2">
@@ -198,7 +153,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                             course={{
                               ...course,
                               course_type: course.course_type || type
-                            }} 
+                            }}
+                            type={type} 
                           />
                         ))}
                       </div>

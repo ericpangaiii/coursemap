@@ -65,56 +65,26 @@ const ProgressPage = () => {
       code: course.course_code,
       title: course.title,
       type: type,
-      originalType: courseType
+      originalType: courseType,
+      year: course.year,
+      sem: course.sem
     });
     
     if (!acc[type]) {
       acc[type] = [];
     }
-    acc[type].push(course);
+    // Ensure we pass year and semester data to the course object
+    const courseWithDetails = {
+      ...course,
+      prescribed_year: course.year,
+      prescribed_semester: course.sem
+    };
+    acc[type].push(courseWithDetails);
     return acc;
   }, {});
   
   // Debug output for GE Electives specifically
   console.log("GE Elective courses:", coursesByType.ge_elective || []);
-  
-  // Remove duplicates from all course types
-  Object.keys(coursesByType).forEach(type => {
-    if (coursesByType[type] && coursesByType[type].length > 1) {
-      // Create a map to track unique course IDs
-      const uniqueCourses = new Map();
-      
-      // Keep only the first occurrence of each course ID
-      coursesByType[type] = coursesByType[type].filter(course => {
-        if (uniqueCourses.has(course.course_id)) {
-          return false;
-        }
-        uniqueCourses.set(course.course_id, true);
-        return true;
-      });
-      
-      console.log(`After removing duplicates, ${type} course count:`, coursesByType[type].length);
-    }
-  });
-  
-  // Remove duplicates from "required" courses that already exist in other categories
-  if (coursesByType.required && (coursesByType.elective || coursesByType.ge_elective)) {
-    const otherCourseIds = new Set();
-    
-    // Collect course IDs from other course types
-    ['elective', 'ge_elective', 'cognate', 'specialized', 'track', 'major'].forEach(type => {
-      if (coursesByType[type]) {
-        coursesByType[type].forEach(course => {
-          otherCourseIds.add(course.course_id);
-        });
-      }
-    });
-    
-    // Filter out required courses that are already in other categories
-    coursesByType.required = coursesByType.required.filter(course => !otherCourseIds.has(course.course_id));
-    
-    console.log("After removing duplicates, required course count:", coursesByType.required.length);
-  }
   
   console.log("Courses grouped by type:", coursesByType);
   console.log("Course types found:", Object.keys(coursesByType));
