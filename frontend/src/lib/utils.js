@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge"
+import { curriculumsAPI } from './api';
 
 /**
  * Merges class names with Tailwind's class conflict resolution
@@ -63,6 +64,15 @@ export const getNormalizedCourseType = (type) => {
     return "ge_elective";
   }
   
+  // Handle required types
+  if (typeToCheck === "required_academic" || typeToCheck === "required academic") {
+    return "required_academic";
+  }
+  
+  if (typeToCheck === "required_non_academic" || typeToCheck === "required non academic" || typeToCheck === "required non-academic") {
+    return "required_non_academic";
+  }
+  
   return typeToCheck;
 };
 
@@ -73,13 +83,17 @@ export const getNormalizedCourseType = (type) => {
  * @returns {string} - The CSS background color class
  */
 export const getCourseTypeColor = (type, isAcademic = true) => {
-  if (!isAcademic) return "bg-gray-200";
-  
   const normalizedType = getNormalizedCourseType(type);
   
+  // Handle special case for required courses
+  if (normalizedType === "required") {
+    return isAcademic ? "bg-blue-500" : "bg-blue-300";
+  }
+  
+  // For non-academic courses of other types
+  if (!isAcademic) return "bg-gray-200";
+  
   switch (normalizedType) {
-    case "required":
-      return "bg-blue-500";
     case "ge_elective":
       return "bg-yellow-500";
     case "elective":
@@ -100,14 +114,18 @@ export const getCourseTypeColor = (type, isAcademic = true) => {
 /**
  * Get the CSS text color class for a course type
  * @param {string} type - The course type
+ * @param {boolean} isAcademic - Whether the course is academic
  * @returns {string} - The CSS text color class
  */
-export const getCourseTypeTextColor = (type) => {
+export const getCourseTypeTextColor = (type, isAcademic = true) => {
   const normalizedType = getNormalizedCourseType(type);
   
+  // Handle special case for required courses
+  if (normalizedType === "required") {
+    return isAcademic ? "text-blue-500" : "text-blue-300";
+  }
+  
   switch (normalizedType) {
-    case "required":
-      return "text-blue-500";
     case "ge_elective":
       return "text-yellow-600";
     case "elective":
@@ -128,14 +146,18 @@ export const getCourseTypeTextColor = (type) => {
 /**
  * Get the CSS border color class for a course type
  * @param {string} type - The course type
+ * @param {boolean} isAcademic - Whether the course is academic
  * @returns {string} - The CSS border color class
  */
-export const getCourseTypeBorderColor = (type) => {
+export const getCourseTypeBorderColor = (type, isAcademic = true) => {
   const normalizedType = getNormalizedCourseType(type);
   
+  // Handle special case for required courses
+  if (normalizedType === "required") {
+    return isAcademic ? "border-blue-500" : "border-blue-300";
+  }
+  
   switch (normalizedType) {
-    case "required":
-      return "border-blue-500";
     case "ge_elective":
       return "border-yellow-500";
     case "elective":
@@ -156,19 +178,24 @@ export const getCourseTypeBorderColor = (type) => {
 /**
  * Get a readable name for the course type
  * @param {string} type - The course type
+ * @param {boolean} isAcademic - Whether the course is academic
  * @returns {string} - Human-readable course type name
  */
-export const getCourseTypeName = (type) => {
+export const getCourseTypeName = (type, isAcademic = true) => {
   const normalizedType = getNormalizedCourseType(type);
   
+  // Handle special case for required courses
+  if (normalizedType === "required") {
+    return isAcademic ? "Academic" : "Non-Academic";
+  }
+  
   const names = {
-    'major': 'Major Courses',
-    'required': 'Required Courses',
-    'ge_elective': 'GE Electives',
-    'elective': 'Elective Courses',
-    'cognate': 'Cognate Courses',
-    'specialized': 'Specialized Courses',
-    'track': 'Track Courses'
+    'major': 'Major',
+    'ge_elective': 'GE Elective',
+    'elective': 'Elective',
+    'cognate': 'Cognate',
+    'specialized': 'Specialized',
+    'track': 'Track'
   };
   
   return names[normalizedType] || type;
@@ -310,6 +337,46 @@ export const formatSemesterOffered = (semOffered) => {
  */
 
 /**
+ * Fetches course data for the plan creation process
+ * @returns {Promise<Object>} Course data organized by type
+ */
+export const fetchCoursesForPlanCreation = async () => {
+  try {
+    console.log('Fetching courses for plan creation...');
+    
+    // Get curriculum courses
+    const allCourses = await curriculumsAPI.getCurrentCurriculumCourses();
+    console.log('Raw courses data:', allCourses);
+    
+    // Get curriculum structure (required counts)
+    const curriculumStructure = await curriculumsAPI.getCurrentCurriculumStructure();
+    console.log('Curriculum structure:', curriculumStructure);
+    
+    // Group courses by course type using utility function
+    const coursesByType = groupCoursesByType(allCourses);
+    
+    // Get required counts from curriculum structure
+    const requiredCounts = {
+      required: curriculumStructure?.totals?.required_count || 0,
+      ge_elective: curriculumStructure?.totals?.ge_elective_count || 0,
+      elective: curriculumStructure?.totals?.elective_count || 0,
+      major: curriculumStructure?.totals?.major_count || 0,
+    };
+    
+    console.log('Required counts:', requiredCounts);
+    console.log('Courses by type:', coursesByType);
+    
+    return {
+      coursesByType,
+      requiredCounts
+    };
+  } catch (error) {
+    console.error('Error fetching courses for plan creation:', error);
+    throw error;
+  }
+};
+
+/**
  * Standardize course type format
  * @param {string} courseType - The unstandardized course type
  * @returns {string} - Standardized course type
@@ -323,6 +390,15 @@ export const standardizeCourseType = (courseType) => {
   // Handle GE Elective variants
   if (type === "ge elective" || type === "ge_elective" || type === "geelective" || type === "ge") {
     return "ge_elective";
+  }
+  
+  // Handle required types
+  if (type === "required_academic" || type === "required academic") {
+    return "required_academic";
+  }
+  
+  if (type === "required_non_academic" || type === "required non academic" || type === "required non-academic") {
+    return "required_non_academic";
   }
   
   return type;
@@ -339,6 +415,34 @@ export const groupCoursesByType = (courses) => {
   return courses.reduce((acc, course) => {
     // Standardize course type
     const type = standardizeCourseType(course.course_type);
+    
+    // Specially handle required courses to separate academic and non-academic
+    if (type === "required") {
+      const isAcademic = course.is_academic === undefined ? true : !!course.is_academic;
+      const groupKey = isAcademic ? "required_academic" : "required_non_academic";
+      
+      // Initialize array for this type if needed
+      if (!acc[groupKey]) {
+        acc[groupKey] = [];
+      }
+      
+      // Add course to its type group
+      acc[groupKey].push({
+        id: course.course_id,
+        course_id: course.course_id,
+        course_code: course.course_code,
+        course_type: type, // Keep original type
+        title: course.title,
+        units: course.units,
+        description: course.description,
+        sem_offered: course.sem_offered,
+        prescribed_year: course.year,
+        prescribed_semester: course.sem,
+        is_academic: isAcademic
+      });
+      
+      return acc;
+    }
     
     // Initialize array for this type if needed
     if (!acc[type]) {

@@ -11,15 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight, Check, AlertTriangle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { fetchCoursesForPlanCreation } from "@/lib/planUtils";
+import { fetchCoursesForPlanCreation } from "@/lib/utils";
 import { getCourseTypeColor, getCourseTypeTextColor } from "@/lib/utils";
 
 // Step components
-import SelectGEElectives from "./PlanCreationSteps/SelectGEElectives";
-import SelectElectives from "./PlanCreationSteps/SelectElectives";
-import SelectMajors from "./PlanCreationSteps/SelectMajors";
-import SelectRequired from "./PlanCreationSteps/SelectRequired";
-import FinalizePlan from "./PlanCreationSteps/FinalizePlan";
+import SelectGEElectives from "./Steps/SelectGEElectives";
+import SelectElectives from "./Steps/SelectElectives";
+import SelectMajors from "./Steps/SelectMajors";
+import SelectRequired from "./Steps/SelectRequired";
+import FinalizePlan from "./Steps/FinalizePlan";
 
 const PlanCreationModal = ({ open, onOpenChange, isEditing }) => {
   const [currentStep, setCurrentStep] = useState(0);

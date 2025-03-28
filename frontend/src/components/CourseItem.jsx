@@ -24,6 +24,7 @@ const CourseItem = ({ course, type = "course" }) => {
   const courseUnits = course.units || "N/A";
   const semOffered = course.sem_offered;
   const isAcademic = course.is_academic !== false; // Default to true if not specified
+  const isCombinedCourse = courseCode === "HK 12/13" || !!course.combined_courses;
   
   // Debug log to see what we're getting
   if (typeof window !== 'undefined' && window.ENV === 'development') {
@@ -35,7 +36,8 @@ const CourseItem = ({ course, type = "course" }) => {
       prescribed_semester: course.prescribed_semester,
       is_academic: course.is_academic,
       type: type,
-      course_type: course.course_type
+      course_type: course.course_type,
+      combined_courses: course.combined_courses
     });
   }
   
@@ -125,6 +127,46 @@ const CourseItem = ({ course, type = "course" }) => {
 
   const courseDescription = course.description || "No description available";
   
+  // For combined courses like HK 12/13, create a special tooltip content
+  const getCombinedCourseTooltipContent = () => {
+    if (!isCombinedCourse || !course.combined_courses) return null;
+    
+    return (
+      <div className="space-y-3">
+        <div>
+          <h5 className="font-medium text-sm text-gray-600">Course Options</h5>
+          <p className="text-sm text-gray-700">
+            Take one of these courses to fulfill this requirement:
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-gray-700">
+            {course.combined_courses.map((c, index) => (
+              <li key={index} className="flex items-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-2"></div>
+                <span className="font-medium">{c.course_code}</span>
+                <span className="mx-1">-</span>
+                <span>{c.title}</span>
+                {c.course_code === "HK 13" && (
+                  <span className="ml-1 text-xs text-blue-600 italic">(for varsity)</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        {prescribedText && (
+          <div>
+            <h5 className="font-medium text-sm text-gray-600">Prescribed</h5>
+            <div className="flex flex-wrap gap-1 mt-1">
+              <Badge variant="outline" className="text-xs bg-white">
+                {prescribedText}
+              </Badge>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+  
   return (
     <div className={`p-3 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-between relative overflow-hidden ${!isAcademic ? 'bg-gray-50' : ''}`}>
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
@@ -158,36 +200,40 @@ const CourseItem = ({ course, type = "course" }) => {
               side="right" 
               className="max-w-md p-4 bg-white border border-gray-200 shadow-lg rounded-lg"
             >
-              <div className="space-y-3">
-                <div>
-                  <h5 className="font-medium text-sm text-gray-600">Description</h5>
-                  <p className="text-sm text-gray-700">{courseDescription}</p>
-                </div>
-                
-                {formattedSemOffered.length > 0 && (
+              {isCombinedCourse ? (
+                getCombinedCourseTooltipContent()
+              ) : (
+                <div className="space-y-3">
                   <div>
-                    <h5 className="font-medium text-sm text-gray-600">Semesters Offered</h5>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {formattedSemOffered.map((sem, index) => (
-                        <Badge key={index} variant="outline" className="text-xs bg-white">
-                          {sem}
+                    <h5 className="font-medium text-sm text-gray-600">Description</h5>
+                    <p className="text-sm text-gray-700">{courseDescription}</p>
+                  </div>
+                  
+                  {formattedSemOffered.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-sm text-gray-600">Semesters Offered</h5>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {formattedSemOffered.map((sem, index) => (
+                          <Badge key={index} variant="outline" className="text-xs bg-white">
+                            {sem}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {prescribedText && (
+                    <div>
+                      <h5 className="font-medium text-sm text-gray-600">Prescribed</h5>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        <Badge variant="outline" className="text-xs bg-white">
+                          {prescribedText}
                         </Badge>
-                      ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {prescribedText && (
-                  <div>
-                    <h5 className="font-medium text-sm text-gray-600">Prescribed</h5>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs bg-white">
-                        {prescribedText}
-                      </Badge>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

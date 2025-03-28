@@ -138,6 +138,31 @@ export const getCurrentUserCurriculumStructure = async (req, res) => {
       [curriculum_id]
     );
     
+    // Fetch the course data to count required academic vs non-academic courses
+    const coursesResult = await client.query(
+      `SELECT 
+          c.*, 
+          c.units,
+          cc.course_type,
+          cc.year,
+          cc.sem,
+          COALESCE(c.is_academic, true) as is_academic
+       FROM courses c
+       JOIN curriculum_courses cc ON c.course_id = cc.course_id
+       JOIN curriculums cu ON cc.curriculum_id = cu.curriculum_id
+       WHERE cu.curriculum_id = $1`,
+      [curriculum_id]
+    );
+    
+    // Count required academic and non-academic courses
+    const requiredAcademicCount = coursesResult.rows.filter(course => 
+      course.is_academic !== false
+    ).length;
+    
+    const requiredNonAcademicCount = coursesResult.rows.filter(course => 
+      course.is_academic === false
+    ).length;
+    
     // Calculate totals across all years and semesters
     const totals = {
       major_units: 0,
@@ -164,6 +189,13 @@ export const getCurrentUserCurriculumStructure = async (req, res) => {
         totals[key] += parseInt(row[key] || 0);
       });
     });
+    
+    // Add required academic and non-academic counts
+    totals.required_academic_count = requiredAcademicCount;
+    totals.required_non_academic_count = requiredNonAcademicCount;
+    
+    // Make sure required_count is the sum of both academic and non-academic
+    totals.required_count = requiredAcademicCount + requiredNonAcademicCount;
     
     // Filter out fields with zero values
     const filteredTotals = {};
