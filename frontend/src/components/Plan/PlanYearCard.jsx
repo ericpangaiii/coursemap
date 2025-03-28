@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import PlanSemesterCard from "@/components/CourseworkPlan/PlanSemesterCard";
+import PlanSemesterCard from "@/components/Plan/PlanSemesterCard";
 
 const PlanYearCard = ({ year, yearData }) => {
   return (

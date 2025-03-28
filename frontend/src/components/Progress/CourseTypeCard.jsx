@@ -31,11 +31,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
   const isRequiredAcademic = standardType === 'required_academic';
   const isRequiredNonAcademic = standardType === 'required_non_academic';
   
-  // Set the isAcademic flag based on the type
-  const isAcademic = !isRequiredNonAcademic;
-  
-  // For course type utility functions, use "required" as the type and pass isAcademic flag
-  const displayType = isRequiredAcademic || isRequiredNonAcademic ? "required" : type;
+  // For course type utility functions, use the actual type
+  const displayType = type;
   
   // Log what we're displaying for debugging
   console.log(`CourseTypeCard for ${type}: isRequiredAcademic=${isRequiredAcademic}, isRequiredNonAcademic=${isRequiredNonAcademic}, displayType=${displayType}, courses=${courseList.length}`);
@@ -77,8 +74,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
       <CardHeader className="pb-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <div className={`w-2 h-6 rounded mr-2 ${getCourseTypeColor(displayType, isAcademic)}`}></div>
-            <CardTitle className="text-lg">{getCourseTypeName(displayType, isAcademic)}</CardTitle>
+            <div className={`w-2 h-6 rounded mr-2 ${getCourseTypeColor(displayType)}`}></div>
+            <CardTitle className="text-lg">{getCourseTypeName(displayType)}</CardTitle>
             <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
               {placeholderProgress.completed}/{standardType === 'required' || standardType === 'required_academic' || standardType === 'required_non_academic' ? courseList.length : stats.total}
             </div>
@@ -94,7 +91,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
         {courseList.length === 0 ? (
           <p className="text-gray-500 text-sm">
             {stats && stats.total > 0 
-              ? `You need to take ${stats.total} ${getCourseTypeName(displayType, isAcademic).toLowerCase()}.`
+              ? `You need to take ${stats.total} ${getCourseTypeName(displayType).toLowerCase()}.`
               : "None assigned in your curriculum."}
           </p>
         ) : (
@@ -106,7 +103,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                 <div 
-                  className={`h-2.5 rounded-full ${getCourseTypeColor(displayType, isAcademic)}`} 
+                  className={`h-2.5 rounded-full ${getCourseTypeColor(displayType)}`} 
                   style={{ 
                     width: `${placeholderProgress.percentage}%`,
                     transition: 'width 1s ease-in-out'
@@ -124,8 +121,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                     course={{
                       ...course,
                       // Ensure the course_type is set if it isn't already
-                      course_type: course.course_type || type,
-                      is_academic: isAcademic
+                      course_type: course.course_type || type
                     }}
                     type={displayType} 
                   />
@@ -149,13 +145,13 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   >
                     <DialogHeader>
                       <DialogTitle className="flex items-center">
-                        <div className={`w-3 h-6 rounded mr-2 ${getCourseTypeColor(displayType, isAcademic)}`}></div>
-                        {getCourseTypeName(displayType, isAcademic)}
+                        <div className={`w-3 h-6 rounded mr-2 ${getCourseTypeColor(displayType)}`}></div>
+                        {getCourseTypeName(displayType)}
                       </DialogTitle>
                       <DialogDescription>
                         {isElectiveType && stats.available > stats.total
                           ? `Choose ${stats.total} from ${stats.available} available options.`
-                          : `These are the ${getCourseTypeName(displayType, isAcademic).toLowerCase()} courses you need to complete.`}
+                          : `These are the ${getCourseTypeName(displayType).toLowerCase()} courses you need to complete.`}
                       </DialogDescription>
                     </DialogHeader>
                     <ScrollArea className="max-h-[70vh] mt-2">
@@ -165,8 +161,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                             key={`${course.course_id}-${index}`}
                             course={{
                               ...course,
-                              course_type: course.course_type || type,
-                              is_academic: isAcademic
+                              course_type: course.course_type || type
                             }}
                             type={displayType} 
                           />

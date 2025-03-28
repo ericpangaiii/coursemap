@@ -449,7 +449,7 @@ const ProgressPage = () => {
   const completedCourses = 0; // Placeholder
   const remainingCourses = totalRequired - completedCourses;
   const completionPercentage = Math.round((completedCourses / totalRequired) * 100) || 0;
-
+  
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <PageHeader 
@@ -509,20 +509,20 @@ const ProgressPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-2">
                   {totalRequired > 0 ? (
                     <>
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                        <h3 className="text-3xl font-bold text-blue-600">{completedCourses}</h3>
-                        <p className="text-sm text-blue-700 font-medium mt-1">Courses Completed</p>
-                      </div>
-                      
-                      <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                    <h3 className="text-3xl font-bold text-blue-600">{completedCourses}</h3>
+                    <p className="text-sm text-blue-700 font-medium mt-1">Courses Completed</p>
+                  </div>
+                  
+                  <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
                         <h3 className="text-3xl font-bold text-amber-600">{remainingCourses}</h3>
-                        <p className="text-sm text-amber-700 font-medium mt-1">Courses Remaining</p>
-                      </div>
-                      
-                      <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                    <p className="text-sm text-amber-700 font-medium mt-1">Courses Remaining</p>
+                  </div>
+                  
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
                         <h3 className="text-3xl font-bold text-green-600">{completionPercentage}%</h3>
-                        <p className="text-sm text-green-700 font-medium mt-1">Overall Completion</p>
-                      </div>
+                    <p className="text-sm text-green-700 font-medium mt-1">Overall Completion</p>
+                  </div>
                     </>
                   ) : (
                     <div className="col-span-full p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
@@ -541,62 +541,47 @@ const ProgressPage = () => {
             </CardHeader>
             <CardContent>
               {courseTypes.length > 0 ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                   {/* Course types */}
-                  {courseTypes.map(type => {
-                    const stats = getStatsForType(type);
+                {courseTypes.map(type => {
+                  const stats = getStatsForType(type);
                     
-                    // For required types, use the utils.js function to get the proper name
-                    let typeName;
-                    let isAcademic = true; // Default for most types
-                    
-                    if (type === "required_academic") {
-                      typeName = getCourseTypeName("required", true);
-                      isAcademic = true;
-                    } else if (type === "required_non_academic") {
-                      typeName = getCourseTypeName("required", false);
-                      isAcademic = false;
-                    } else {
-                      typeName = getReadableTypeName(type);
-                    }
-                    
-                    // Get the appropriate color for this course type
-                    const typeColor = type === "required_academic" ? "required" : 
-                                      type === "required_non_academic" ? "required" : type;
-                    
-                    return (
-                      <div key={type} className="border rounded-md p-4">
-                        <h3 className="text-sm font-medium text-gray-500">{typeName}</h3>
-                        <p className="text-2xl font-bold">{stats.completed}/{stats.total}</p>
-                        <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
+                  // For required types, use the utils.js function to get the proper name
+                  const typeName = getCourseTypeName(type);
+                  
+                  return (
+                    <div key={type} className="border rounded-md p-4">
+                      <h3 className="text-sm font-medium text-gray-500">{typeName}</h3>
+                      <p className="text-2xl font-bold">{stats.completed}/{stats.total}</p>
+                      <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
                           <div 
                             className={`h-1.5 rounded-full ${
                               type === "required_academic" ? "bg-blue-500" : 
-                              type === "required_non_academic" ? "bg-blue-300" :
+                              type === "required_non_academic" ? "bg-green-500" :
                               type === "major" ? "bg-red-500" :
                               type === "ge_elective" ? "bg-yellow-500" :
                               type === "elective" ? "bg-purple-500" :
                               type === "cognate" ? "bg-indigo-500" :
                               type === "specialized" ? "bg-teal-500" :
                               type === "track" ? "bg-orange-500" :
-                              "bg-blue-600"
+                              "bg-gray-500"
                             }`} 
                             style={{ width: `${stats.percentage}%` }}
                           ></div>
-                        </div>
                       </div>
-                    );
-                  })}
-                  
-                  {/* Total courses */}
-                  <div className="border rounded-md p-4 bg-gray-50">
-                    <h3 className="text-sm font-medium text-gray-500">Total Courses</h3>
-                    <p className="text-2xl font-bold">{completedCourses}/{totalRequired}</p>
-                    <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
-                      <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: "0%" }}></div>
                     </div>
+                  );
+                })}
+                  
+                {/* Total courses */}
+                <div className="border rounded-md p-4 bg-gray-50">
+                  <h3 className="text-sm font-medium text-gray-500">Total Courses</h3>
+                    <p className="text-2xl font-bold">{completedCourses}/{totalRequired}</p>
+                  <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: "0%" }}></div>
                   </div>
                 </div>
+              </div>
               ) : (
                 <div className="p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
                   <p className="text-gray-500">No course requirements found.</p>
@@ -610,12 +595,12 @@ const ProgressPage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {courseTypes.length > 0 ? (
               courseTypes.map(type => (
-                <CourseTypeCard
-                  key={type}
-                  type={type}
-                  courses={coursesByType[type] || []}
-                  stats={getStatsForType(type)}
-                />
+              <CourseTypeCard
+                key={type}
+                type={type}
+                courses={coursesByType[type] || []}
+                stats={getStatsForType(type)}
+              />
               ))
             ) : (
               <div className="col-span-full p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
@@ -632,33 +617,7 @@ const ProgressPage = () => {
 
 // Helper function to get readable course type names
 const getReadableTypeName = (type) => {
-  // Standardize type
-  let standardType = type.toLowerCase();
-  
-  // Handle GE Electives
-  if (standardType === "ge elective" || standardType === "geelective" || standardType === "ge") {
-    standardType = "ge_elective";
-  }
-  
-  // Handle required academic and non-academic
-  if (standardType === "required_academic") {
-    return getCourseTypeName("required", true);
-  }
-  
-  if (standardType === "required_non_academic") {
-    return getCourseTypeName("required", false);
-  }
-  
-  const names = {
-    'major': 'Major',
-    'required': 'Required',
-    'ge_elective': 'GE Elective',
-    'elective': 'Elective',
-    'cognate': 'Cognate',
-    'specialized': 'Specialized',
-    'track': 'Track'
-  };
-  return names[standardType] || type;
+  return getCourseTypeName(type);
 };
 
 export default ProgressPage; 

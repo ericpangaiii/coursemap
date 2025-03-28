@@ -5,15 +5,14 @@ import { plansAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, AlertCircle, Plus, FileText } from "lucide-react";
 import PlanYearCard from "./PlanYearCard";
-import PlanCreationModal from "./PlanCreationModal";
+import PlanCreationModal from "@/components/CourseworkPlan/PlanCreationModal";
 
 const CourseworkPlanDisplay = () => {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [organizedCourses, setOrganizedCourses] = useState({});
-  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
-  const [isEditingPlan, setIsEditingPlan] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   // Check if plan has courses
   const hasCourses = plan?.courses && plan.courses.length > 0;
@@ -95,18 +94,24 @@ const CourseworkPlanDisplay = () => {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Coursework Plan</h2>
+        <h2 className="text-2xl font-bold">Plan of Coursework</h2>
         <div className="flex gap-2">
           <Button variant="outline" disabled>
             <FileText className="h-4 w-4 mr-2" />
             Export as PDF
           </Button>
-          <Button onClick={() => setIsCreatingPlan(true)}>
+          <Button onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create Plan
           </Button>
         </div>
       </div>
+      
+      {/* Plan Creation Modal */}
+      <PlanCreationModal 
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+      />
       
       {!hasCourses && (
         <div className="mb-6">
@@ -122,7 +127,7 @@ const CourseworkPlanDisplay = () => {
       {hasCourses && (
         <div className="flex justify-start mb-4">
           <Button 
-            onClick={() => setIsEditingPlan(true)} 
+            disabled
             className="flex items-center gap-1"
           >
             <Edit className="h-4 w-4" />
@@ -140,16 +145,6 @@ const CourseworkPlanDisplay = () => {
           />
         ))}
       </div>
-      
-      {/* Plan Creation/Editing Modal */}
-      <PlanCreationModal 
-        open={isCreatingPlan || isEditingPlan} 
-        onOpenChange={() => {
-          setIsCreatingPlan(false);
-          setIsEditingPlan(false);
-        }}
-        isEditing={isEditingPlan}
-      />
     </div>
   );
 };

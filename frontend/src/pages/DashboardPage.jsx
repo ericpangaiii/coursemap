@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
-import CourseworkPlanDisplay from "@/components/CourseworkPlan/CourseworkPlanDisplay";
+import CourseworkPlanDisplay from "@/components/Plan/CourseworkPlanDisplay";
 
 const DashboardPage = () => {
   return (

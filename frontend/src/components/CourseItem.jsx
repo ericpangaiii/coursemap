@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { getCourseTypeColor } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const CourseItem = ({ course, type = "course" }) => {
+const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester" }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   
   // Bail out if no course provided
@@ -23,48 +24,42 @@ const CourseItem = ({ course, type = "course" }) => {
   const courseTitle = course.title || "Unnamed Course";
   const courseUnits = course.units || "N/A";
   const semOffered = course.sem_offered;
-  const isAcademic = course.is_academic !== false; // Default to true if not specified
   const isCombinedCourse = courseCode === "HK 12/13" || !!course.combined_courses;
   
-  // Debug log to see what we're getting
-  if (typeof window !== 'undefined' && window.ENV === 'development') {
-    console.debug(`Course ${courseCode} data:`, { 
-      sem_offered: course.sem_offered,
-      year: course.year,
-      sem: course.sem,
-      prescribed_year: course.prescribed_year,
-      prescribed_semester: course.prescribed_semester,
-      is_academic: course.is_academic,
-      type: type,
-      course_type: course.course_type,
-      combined_courses: course.combined_courses
-    });
-  }
+  // Year options
+  const yearOptions = [
+    { value: "1", label: "1st Year" },
+    { value: "2", label: "2nd Year" },
+    { value: "3", label: "3rd Year" },
+    { value: "4", label: "4th Year" },
+    { value: "5", label: "5th Year" }
+  ];
+
+  // Semester options
+  const semesterOptions = [
+    { value: "1", label: "1st Semester" },
+    { value: "2", label: "2nd Semester" },
+    { value: "M", label: "Mid Year" }
+  ];
   
   // Normalize course type for color determination
-  // First check passed type prop, then course.course_type, then fallback to "course"
   const normalizedType = (type && type !== "course") ? type : 
                          (course.course_type ? course.course_type : "course");
   
   // Get color based on course type using the utility function
   const getCourseColor = () => {
-    return getCourseTypeColor(normalizedType, isAcademic);
+    return getCourseTypeColor(normalizedType);
   };
   
-  // Format semester offered to use proper capitalization (1s,2s,M -> 1S, 2S, M)
+  // Format semester offered to use proper capitalization (1s,2s,M -> 1st Sem, 2nd Sem, Mid Year)
   let formattedSemOffered = [];
   if (semOffered) {
-    formattedSemOffered = semOffered
-      .split(',')
-      .map(sem => {
-        // Format semester based on value
-        const trimmed = sem.trim();
-        if (trimmed.toLowerCase() === "m") return "Mid Year";
-        // Replace patterns like "1s" or "2s" with "1st Sem" or "2nd Sem"
-        if (trimmed === "1s" || trimmed === "1S") return "1st Sem";
-        if (trimmed === "2s" || trimmed === "2S") return "2nd Sem";
-        return trimmed;
-      });
+    formattedSemOffered = semOffered.split(',').map(sem => {
+      const trimmedSem = sem.trim();
+      return trimmedSem === '1' || trimmedSem === '1s' || trimmedSem === '1S' ? '1st Sem' : 
+             trimmedSem === '2' || trimmedSem === '2s' || trimmedSem === '2S' ? '2nd Sem' : 
+             trimmedSem === 'M' || trimmedSem === 'm' ? 'Mid Year' : trimmedSem;
+    });
   }
   
   // Get prescribed year and semester directly from the course data
@@ -168,11 +163,11 @@ const CourseItem = ({ course, type = "course" }) => {
   };
   
   return (
-    <div className={`p-3 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-between relative overflow-hidden ${!isAcademic ? 'bg-gray-50' : ''}`}>
+    <div className="p-3 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-between relative overflow-hidden">
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
       <div className="flex-1 min-w-0 pl-2">
         <div className="flex items-center flex-wrap gap-y-1">
-          <h4 className={`font-medium ${isAcademic ? 'text-gray-900' : 'text-gray-600'} mr-2`}>{courseCode}</h4>
+          <h4 className="font-medium text-gray-900 mr-2">{courseCode}</h4>
           <Badge variant="outline" className="ml-1 bg-white">
             {courseUnits} units
           </Badge>
@@ -238,6 +233,40 @@ const CourseItem = ({ course, type = "course" }) => {
           </Tooltip>
         </TooltipProvider>
       </div>
+      {inPlanCreation && (
+        <div className="flex flex-col gap-2">
+          <Select
+            value={course.year || ""}
+            onValueChange={(value) => onYearChange?.(course.id, value)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder={yearPlaceholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {yearOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={course.semester || ""}
+            onValueChange={(value) => onSemesterChange?.(course.id, value)}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder={semesterPlaceholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {semesterOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };
