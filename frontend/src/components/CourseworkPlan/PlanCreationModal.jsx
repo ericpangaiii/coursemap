@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, Trash2, Info, SearchX } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Trash2, Info, SearchX, Check } from "lucide-react";
 import { curriculumsAPI } from "@/lib/api";
 import CourseItem from "@/components/CourseItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -56,9 +56,7 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 
-                          isSelected ? 'bg-blue-50' : 
-                          'hover:bg-gray-50'}`}
+                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
                       disabled={isInPlan}
                     >
                       <CourseItemWithPlacement 
@@ -66,6 +64,11 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                         type="ge_elective"
                         planData={planData}
                       />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
                       {isInPlan && (
                         <div className="absolute inset-0 flex items-center justify-end pr-4">
                           <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
@@ -136,9 +139,7 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 
-                          isSelected ? 'bg-blue-50' : 
-                          'hover:bg-gray-50'}`}
+                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
                       disabled={isInPlan}
                     >
                       <CourseItemWithPlacement 
@@ -146,6 +147,11 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                         type="elective"
                         planData={planData}
                       />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
                       {isInPlan && (
                         <div className="absolute inset-0 flex items-center justify-end pr-4">
                           <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
@@ -216,9 +222,7 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 
-                          isSelected ? 'bg-blue-50' : 
-                          'hover:bg-gray-50'}`}
+                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
                       disabled={isInPlan}
                     >
                       <CourseItemWithPlacement 
@@ -226,6 +230,11 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                         type="major"
                         planData={planData}
                       />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
                       {isInPlan && (
                         <div className="absolute inset-0 flex items-center justify-end pr-4">
                           <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
@@ -297,9 +306,7 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 
-                          isSelected ? 'bg-blue-50' : 
-                          'hover:bg-gray-50'}`}
+                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
                       disabled={isInPlan}
                     >
                       <CourseItemWithPlacement 
@@ -307,6 +314,11 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                         type="required_academic"
                         planData={planData}
                       />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
                       {isInPlan && (
                         <div className="absolute inset-0 flex items-center justify-end pr-4">
                           <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
@@ -378,9 +390,7 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 
-                          isSelected ? 'bg-blue-50' : 
-                          'hover:bg-gray-50'}`}
+                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
                       disabled={isInPlan}
                     >
                       <CourseItemWithPlacement 
@@ -388,6 +398,11 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                         type="required_non_academic"
                         planData={planData}
                       />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
                       {isInPlan && (
                         <div className="absolute inset-0 flex items-center justify-end pr-4">
                           <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
@@ -526,8 +541,7 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                       key={sem}
                       onClick={() => selectedCourse && onSemesterClick(year, sem)}
                       className={`border rounded p-2 text-left transition-colors relative min-h-[4rem]
-                        ${selectedCourse ? 'hover:bg-blue-50 hover:border-blue-300 cursor-pointer' : 'cursor-default'}
-                        ${selectedCourse ? 'animate-pulse' : ''}
+                        ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : 'cursor-default'}
                         ${hasContent ? 'bg-gray-50' : ''}`}
                     >
                       <p className="text-xs font-medium text-gray-500">{sem}</p>
@@ -790,13 +804,92 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
     const countField = `${type}_count`;
     const total = curriculumStructure.totals[countField] || courses.length;
     
+    // Get prescribed semesters from curriculum structure
+    const prescribedSemesters = getPrescribedSemestersForType(type);
+    
     return {
       total,
       completed: 0,
       percentage: 0,
-      available: courses.length
+      available: courses.length,
+      prescribedSemesters
     };
   };
+
+  // Function to get prescribed semesters for each course type from curriculum structure
+  const getPrescribedSemestersForType = (type) => {
+    if (!curriculumStructure || !curriculumStructure.structures || curriculumStructure.structures.length === 0) {
+      console.log(`No curriculum structures found for type: ${type}`);
+      return [];
+    }
+    
+    // Get relevant field from structure based on course type
+    const typeCountField = `${type}_count`;
+    
+    try {
+      // Filter structures where this type has courses (count > 0)
+      const relevantStructures = curriculumStructure.structures.filter(structure => {
+        // Convert to string then parse as int to handle various data types
+        const countStr = String(structure[typeCountField] || '0');
+        const count = parseInt(countStr, 10);
+        return count > 0;
+      });
+      
+      if (relevantStructures.length === 0) {
+        return [];
+      }
+      
+      // Map to year/semester format objects
+      return relevantStructures.map(structure => ({
+        year: structure.year,
+        sem: structure.sem,
+        count: parseInt(String(structure[typeCountField] || '0'), 10)
+      }));
+    } catch (error) {
+      console.error(`Error processing structure data for ${type}:`, error);
+      return [];
+    }
+  };
+
+  // After fetching data, update courses with prescribed semester information 
+  useEffect(() => {
+    if (!coursesByType || !curriculumStructure?.structures) return;
+    
+    // Update each course type with prescribed semester information
+    Object.keys(coursesByType).forEach(type => {
+      // For GE electives and electives, get the prescribed semesters from curriculum structure
+      if (type === 'ge_elective' || type === 'elective' || type === 'major') {
+        // Get semester information from the curriculum structure
+        const semestersInfo = getPrescribedSemestersForType(type);
+        
+        if (semestersInfo.length > 0) {
+          // Format semester information for display
+          const formattedSemesters = semestersInfo.map(sem => {
+            const year = sem.year === "1" ? "1st Year" : 
+                        sem.year === "2" ? "2nd Year" : 
+                        sem.year === "3" ? "3rd Year" : 
+                        `${sem.year}th Year`;
+            
+            const semester = sem.sem === "1" ? "1st Sem" : 
+                            sem.sem === "2" ? "2nd Sem" : 
+                            sem.sem === "3" || sem.sem === "M" ? "Mid Year" : 
+                            `Semester ${sem.sem}`;
+            
+            return `${year} ${semester}`;
+          });
+          
+          // Update each course's prescribed year and semester
+          coursesByType[type].forEach((course, index) => {
+            // Assign courses to semesters in a round-robin fashion
+            const semesterInfo = semestersInfo[index % semestersInfo.length];
+            course.prescribed_year = semesterInfo.year;
+            course.prescribed_semester = semesterInfo.sem;
+            course.prescribed_note = formattedSemesters;
+          });
+        }
+      }
+    });
+  }, [coursesByType, curriculumStructure]);
 
   const steps = [
     { title: "GE Electives", component: GEElectivesStep, type: "ge_elective" },
@@ -939,15 +1032,18 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
           <>
             <DialogHeader className="flex-shrink-0">
               <DialogTitle>Create Your Plan of Coursework</DialogTitle>
-        </DialogHeader>
+            </DialogHeader>
 
             <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden">
               {/* Left side - Overview */}
               <div className="flex-1 h-full flex flex-col min-w-0">
                 {selectedCourse && (
-                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0">
-                    <p className="text-sm text-blue-700 font-medium mb-1">Click a semester below to add:</p>
-                    <p className="text-sm text-blue-600 font-medium">{selectedCourse.course_code}</p>
+                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0">
+                    <div className="flex items-center">
+                      <Check className="w-4 h-4 text-blue-500 mr-1.5" />
+                      <p className="text-xs text-blue-700 font-medium">Click a semester below to add:</p>
+                    </div>
+                    <p className="text-sm text-blue-600 font-medium ml-6">{selectedCourse.course_code}</p>
                   </div>
                 )}
                 <PlanOverview 
@@ -963,10 +1059,10 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
               <div className="w-[500px] flex flex-col h-full">
                 {/* Progress indicator */}
                 <div className="flex items-center gap-2 mb-4 flex-shrink-0">
-            {availableSteps.map((step, index) => (
+                  {availableSteps.map((step, index) => (
                     <div key={index} className="flex items-center">
                       <div 
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs
                           ${index === currentStep ? 'bg-blue-500 text-white' : 
                             index < currentStep ? 'bg-blue-100 text-blue-500' : 
                             'bg-gray-100 text-gray-500'}`}
@@ -974,14 +1070,14 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                         {index + 1}
                       </div>
                       {index < availableSteps.length - 1 && (
-                        <div className={`w-12 h-0.5 mx-1
+                        <div className={`w-10 h-0.5 mx-1
                           ${index < currentStep ? 'bg-blue-500' : 'bg-gray-200'}`} 
                         />
                       )}
-              </div>
-            ))}
-          </div>
-          
+                    </div>
+                  ))}
+                </div>
+                
                 {/* Search bar */}
                 {currentStepType && (
                   <div className="mb-4 flex-shrink-0">
@@ -992,7 +1088,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full"
                     />
-            </div>
+                  </div>
                 )}
 
                 {/* Step content */}
@@ -1011,31 +1107,31 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                       ) : (
                         <SummaryStep planData={planData} />
                       )}
-              </div>
+                    </div>
                   ) : null}
                 </div>
 
                 {/* Navigation buttons */}
                 <div className="flex justify-between mt-4 pt-4 border-t">
-            <Button
-              variant="outline"
+                  <Button
+                    variant="outline"
                     onClick={handleBack}
-              disabled={currentStep === 0}
-            >
+                    disabled={currentStep === 0}
+                  >
                     <ChevronLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            
-            <Button
+                    Back
+                  </Button>
+                  
+                  <Button
                     onClick={handleNext}
                     disabled={currentStep === availableSteps.length - 1 || !canProceedToNextStep()}
                   >
                     {currentStep === availableSteps.length - 1 ? 'Create Plan' : 'Next'}
                     {currentStep < availableSteps.length - 1 && (
                       <ChevronRight className="w-4 h-4 ml-2" />
-              )}
-            </Button>
-          </div>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </>

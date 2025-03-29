@@ -63,6 +63,49 @@ const ProgressPage = () => {
     fetchCurriculumData();
   }, []);
   
+  // Function to get prescribed semesters for each course type from curriculum structure
+  const getPrescribedSemestersForType = (type) => {
+    if (!curriculumData || !curriculumData.structures || curriculumData.structures.length === 0) {
+      console.log(`No curriculum structures found for type: ${type}`);
+      return [];
+    }
+    
+    // Debug the structure of curriculumData
+    console.log('Curriculum structure data:', curriculumData);
+    
+    // Get relevant field from structure based on course type
+    const typeCountField = `${type}_count`;
+    
+    try {
+      // Filter structures where this type has courses (count > 0)
+      const relevantStructures = curriculumData.structures.filter(structure => {
+        // Convert to string then parse as int to handle various data types
+        const countStr = String(structure[typeCountField] || '0');
+        const count = parseInt(countStr, 10);
+        console.log(`Year ${structure.year}, Sem ${structure.sem}, ${typeCountField}: ${countStr} -> ${count}`);
+        return count > 0;
+      });
+      
+      if (relevantStructures.length === 0) {
+        console.log(`No relevant structures found for ${type}`);
+        return [];
+      }
+      
+      console.log(`Found ${relevantStructures.length} relevant structures for ${type}:`, 
+        relevantStructures.map(s => `Year ${s.year}, Sem ${s.sem}: ${s[typeCountField]} ${type}s`));
+      
+      // Map to year/semester format objects
+      return relevantStructures.map(structure => ({
+        year: structure.year,
+        sem: structure.sem,
+        count: parseInt(String(structure[typeCountField] || '0'), 10)
+      }));
+    } catch (error) {
+      console.error(`Error processing structure data for ${type}:`, error);
+      return [];
+    }
+  };
+  
   // Group courses by course type
   const coursesByType = curriculumCourses.reduce((acc, course) => {
     // Check if course has course_type property, if not, we may need different handling
@@ -414,13 +457,53 @@ const ProgressPage = () => {
     const completed = 0;
     const percentage = 0;
     
+    // Get the prescribed semesters for this type based on curriculum structure
+    const prescribedSemesters = getPrescribedSemestersForType(type);
+    
     return {
       total,
       completed,
       percentage,
-      available: courses.length
+      available: courses.length,
+      prescribedSemesters
     };
   };
+  
+  // After calculating stats, update prescribed_year and prescribed_semester 
+  // for GE electives and electives based on curriculum structure
+  Object.keys(coursesByType).forEach(type => {
+    // For GE electives and electives, get the prescribed semesters from curriculum structure
+    if (type === 'ge_elective' || type === 'elective' || type === 'major') {
+      // Get semester information from the curriculum structure
+      const semestersInfo = getPrescribedSemestersForType(type);
+      
+      if (semestersInfo.length > 0) {
+        // Format semester information for display
+        const formattedSemesters = semestersInfo.map(sem => {
+          const year = sem.year === "1" ? "1st Year" : 
+                      sem.year === "2" ? "2nd Year" : 
+                      sem.year === "3" ? "3rd Year" : 
+                      `${sem.year}th Year`;
+          
+          const semester = sem.sem === "1" ? "1st Sem" : 
+                          sem.sem === "2" ? "2nd Sem" : 
+                          sem.sem === "3" ? "Mid Year" : 
+                          `Semester ${sem.sem}`;
+          
+          return `${year} ${semester}`;
+        });
+        
+        // Update each course's prescribed year and semester
+        coursesByType[type].forEach((course, index) => {
+          // Assign courses to semesters in a round-robin fashion
+          const semesterInfo = semestersInfo[index % semestersInfo.length];
+          course.prescribed_year = semesterInfo.year;
+          course.prescribed_semester = semesterInfo.sem;
+          course.prescribed_note = formattedSemesters;
+        });
+      }
+    }
+  });
   
   // List of course types to display
   const courseTypes = Object.keys(coursesByType).filter(type => {
@@ -613,11 +696,6 @@ const ProgressPage = () => {
       )}
     </div>
   );
-};
-
-// Helper function to get readable course type names
-const getReadableTypeName = (type) => {
-  return getCourseTypeName(type);
 };
 
 export default ProgressPage; 

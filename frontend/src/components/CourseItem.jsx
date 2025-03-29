@@ -102,17 +102,19 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   // Build the prescribed information text
   let prescribedText = "";
   
+  // Process prescribed semester information from course data
   if ((prescribedYear === 0 || prescribedYear === '0') && 
       (prescribedSemester === 0 || prescribedSemester === '0')) {
-    prescribedText = "Any Year, Any Semester";
+    // Don't set any default text, leave empty if there's no information
+    prescribedText = "";
   } else {
     const yearText = (prescribedYear === 0 || prescribedYear === '0') 
-                   ? "Any Year" 
-                   : formatYear(prescribedYear);
+                  ? "" 
+                  : formatYear(prescribedYear);
     const semText = formatSemester(prescribedSemester);
     
     if (yearText && semText) {
-      prescribedText = `${yearText}, ${semText}`;
+      prescribedText = `${yearText} ${semText}`;
     } else if (yearText) {
       prescribedText = yearText;
     } else if (semText) {
@@ -120,7 +122,16 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     }
   }
 
-  const courseDescription = course.description || "No description available";
+  // Clean up the course description, handle "No Available DATA" case
+  const getCourseDescription = () => {
+    // Check if there's no description or it contains the "No Available DATA" text
+    if (!course.description || course.description.trim() === "No Available DATA" || course.description.trim() === "No available data") {
+      return "No description available for this course.";
+    }
+    return course.description;
+  };
+
+  const courseDescription = getCourseDescription();
   
   // For combined courses like HK 12/13, create a special tooltip content
   const getCombinedCourseTooltipContent = () => {
@@ -141,7 +152,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                 <span className="mx-1">-</span>
                 <span>{c.title}</span>
                 {c.course_code === "HK 13" && (
-                  <span className="ml-1 text-xs text-blue-600 italic">(for varsity)</span>
+                  <span className="ml-1 text-xs text-blue-600 italic font-medium">(for varsity)</span>
                 )}
               </li>
             ))}
@@ -193,23 +204,23 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             </TooltipTrigger>
             <TooltipContent 
               side="right" 
-              className="max-w-md p-4 bg-white border border-gray-200 shadow-lg rounded-lg"
+              className="max-w-md p-5 bg-white border border-gray-200 shadow-lg rounded-lg"
             >
               {isCombinedCourse ? (
                 getCombinedCourseTooltipContent()
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
-                    <h5 className="font-medium text-sm text-gray-600">Description</h5>
-                    <p className="text-sm text-gray-700">{courseDescription}</p>
+                    <h5 className="font-medium text-sm text-gray-700 mb-1.5">Description</h5>
+                    <p className="text-sm text-gray-700 leading-relaxed">{courseDescription}</p>
                   </div>
                   
                   {formattedSemOffered.length > 0 && (
                     <div>
-                      <h5 className="font-medium text-sm text-gray-600">Semesters Offered</h5>
-                      <div className="flex flex-wrap gap-1 mt-1">
+                      <h5 className="font-medium text-sm text-gray-700 mb-1.5">Semesters Offered</h5>
+                      <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {formattedSemOffered.map((sem, index) => (
-                          <Badge key={index} variant="outline" className="text-xs bg-white">
+                          <Badge key={index} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
                             {sem}
                           </Badge>
                         ))}
@@ -217,14 +228,41 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                     </div>
                   )}
                   
-                  {prescribedText && (
+                  {(prescribedText || course.prescribed_note) && (
                     <div>
-                      <h5 className="font-medium text-sm text-gray-600">Prescribed</h5>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        <Badge variant="outline" className="text-xs bg-white">
-                          {prescribedText}
-                        </Badge>
-                      </div>
+                      <h5 className="font-medium text-sm text-gray-700 mb-1.5">Prescribed Semester</h5>
+                      {course.prescribed_note ? (
+                        <div className="mt-1.5">
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            {Array.isArray(course.prescribed_note) 
+                              ? course.prescribed_note.map((semester, idx) => {
+                                  const trimmedSemester = semester.trim();
+                                  return (
+                                    <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
+                                      {trimmedSemester}
+                                    </Badge>
+                                  );
+                                })
+                              : typeof course.prescribed_note === 'string'
+                                ? course.prescribed_note.split(',').map((semester, idx) => {
+                                    const trimmedSemester = semester.trim();
+                                    return (
+                                      <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
+                                        {trimmedSemester}
+                                      </Badge>
+                                    );
+                                  })
+                                : null
+                            }
+                          </div>
+                        </div>
+                      ) : prescribedText ? (
+                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          <Badge variant="outline" className="text-xs bg-white text-gray-900">
+                            {prescribedText}
+                          </Badge>
+                        </div>
+                      ) : null}
                     </div>
                   )}
                 </div>

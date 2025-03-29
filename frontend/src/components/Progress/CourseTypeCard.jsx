@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import CourseItem from "@/components/CourseItem";
 import { useState } from "react";
-import { List } from "lucide-react";
+import { List, Search, SearchX } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,27 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getCourseTypeColor, getCourseTypeName } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 const CourseTypeCard = ({ type, courses, stats }) => {
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   // Ensure courses is an array
   const courseList = Array.isArray(courses) ? courses : [];
+  
+  // Function to filter courses based on search query
+  const filterCourses = (courses) => {
+    if (!searchQuery) return courses;
+    const query = searchQuery.toLowerCase();
+    return courses.filter(course => 
+      course.course_code.toLowerCase().includes(query) || 
+      course.title.toLowerCase().includes(query)
+    );
+  };
+  
+  // Apply the filter to the course list
+  const filteredCourseList = filterCourses(courseList);
   
   // Check if this is an elective course type
   const standardType = type.toLowerCase();
@@ -148,24 +163,44 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                         <div className={`w-3 h-6 rounded mr-2 ${getCourseTypeColor(displayType)}`}></div>
                         {getCourseTypeName(displayType)}
                       </DialogTitle>
-                      <DialogDescription>
+                      <DialogDescription className="pb-4">
                         {isElectiveType && stats.available > stats.total
                           ? `Choose ${stats.total} from ${stats.available} available options.`
                           : `These are the ${getCourseTypeName(displayType).toLowerCase()} courses you need to complete.`}
                       </DialogDescription>
+                      
+                      {/* Search bar */}
+                      <div className="mt-8 relative">
+                        <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-500" />
+                        <Input
+                          type="text"
+                          placeholder="Search by course code or title..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full h-9 pl-9 text-sm"
+                        />
+                      </div>
                     </DialogHeader>
                     <ScrollArea className="max-h-[70vh] mt-2">
                       <div className="space-y-2 px-1">
-                        {courseList.map((course, index) => (
-                          <CourseItem 
-                            key={`${course.course_id}-${index}`}
-                            course={{
-                              ...course,
-                              course_type: course.course_type || type
-                            }}
-                            type={displayType} 
-                          />
-                        ))}
+                        {filteredCourseList.length > 0 ? (
+                          filteredCourseList.map((course, index) => (
+                            <CourseItem 
+                              key={`${course.course_id}-${index}`}
+                              course={{
+                                ...course,
+                                course_type: course.course_type || type
+                              }}
+                              type={displayType} 
+                            />
+                          ))
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                            <SearchX className="h-12 w-12 mb-3" />
+                            <p className="text-sm font-medium">No courses found</p>
+                            <p className="text-sm">Try adjusting your search query</p>
+                          </div>
+                        )}
                       </div>
                     </ScrollArea>
                   </DialogContent>

@@ -226,8 +226,6 @@ export const getCurrentUserCurriculumCourses = async (req, res) => {
     // Get the user's curriculum ID
     const { curriculum_id } = req.user;
     
-    console.log("Getting courses for curriculum ID:", curriculum_id);
-    
     if (!curriculum_id) {
       return res.status(404).json({ error: "User has no curriculum selected" });
     }
@@ -246,8 +244,6 @@ export const getCurrentUserCurriculumCourses = async (req, res) => {
        WHERE cu.curriculum_id = $1`,
       [curriculum_id]
     );
-    
-    console.log(`Found ${result.rows.length} courses for curriculum ${curriculum_id}`);
     
     res.json(result.rows);
   } catch (error) {
