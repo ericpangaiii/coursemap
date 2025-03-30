@@ -36,10 +36,28 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
           <div className="space-y-3 pr-4 p-1">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                const isInPlan = courseIdsInPlan.has(course.course_id) || 
-                  (course.combined_courses && 
-                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                const isSelected = selectedCourse?.course_id === course.course_id;
+                // Check if this course is in the plan
+                let isInPlan = false;
+                if (course.course_code === "HK 12/13") {
+                  // For HK 12/13 courses, check specific instance with year and semester
+                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
+                } else {
+                  // For regular courses
+                  isInPlan = courseIdsInPlan.has(course.course_id) || 
+                    (course.combined_courses && 
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                }
+                
+                // Enhanced selection check for HK 12/13 courses
+                const isSelected = selectedCourse && 
+                  // Check exact course ID match
+                  selectedCourse.course_id === course.course_id && 
+                  // For HK 12/13 courses, also check prescribed year and semester
+                  !(course.course_code === "HK 12/13" && 
+                    (selectedCourse.prescribed_year !== course.prescribed_year || 
+                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -119,10 +137,28 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
           <div className="space-y-3 pr-4 p-1">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                const isInPlan = courseIdsInPlan.has(course.course_id) || 
-                  (course.combined_courses && 
-                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                const isSelected = selectedCourse?.course_id === course.course_id;
+                // Check if this course is in the plan
+                let isInPlan = false;
+                if (course.course_code === "HK 12/13") {
+                  // For HK 12/13 courses, check specific instance with year and semester
+                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
+                } else {
+                  // For regular courses
+                  isInPlan = courseIdsInPlan.has(course.course_id) || 
+                    (course.combined_courses && 
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                }
+                
+                // Enhanced selection check for HK 12/13 courses
+                const isSelected = selectedCourse && 
+                  // Check exact course ID match
+                  selectedCourse.course_id === course.course_id && 
+                  // For HK 12/13 courses, also check prescribed year and semester
+                  !(course.course_code === "HK 12/13" && 
+                    (selectedCourse.prescribed_year !== course.prescribed_year || 
+                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -202,10 +238,28 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
           <div className="space-y-3 pr-4 p-1">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                const isInPlan = courseIdsInPlan.has(course.course_id) || 
-                  (course.combined_courses && 
-                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                const isSelected = selectedCourse?.course_id === course.course_id;
+                // Check if this course is in the plan
+                let isInPlan = false;
+                if (course.course_code === "HK 12/13") {
+                  // For HK 12/13 courses, check specific instance with year and semester
+                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
+                } else {
+                  // For regular courses
+                  isInPlan = courseIdsInPlan.has(course.course_id) || 
+                    (course.combined_courses && 
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                }
+                
+                // Enhanced selection check for HK 12/13 courses
+                const isSelected = selectedCourse && 
+                  // Check exact course ID match
+                  selectedCourse.course_id === course.course_id && 
+                  // For HK 12/13 courses, also check prescribed year and semester
+                  !(course.course_code === "HK 12/13" && 
+                    (selectedCourse.prescribed_year !== course.prescribed_year || 
+                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -286,10 +340,28 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
           <div className="space-y-3 pr-4 p-1">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                const isInPlan = courseIdsInPlan.has(course.course_id) || 
-                  (course.combined_courses && 
-                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                const isSelected = selectedCourse?.course_id === course.course_id;
+                // Check if this course is in the plan
+                let isInPlan = false;
+                if (course.course_code === "HK 12/13") {
+                  // For HK 12/13 courses, check specific instance with year and semester
+                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
+                } else {
+                  // For regular courses
+                  isInPlan = courseIdsInPlan.has(course.course_id) || 
+                    (course.combined_courses && 
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                }
+                
+                // Enhanced selection check for HK 12/13 courses
+                const isSelected = selectedCourse && 
+                  // Check exact course ID match
+                  selectedCourse.course_id === course.course_id && 
+                  // For HK 12/13 courses, also check prescribed year and semester
+                  !(course.course_code === "HK 12/13" && 
+                    (selectedCourse.prescribed_year !== course.prescribed_year || 
+                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -370,10 +442,28 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
           <div className="space-y-3 pr-4 p-1">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                const isInPlan = courseIdsInPlan.has(course.course_id) || 
-                  (course.combined_courses && 
-                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                const isSelected = selectedCourse?.course_id === course.course_id;
+                // Check if this course is in the plan
+                let isInPlan = false;
+                if (course.course_code === "HK 12/13") {
+                  // For HK 12/13 courses, check specific instance with year and semester
+                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
+                } else {
+                  // For regular courses
+                  isInPlan = courseIdsInPlan.has(course.course_id) || 
+                    (course.combined_courses && 
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                }
+                
+                // Enhanced selection check for HK 12/13 courses
+                const isSelected = selectedCourse && 
+                  // Check exact course ID match
+                  selectedCourse.course_id === course.course_id && 
+                  // For HK 12/13 courses, also check prescribed year and semester
+                  !(course.course_code === "HK 12/13" && 
+                    (selectedCourse.prescribed_year !== course.prescribed_year || 
+                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -512,6 +602,121 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
   const years = [1, 2, 3, 4];
   const semesters = ["1st Sem", "2nd Sem", "Mid Year"];
   
+  // Check if this semester matches the selected course's prescribed schedule
+  const isPrescribedSchedule = (year, sem) => {
+    if (!selectedCourse) return false;
+    
+    // Normalize semester names to match data format
+    const normalizedSem = 
+      sem === "1st Sem" ? "1" : 
+      sem === "2nd Sem" ? "2" : 
+      sem === "Mid Year" ? "3" : sem;
+    
+    // For courses with multiple prescribed semesters as an array (GE electives, electives, majors)
+    if (selectedCourse.prescribed_note && Array.isArray(selectedCourse.prescribed_note)) {
+      // Log for debugging
+      if (year === 1 && sem === "1st Sem") {
+        console.log("Checking prescribed semesters array for:", selectedCourse.course_code);
+        console.log("Prescribed notes:", selectedCourse.prescribed_note);
+      }
+      
+      // Check if any of the prescribed semesters match the current semester
+      return selectedCourse.prescribed_note.some(prescribedSemStr => {
+        // Format is like "1st Year 1st Sem"
+        // Extract the year number (1, 2, 3, 4, etc.)
+        let prescribedYear = null;
+        if (prescribedSemStr.includes("1st Year")) prescribedYear = "1";
+        else if (prescribedSemStr.includes("2nd Year")) prescribedYear = "2";
+        else if (prescribedSemStr.includes("3rd Year")) prescribedYear = "3";
+        else if (prescribedSemStr.includes("4th Year")) prescribedYear = "4";
+        else {
+          const match = prescribedSemStr.match(/(\d+)th Year/);
+          if (match) prescribedYear = match[1];
+        }
+
+        // Extract the semester (1, 2, 3/Mid Year)
+        let prescribedSem = null;
+        if (prescribedSemStr.includes("1st Sem")) prescribedSem = "1";
+        else if (prescribedSemStr.includes("2nd Sem")) prescribedSem = "2";
+        else if (prescribedSemStr.includes("Mid Year")) prescribedSem = "3";
+        
+        if (prescribedYear && prescribedSem) {
+          const isMatch = String(prescribedYear) === String(year) && prescribedSem === normalizedSem;
+          if (isMatch && year === 1 && sem === "1st Sem") {
+            console.log("Found match:", prescribedSemStr, "for year:", year, "sem:", sem);
+          }
+          return isMatch;
+        }
+        
+        return false;
+      });
+    }
+    
+    // For courses with multiple prescribed semesters as a string (comma-separated)
+    if (selectedCourse.prescribed_note && typeof selectedCourse.prescribed_note === 'string') {
+      // Log for debugging
+      if (year === 1 && sem === "1st Sem") {
+        console.log("Checking prescribed semesters string for:", selectedCourse.course_code);
+        console.log("Prescribed notes string:", selectedCourse.prescribed_note);
+      }
+      
+      // Split the string by commas and check each part
+      const prescribedSemesters = selectedCourse.prescribed_note.split(',');
+      
+      return prescribedSemesters.some(prescribedSemStr => {
+        prescribedSemStr = prescribedSemStr.trim();
+        
+        // Format is like "1st Year 1st Sem"
+        // Extract the year number (1, 2, 3, 4, etc.)
+        let prescribedYear = null;
+        if (prescribedSemStr.includes("1st Year")) prescribedYear = "1";
+        else if (prescribedSemStr.includes("2nd Year")) prescribedYear = "2";
+        else if (prescribedSemStr.includes("3rd Year")) prescribedYear = "3";
+        else if (prescribedSemStr.includes("4th Year")) prescribedYear = "4";
+        else {
+          const match = prescribedSemStr.match(/(\d+)th Year/);
+          if (match) prescribedYear = match[1];
+        }
+
+        // Extract the semester (1, 2, 3/Mid Year)
+        let prescribedSem = null;
+        if (prescribedSemStr.includes("1st Sem")) prescribedSem = "1";
+        else if (prescribedSemStr.includes("2nd Sem")) prescribedSem = "2";
+        else if (prescribedSemStr.includes("Mid Year")) prescribedSem = "3";
+        
+        if (prescribedYear && prescribedSem) {
+          const isMatch = String(prescribedYear) === String(year) && prescribedSem === normalizedSem;
+          if (isMatch && year === 1 && sem === "1st Sem") {
+            console.log("Found string match:", prescribedSemStr, "for year:", year, "sem:", sem);
+          }
+          return isMatch;
+        }
+        
+        return false;
+      });
+    }
+    
+    // For courses with a single prescribed semester (required academic/non-academic)
+    const prescribedYear = selectedCourse.year !== undefined ? 
+      selectedCourse.year : (selectedCourse.prescribed_year || null);
+    const prescribedSemester = selectedCourse.sem !== undefined ? 
+      selectedCourse.sem : (selectedCourse.semester !== undefined ? 
+        selectedCourse.semester : (selectedCourse.prescribed_semester || null));
+    
+    // Log for debugging single semester case
+    if (year === 1 && sem === "1st Sem") {
+      console.log("Single semester check for:", selectedCourse.course_code);
+      console.log("Year:", prescribedYear, "Semester:", prescribedSemester);
+    }
+    
+    // Compare with current semester
+    const isMatch = String(prescribedYear) === String(year) && String(prescribedSemester) === normalizedSem;
+    if (isMatch && year === 1 && sem === "1st Sem") {
+      console.log("Found match for single semester course:", selectedCourse.course_code);
+    }
+    return isMatch;
+  };
+  
   return (
     <Card className="p-4 h-full flex flex-col">
       <div className="flex items-center justify-between mb-3">
@@ -526,58 +731,58 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
           Clear All
         </Button>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="space-y-4 pr-4">
-          {years.map(year => (
-            <div key={year} className="space-y-2">
-              <h4 className="text-sm font-medium">{year === 1 ? "1st" : year === 2 ? "2nd" : year === 3 ? "3rd" : "4th"} Year</h4>
-              <div className="grid grid-cols-3 gap-2">
-                {semesters.map(sem => {
-                  const coursesInSem = planData[year]?.[sem] || [];
-                  const hasContent = coursesInSem.length > 0;
-                  
-                  return (
-                    <button
-                      key={sem}
-                      onClick={() => selectedCourse && onSemesterClick(year, sem)}
-                      className={`border rounded p-2 text-left transition-colors relative min-h-[4rem]
-                        ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : 'cursor-default'}
-                        ${hasContent ? 'bg-gray-50' : ''}`}
-                    >
-                      <p className="text-xs font-medium text-gray-500">{sem}</p>
-                      {hasContent ? (
-                        <div className="space-y-1 mt-1">
-                          {coursesInSem.map((course, idx) => (
-                            <div key={idx} className="flex items-center group">
-                              <div 
-                                className={`w-1 h-4 rounded-full mr-1.5 ${getCourseTypeColor(course.course_type)}`}
-                              />
-                              <p className="text-xs text-gray-600 truncate flex-1">
-                                {course.course_code}
-                              </p>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveCourse(year, sem, idx);
-                                }}
-                                className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 rounded transition-opacity"
-                              >
-                                <X className="h-3 w-3 text-red-500" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400">Empty</p>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+      <div className="space-y-4">
+        {years.map(year => (
+          <div key={year} className="space-y-2">
+            <h4 className="text-sm font-medium">{year === 1 ? "1st" : year === 2 ? "2nd" : year === 3 ? "3rd" : "4th"} Year</h4>
+            <div className="grid grid-cols-3 gap-2">
+              {semesters.map(sem => {
+                const coursesInSem = planData[year]?.[sem] || [];
+                const hasContent = coursesInSem.length > 0;
+                const isPrescribed = isPrescribedSchedule(year, sem);
+                
+                return (
+                  <button
+                    key={sem}
+                    onClick={() => selectedCourse && onSemesterClick(year, sem)}
+                    className={`border rounded p-2 text-left transition-colors relative min-h-[4rem]
+                      ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : 'cursor-default'}
+                      ${hasContent && !isPrescribed ? 'bg-gray-50' : ''}
+                      ${isPrescribed ? 'bg-blue-50 border-blue-300' : ''}`}
+                  >
+                    <p className={`text-xs font-medium ${isPrescribed ? 'text-blue-600' : 'text-gray-500'}`}>{sem}</p>
+                    {hasContent ? (
+                      <div className="space-y-1 mt-1">
+                        {coursesInSem.map((course, idx) => (
+                          <div key={idx} className="flex items-center group">
+                            <div 
+                              className={`w-1 h-4 rounded-full mr-1.5 ${getCourseTypeColor(course.course_type)}`}
+                            />
+                            <p className="text-xs text-gray-600 truncate flex-1">
+                              {course.course_code}
+                            </p>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveCourse(year, sem, idx);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 rounded transition-opacity"
+                            >
+                              <X className="h-3 w-3 text-red-500" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className={`text-xs ${isPrescribed ? 'text-blue-400' : 'text-gray-400'}`}>Empty</p>
+                    )}
+                  </button>
+                );
+              })}
             </div>
-          ))}
-        </div>
-      </ScrollArea>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 };
@@ -1003,18 +1208,37 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
 
   const courseIdsInPlan = () => {
     const ids = new Set();
+    const hk1213Courses = new Map(); // Map to track HK 12/13 courses by year and semester
+    
     Object.values(planData).forEach(yearData => {
       Object.values(yearData).forEach(semData => {
         semData.forEach(course => {
-          ids.add(course.course_id);
-          // For combined courses, also add their individual course IDs
-          if (course.combined_courses) {
-            course.combined_courses.forEach(c => ids.add(c.course_id));
+          if (course.course_code === "HK 12/13") {
+            // For HK 12/13 courses, track them with their prescribed year and semester
+            const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+            hk1213Courses.set(key, true);
+          } else {
+            // For regular courses
+            ids.add(course.course_id);
+            // For combined courses (non-HK), also add their individual course IDs
+            if (course.combined_courses) {
+              course.combined_courses.forEach(c => ids.add(c.course_id));
+            }
           }
         });
       });
     });
-    return ids;
+    
+    return {
+      has: (course_id) => {
+        if (course_id.startsWith('hk_combined_')) {
+          // Not just check course_id for HK 12/13, also check the specific instance
+          return false; // We'll handle this in the isInPlan check
+        }
+        return ids.has(course_id);
+      },
+      hk1213Courses
+    };
   };
 
   return (
@@ -1037,22 +1261,30 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
             <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden">
               {/* Left side - Overview */}
               <div className="flex-1 h-full flex flex-col min-w-0">
-                {selectedCourse && (
-                  <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0">
-                    <div className="flex items-center">
-                      <Check className="w-4 h-4 text-blue-500 mr-1.5" />
-                      <p className="text-xs text-blue-700 font-medium">Click a semester below to add:</p>
-                    </div>
-                    <p className="text-sm text-blue-600 font-medium ml-6">{selectedCourse.course_code}</p>
+                <ScrollArea className="h-full w-full">
+                  <div className="pr-4">
+                    {selectedCourse && (
+                      <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100 flex-shrink-0">
+                        <div className="flex items-center">
+                          <Check className="w-4 h-4 text-blue-500 mr-1.5" />
+                          <p className="text-xs text-blue-700 font-medium">Selected Course:</p>
+                        </div>
+                        <p className="text-sm text-blue-600 font-medium ml-6">{selectedCourse.course_code}</p>
+                        <div className="mt-2 pt-2 border-t border-blue-200 flex items-start">
+                          <Info className="w-3.5 h-3.5 text-blue-500 mr-1.5 flex-shrink-0 mt-0.5" />
+                          <p className="text-xs text-blue-600">Highlighted semesters are prescribed by your curriculum, but you can add this course to any semester.</p>
+                        </div>
+                      </div>
+                    )}
+                    <PlanOverview 
+                      selectedCourse={selectedCourse}
+                      onSemesterClick={handleSemesterClick}
+                      planData={planData}
+                      onRemoveCourse={handleRemoveCourse}
+                      onClear={handleClear}
+                    />
                   </div>
-                )}
-                <PlanOverview 
-                  selectedCourse={selectedCourse}
-                  onSemesterClick={handleSemesterClick}
-                  planData={planData}
-                  onRemoveCourse={handleRemoveCourse}
-                  onClear={handleClear}
-                />
+                </ScrollArea>
               </div>
               
               {/* Right side - Course Selection Steps */}
@@ -1145,10 +1377,22 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
 const CourseItemWithPlacement = ({ course, type, planData }) => {
   // Find where this course is placed in the plan
   let placement = null;
+  
   Object.entries(planData).forEach(([year, yearData]) => {
     Object.entries(yearData).forEach(([sem, courses]) => {
-      if (courses.some(c => c.course_id === course.course_id)) {
+      // For regular courses, check just the course ID
+      if (course.course_code !== "HK 12/13" && courses.some(c => c.course_id === course.course_id)) {
         placement = { year, sem };
+      } 
+      // For HK 12/13 courses, check both course ID AND prescribed year/semester
+      else if (course.course_code === "HK 12/13") {
+        courses.forEach(c => {
+          if (c.course_id === course.course_id && 
+              c.prescribed_year === course.prescribed_year && 
+              c.prescribed_semester === course.prescribed_semester) {
+            placement = { year, sem };
+          }
+        });
       }
     });
   });

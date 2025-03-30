@@ -38,8 +38,6 @@ const CourseTypeCard = ({ type, courses, stats }) => {
   const standardType = type.toLowerCase();
   const isElectiveType = standardType === 'elective' || 
                         standardType === 'ge_elective' || 
-                        standardType === 'ge elective' || 
-                        standardType === 'geelective' ||
                         standardType === 'major';
                         
   // Determine if this is a required academic or non-academic type

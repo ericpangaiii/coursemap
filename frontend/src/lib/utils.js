@@ -173,18 +173,18 @@ export const getCourseTypeName = (type) => {
   const normalizedType = getNormalizedCourseType(type);
   
   const names = {
-    'major': 'Major',
-    'ge': 'GE Elective',
-    'elective': 'Elective',
+    'major': 'Majors',
+    'ge': 'GE Electives',
+    'elective': 'Electives',
     'academic': 'Required Academic',
     'non_academic': 'Required Non-Academic',
-    'cognate': 'Cognate',
+    'cognate': 'Cognates',
     'specialized': 'Specialized',
-    'track': 'Track',
-    'course': 'Course'
+    'track': 'Tracks',
+    'course': 'Courses'
   };
   
-  return names[normalizedType] || 'Course';
+  return names[normalizedType] || 'Courses';
 };
 
 /**

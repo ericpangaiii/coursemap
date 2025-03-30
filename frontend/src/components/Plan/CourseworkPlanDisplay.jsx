@@ -5,7 +5,7 @@ import { plansAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, AlertCircle, Plus, FileText } from "lucide-react";
 import PlanYearCard from "./PlanYearCard";
-import PlanCreationModal from "@/components/CourseworkPlan/PlanCreationModal";
+import PlanCreationModal from "@/components/Plan/PlanCreationModal";
 
 const CourseworkPlanDisplay = () => {
   const [plan, setPlan] = useState(null);
