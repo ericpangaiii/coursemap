@@ -18,12 +18,14 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
     .filter(c => c.course_type === 'ge_elective' || c.course_type === 'ge' || c.course_type === 'ge elective')
     .length;
 
+  const isMaxReached = selectedCount >= stats.total;
+
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-4">
+      <div className="flex-shrink-0 mb-4">
         <div className="flex items-center">
           <h3 className="text-lg font-semibold">GE Electives</h3>
-          <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
             {selectedCount}/{stats.total}
           </div>
         </div>
@@ -31,9 +33,9 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
           Choose {stats.total} from {stats.available} available options
         </p>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="space-y-3 pr-4 p-1">
+          <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
                 // Check if this course is in the plan
@@ -58,6 +60,8 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                     (selectedCourse.prescribed_year !== course.prescribed_year || 
                      selectedCourse.prescribed_semester !== course.prescribed_semester));
                 
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -65,7 +69,7 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                   >
                     <button
                       onClick={() => {
-                        if (!isInPlan) {
+                        if (!isDisabled) {
                           if (isSelected) {
                             onCourseSelect(null);
                           } else {
@@ -74,8 +78,8 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
-                      disabled={isInPlan}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
                     >
                       <CourseItemWithPlacement 
                         course={course}
@@ -84,7 +88,9 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                       />
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
-                          <Check className="h-3 w-3" />
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                          </div>
                         </div>
                       )}
                       {isInPlan && (
@@ -119,12 +125,14 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
     .filter(c => c.course_type === 'elective')
     .length;
 
+  const isMaxReached = selectedCount >= stats.total;
+
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-4">
+      <div className="flex-shrink-0 mb-4">
         <div className="flex items-center">
           <h3 className="text-lg font-semibold">Electives</h3>
-          <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
             {selectedCount}/{stats.total}
           </div>
         </div>
@@ -132,9 +140,9 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
           Choose {stats.total} from {stats.available} available options
         </p>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="space-y-3 pr-4 p-1">
+          <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
                 // Check if this course is in the plan
@@ -159,6 +167,8 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                     (selectedCourse.prescribed_year !== course.prescribed_year || 
                      selectedCourse.prescribed_semester !== course.prescribed_semester));
                 
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -166,7 +176,7 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                   >
                     <button
                       onClick={() => {
-                        if (!isInPlan) {
+                        if (!isDisabled) {
                           if (isSelected) {
                             onCourseSelect(null);
                           } else {
@@ -175,8 +185,8 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
-                      disabled={isInPlan}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
                     >
                       <CourseItemWithPlacement 
                         course={course}
@@ -185,7 +195,9 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                       />
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
-                          <Check className="h-3 w-3" />
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                          </div>
                         </div>
                       )}
                       {isInPlan && (
@@ -220,22 +232,25 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
     .filter(c => c.course_type === 'major')
     .length;
 
+  const isMaxReached = selectedCount >= stats.total;
+
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-4">
+      <div className="flex-shrink-0 mb-4">
         <div className="flex items-center">
           <h3 className="text-lg font-semibold">Major Courses</h3>
-          <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
             {selectedCount}/{stats.total}
           </div>
         </div>
         <p className="text-sm text-gray-500 mt-1">
           {stats.total} required major courses
         </p>
+        {/* Completion message moved to PlanOverview */}
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="space-y-3 pr-4 p-1">
+          <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
                 // Check if this course is in the plan
@@ -260,6 +275,8 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                     (selectedCourse.prescribed_year !== course.prescribed_year || 
                      selectedCourse.prescribed_semester !== course.prescribed_semester));
                 
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -267,7 +284,7 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                   >
                     <button
                       onClick={() => {
-                        if (!isInPlan) {
+                        if (!isDisabled) {
                           if (isSelected) {
                             onCourseSelect(null);
                           } else {
@@ -276,8 +293,8 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
-                      disabled={isInPlan}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
                     >
                       <CourseItemWithPlacement 
                         course={course}
@@ -286,7 +303,9 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                       />
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
-                          <Check className="h-3 w-3" />
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                          </div>
                         </div>
                       )}
                       {isInPlan && (
@@ -322,22 +341,25 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
       (c.course_type === 'required' && c.is_academic))
     .length;
 
+  const isMaxReached = selectedCount >= stats.total;
+
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-4">
+      <div className="flex-shrink-0 mb-4">
         <div className="flex items-center">
           <h3 className="text-lg font-semibold">Required Academic</h3>
-          <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
             {selectedCount}/{stats.total}
           </div>
         </div>
         <p className="text-sm text-gray-500 mt-1">
           {stats.total} required academic courses
         </p>
+        {/* Completion message moved to PlanOverview */}
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="space-y-3 pr-4 p-1">
+          <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
                 // Check if this course is in the plan
@@ -362,6 +384,8 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                     (selectedCourse.prescribed_year !== course.prescribed_year || 
                      selectedCourse.prescribed_semester !== course.prescribed_semester));
                 
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -369,7 +393,7 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                   >
                     <button
                       onClick={() => {
-                        if (!isInPlan) {
+                        if (!isDisabled) {
                           if (isSelected) {
                             onCourseSelect(null);
                           } else {
@@ -378,8 +402,8 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
-                      disabled={isInPlan}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
                     >
                       <CourseItemWithPlacement 
                         course={course}
@@ -388,7 +412,9 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                       />
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
-                          <Check className="h-3 w-3" />
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                          </div>
                         </div>
                       )}
                       {isInPlan && (
@@ -424,22 +450,25 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
       (c.course_type === 'required' && !c.is_academic))
     .length;
 
+  const isMaxReached = selectedCount >= stats.total;
+
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-4">
+      <div className="flex-shrink-0 mb-4">
         <div className="flex items-center">
           <h3 className="text-lg font-semibold">Required Non-Academic</h3>
-          <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
             {selectedCount}/{stats.total}
           </div>
         </div>
         <p className="text-sm text-gray-500 mt-1">
           {stats.total} required non-academic courses
         </p>
+        {/* Completion message moved to PlanOverview */}
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">
-          <div className="space-y-3 pr-4 p-1">
+          <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
                 // Check if this course is in the plan
@@ -464,6 +493,8 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                     (selectedCourse.prescribed_year !== course.prescribed_year || 
                      selectedCourse.prescribed_semester !== course.prescribed_semester));
                 
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
                 return (
                   <div
                     key={`${course.course_id}-${index}`}
@@ -471,7 +502,7 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                   >
                     <button
                       onClick={() => {
-                        if (!isInPlan) {
+                        if (!isDisabled) {
                           if (isSelected) {
                             onCourseSelect(null);
                           } else {
@@ -480,8 +511,8 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                         }
                       }}
                       className={`w-full text-left relative rounded-lg overflow-hidden
-                        ${isInPlan ? 'opacity-50' : 'hover:bg-gray-50'}`}
-                      disabled={isInPlan}
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
                     >
                       <CourseItemWithPlacement 
                         course={course}
@@ -490,7 +521,9 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                       />
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
-                          <Check className="h-3 w-3" />
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                          </div>
                         </div>
                       )}
                       {isInPlan && (
@@ -557,13 +590,13 @@ const SummaryStep = ({ planData }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="mb-6">
+      <div className="flex-shrink-0 mb-6">
         <h3 className="text-lg font-semibold">Plan Summary</h3>
         <p className="text-sm text-gray-500 mt-1">
           Review your course selections before finalizing your plan.
         </p>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -598,10 +631,170 @@ const SummaryStep = ({ planData }) => {
 };
 
 // Overview component that shows the current plan state
-const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCourse, onClear }) => {
+const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCourse, onClear, coursesByType, getPrescribedSemestersForType }) => {
   const years = [1, 2, 3, 4];
   const semesters = ["1st Sem", "2nd Sem", "Mid Year"];
+  const [showFullCurriculum, setShowFullCurriculum] = useState(false);
   
+  // Get all courses from the curriculum organized by year and semester
+  const getCurriculumCourses = () => {
+    const curriculumCourses = {};
+    
+    // Initialize all years and semesters with empty arrays
+    years.forEach(year => {
+      curriculumCourses[year] = {};
+      semesters.forEach(sem => {
+        curriculumCourses[year][sem] = [];
+      });
+    });
+
+    // Helper to normalize semester format
+    const normalizeSemester = (sem) => {
+      if (sem === "1" || sem === 1) return "1st Sem";
+      if (sem === "2" || sem === 2) return "2nd Sem";
+      if (sem === "3" || sem === 3 || sem === "M" || sem === "m") return "Mid Year";
+      return "1st Sem"; // Default to 1st semester if unknown
+    };
+    
+    // 1. First add all specific courses from the curriculum
+    if (coursesByType) {
+      // Add required courses (academic and non-academic) which have specific course codes
+      const typeMap = {
+        'required_academic': 'required_academic',
+        'required_non_academic': 'required_non_academic'
+      };
+      
+      Object.entries(typeMap).forEach(([typeKey, courseType]) => {
+        const courses = coursesByType[typeKey] || [];
+        courses.forEach(course => {
+          const prescribedYear = parseInt(course.year || course.prescribed_year || 1);
+          const prescribedSem = normalizeSemester(course.sem || course.prescribed_semester || 1);
+          
+          // Only add if within our defined years and semesters
+          if (prescribedYear >= 1 && prescribedYear <= 4 && semesters.includes(prescribedSem)) {
+            curriculumCourses[prescribedYear][prescribedSem].push({
+              ...course,
+              // Explicitly set the course type to ensure proper coloring
+              course_type: courseType,
+              _isCurriculumCourse: true
+            });
+          }
+        });
+      });
+      
+      // 2. Add generic course type placeholders for GE, electives, and majors
+      // These don't represent specific courses but indicate that a course of this type should be taken
+      const typesToAddGeneric = ['ge_elective', 'elective', 'major'];
+      
+      typesToAddGeneric.forEach(type => {
+        // Get semester information from the curriculum structure
+        const semestersInfo = getPrescribedSemestersForType(type);
+        
+        semestersInfo.forEach(sem => {
+          const year = parseInt(sem.year);
+          const semester = normalizeSemester(sem.sem);
+          const count = parseInt(sem.count || 1);
+          
+          // Only add if within our defined years and semesters
+          if (year >= 1 && year <= 4 && semesters.includes(semester)) {
+            // Add a placeholder for each required course of this type
+            for (let i = 0; i < count; i++) {
+              const typeLabel = type === 'ge_elective' ? 'GE Elective' : 
+                               type === 'elective' ? 'Elective' : 
+                               'Major';
+              
+              curriculumCourses[year][semester].push({
+                course_id: `${type}_placeholder_${year}_${semester}_${i}`,
+                course_code: typeLabel,
+                course_type: type,
+                _isCurriculumCourse: true,
+                _isTypePlaceholder: true,
+                title: `${typeLabel} (Required)`,
+                prescribed_year: year,
+                prescribed_semester: sem.sem
+              });
+            }
+          }
+        });
+      });
+    }
+    
+    return curriculumCourses;
+  };
+  
+  // Get merged data of user plan and curriculum courses
+  const getMergedData = () => {
+    if (!showFullCurriculum) return planData;
+    
+    const curriculumCourses = getCurriculumCourses();
+    const mergedData = JSON.parse(JSON.stringify(curriculumCourses));
+    
+    // Merge user's plan into the curriculum data
+    Object.entries(planData).forEach(([year, yearData]) => {
+      Object.entries(yearData).forEach(([sem, courses]) => {
+        // Convert year to number for proper indexing
+        const yearNum = parseInt(year);
+        
+        // Only process if within our defined years and semesters
+        if (yearNum >= 1 && yearNum <= 4 && semesters.includes(sem)) {
+          // Add user's courses
+          courses.forEach(course => {
+            // If the course is already in the curriculum for this semester, remove it
+            mergedData[yearNum][sem] = mergedData[yearNum][sem].filter(c => 
+              c.course_id !== course.course_id
+            );
+            
+            // Also remove one placeholder of matching type if it exists
+            // This is for GE/elective/major placeholders
+            const courseType = course.course_type;
+            if (courseType === 'ge_elective' || courseType === 'elective' || courseType === 'major') {
+              // Find index of first matching type placeholder
+              const placeholderIndex = mergedData[yearNum][sem].findIndex(
+                c => c._isTypePlaceholder && c.course_type === courseType
+              );
+              
+              // Remove one placeholder if found
+              if (placeholderIndex !== -1) {
+                mergedData[yearNum][sem].splice(placeholderIndex, 1);
+              }
+            }
+            
+            // Add the user's course
+            mergedData[yearNum][sem].push(course);
+          });
+        }
+      });
+    });
+    
+    return mergedData;
+  };
+  
+  // Get data to display (either just plan or merged with curriculum)
+  const displayData = getMergedData();
+  
+  // Return different CSS class for type placeholders vs regular courses
+  const getCourseItemClass = (course) => {
+    if (course._isTypePlaceholder) {
+      return 'text-gray-400 italic font-normal';
+    }
+    return course._isCurriculumCourse ? 'text-gray-400 italic' : 'text-gray-600';
+  };
+  
+  // Return appropriate color class - more transparent for curriculum courses
+  const getCourseIndicatorClass = (course, colorType) => {
+    const baseColor = getCourseTypeColor(colorType);
+    if (course._isCurriculumCourse) {
+      // Return a more transparent version of the color
+      if (baseColor.includes('bg-yellow-500')) return 'bg-yellow-200';
+      if (baseColor.includes('bg-blue-500')) return 'bg-blue-200';
+      if (baseColor.includes('bg-blue-300')) return 'bg-blue-100';
+      if (baseColor.includes('bg-purple-500')) return 'bg-purple-200';
+      if (baseColor.includes('bg-red-500')) return 'bg-red-200';
+      return 'bg-gray-200';
+    }
+    return baseColor;
+  };
+
   // Check if this semester matches the selected course's prescribed schedule
   const isPrescribedSchedule = (year, sem) => {
     if (!selectedCourse) return false;
@@ -614,12 +807,6 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
     
     // For courses with multiple prescribed semesters as an array (GE electives, electives, majors)
     if (selectedCourse.prescribed_note && Array.isArray(selectedCourse.prescribed_note)) {
-      // Log for debugging
-      if (year === 1 && sem === "1st Sem") {
-        console.log("Checking prescribed semesters array for:", selectedCourse.course_code);
-        console.log("Prescribed notes:", selectedCourse.prescribed_note);
-      }
-      
       // Check if any of the prescribed semesters match the current semester
       return selectedCourse.prescribed_note.some(prescribedSemStr => {
         // Format is like "1st Year 1st Sem"
@@ -641,11 +828,7 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
         else if (prescribedSemStr.includes("Mid Year")) prescribedSem = "3";
         
         if (prescribedYear && prescribedSem) {
-          const isMatch = String(prescribedYear) === String(year) && prescribedSem === normalizedSem;
-          if (isMatch && year === 1 && sem === "1st Sem") {
-            console.log("Found match:", prescribedSemStr, "for year:", year, "sem:", sem);
-          }
-          return isMatch;
+          return String(prescribedYear) === String(year) && prescribedSem === normalizedSem;
         }
         
         return false;
@@ -654,12 +837,6 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
     
     // For courses with multiple prescribed semesters as a string (comma-separated)
     if (selectedCourse.prescribed_note && typeof selectedCourse.prescribed_note === 'string') {
-      // Log for debugging
-      if (year === 1 && sem === "1st Sem") {
-        console.log("Checking prescribed semesters string for:", selectedCourse.course_code);
-        console.log("Prescribed notes string:", selectedCourse.prescribed_note);
-      }
-      
       // Split the string by commas and check each part
       const prescribedSemesters = selectedCourse.prescribed_note.split(',');
       
@@ -685,11 +862,7 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
         else if (prescribedSemStr.includes("Mid Year")) prescribedSem = "3";
         
         if (prescribedYear && prescribedSem) {
-          const isMatch = String(prescribedYear) === String(year) && prescribedSem === normalizedSem;
-          if (isMatch && year === 1 && sem === "1st Sem") {
-            console.log("Found string match:", prescribedSemStr, "for year:", year, "sem:", sem);
-          }
-          return isMatch;
+          return String(prescribedYear) === String(year) && prescribedSem === normalizedSem;
         }
         
         return false;
@@ -703,41 +876,60 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
       selectedCourse.sem : (selectedCourse.semester !== undefined ? 
         selectedCourse.semester : (selectedCourse.prescribed_semester || null));
     
-    // Log for debugging single semester case
-    if (year === 1 && sem === "1st Sem") {
-      console.log("Single semester check for:", selectedCourse.course_code);
-      console.log("Year:", prescribedYear, "Semester:", prescribedSemester);
-    }
-    
     // Compare with current semester
-    const isMatch = String(prescribedYear) === String(year) && String(prescribedSemester) === normalizedSem;
-    if (isMatch && year === 1 && sem === "1st Sem") {
-      console.log("Found match for single semester course:", selectedCourse.course_code);
-    }
-    return isMatch;
+    return String(prescribedYear) === String(year) && String(prescribedSemester) === normalizedSem;
   };
   
   return (
     <Card className="p-4 h-full flex flex-col">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-500">Overview</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClear}
-          className="h-8 px-2 text-gray-500 hover:text-red-600"
-        >
-          <Trash2 className="w-4 h-4 mr-1" />
-          Clear All
-        </Button>
+        <div className="flex items-center">
+          <h3 className="text-sm font-medium text-gray-500">Overview</h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center">
+            <span className="text-xs mr-2 text-gray-500">
+              View Curriculum
+            </span>
+            <div 
+              className={`relative inline-flex h-5 w-10 cursor-pointer rounded-full transition-colors ${showFullCurriculum ? 'bg-blue-500' : 'bg-gray-200'}`}
+              onClick={() => setShowFullCurriculum(!showFullCurriculum)}
+            >
+              <span 
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform absolute top-0.5 ${showFullCurriculum ? 'translate-x-5' : 'translate-x-1'}`} 
+              />
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClear}
+            className="h-8 px-2 text-gray-500 hover:text-red-600"
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            Clear All
+          </Button>
+        </div>
       </div>
-      <div className="space-y-4">
+      
+      {/* {showFullCurriculum && curriculumStructure && (
+        <div className="mb-3 p-2 bg-blue-50 rounded-md border border-blue-100">
+          <div className="flex items-center">
+            <Info className="w-3.5 h-3.5 text-blue-500 mr-1.5 flex-shrink-0" />
+            <p className="text-xs text-blue-600">
+              Showing the recommended sequence for the {curriculumStructure?.curriculum?.name || "Current Curriculum"}.
+            </p>
+          </div>
+        </div>
+      )} */}
+      
+      <div className="space-y-4 flex-1 overflow-y-auto">
         {years.map(year => (
           <div key={year} className="space-y-2">
             <h4 className="text-sm font-medium">{year === 1 ? "1st" : year === 2 ? "2nd" : year === 3 ? "3rd" : "4th"} Year</h4>
             <div className="grid grid-cols-3 gap-2">
               {semesters.map(sem => {
-                const coursesInSem = planData[year]?.[sem] || [];
+                const coursesInSem = displayData[year]?.[sem] || [];
                 const hasContent = coursesInSem.length > 0;
                 const isPrescribed = isPrescribedSchedule(year, sem);
                 
@@ -745,36 +937,110 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                   <button
                     key={sem}
                     onClick={() => selectedCourse && onSemesterClick(year, sem)}
-                    className={`border rounded p-2 text-left transition-colors relative min-h-[4rem]
+                    className={`border rounded p-2 text-left transition-colors relative min-h-[4rem] flex flex-col
                       ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : 'cursor-default'}
                       ${hasContent && !isPrescribed ? 'bg-gray-50' : ''}
                       ${isPrescribed ? 'bg-blue-50 border-blue-300' : ''}`}
                   >
                     <p className={`text-xs font-medium ${isPrescribed ? 'text-blue-600' : 'text-gray-500'}`}>{sem}</p>
+                    
                     {hasContent ? (
-                      <div className="space-y-1 mt-1">
-                        {coursesInSem.map((course, idx) => (
-                          <div key={idx} className="flex items-center group">
-                            <div 
-                              className={`w-1 h-4 rounded-full mr-1.5 ${getCourseTypeColor(course.course_type)}`}
-                            />
-                            <p className="text-xs text-gray-600 truncate flex-1">
-                              {course.course_code}
-                            </p>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onRemoveCourse(year, sem, idx);
-                              }}
-                              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 rounded transition-opacity"
-                            >
-                              <X className="h-3 w-3 text-red-500" />
-                            </button>
-                          </div>
-                        ))}
+                      <div className="space-y-1 mt-1 flex-1 flex flex-col">
+                        <div className="flex-1 space-y-1">
+                          {coursesInSem.sort((a, b) => {
+                            // First compare by course type (academic courses before non-academic)
+                            if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
+                            if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
+                            
+                            // Then compare by course code
+                            const aCode = a.course_code.replace(/\s+/g, '');
+                            const bCode = b.course_code.replace(/\s+/g, '');
+                            
+                            // Extract prefixes and numbers
+                            const aMatch = aCode.match(/([A-Za-z]+)(\d+)/);
+                            const bMatch = bCode.match(/([A-Za-z]+)(\d+)/);
+                            
+                            if (aMatch && bMatch) {
+                              const [, aPrefix, aNumber] = aMatch;
+                              const [, bPrefix, bNumber] = bMatch;
+                              
+                              // First compare by prefixes (alphabetically, A before Z)
+                              if (aPrefix !== bPrefix) return aPrefix.localeCompare(bPrefix);
+                              
+                              // Then compare by numbers (lower numbers first, 1 before 2)
+                              return parseInt(aNumber) - parseInt(bNumber);
+                            }
+                            
+                            // Fall back to simple string comparison
+                            return aCode.localeCompare(bCode);
+                          }).map((course, idx) => {
+                            // Determine the correct type to use for color
+                            let colorType = course.course_type;
+                            if (colorType === 'required_academic') colorType = 'academic';
+                            if (colorType === 'required_non_academic') colorType = 'non_academic';
+                            if (colorType === 'ge_elective') colorType = 'ge';
+                            
+                            return (
+                              <div key={idx} className="flex items-center group">
+                                <div 
+                                  className={`w-1 h-4 rounded-full mr-1.5 ${getCourseIndicatorClass(course, colorType)}`}
+                                />
+                                <p className={`text-xs truncate flex-1 ${getCourseItemClass(course)}`}>
+                                  {course.course_code}
+                                </p>
+                                {!course._isCurriculumCourse && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onRemoveCourse(year, sem, idx, course);
+                                    }}
+                                    className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 rounded transition-opacity"
+                                  >
+                                    <X className="h-3 w-3 text-red-500" />
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Units display at the bottom with lighter colors */}
+                        <div className="flex justify-end mt-auto pt-1.5 gap-1 text-[10px] font-normal">
+                          <span className={`${isPrescribed ? 'text-blue-600' : 'text-gray-500'}`}>
+                            {coursesInSem.reduce((total, course) => {
+                              // Only count units for courses that are actually in the user's plan
+                              if (!course._isCurriculumCourse) {
+                                return total + (parseInt(course.units) || 0);
+                              }
+                              return total;
+                            }, 0)} units
+                          </span>
+                          
+                          {/* Show curriculum units separately when in curriculum view */}
+                          {showFullCurriculum && coursesInSem.some(c => c._isCurriculumCourse) && (
+                            <span className="text-gray-400 italic">
+                              ({coursesInSem.reduce((total, course) => {
+                                // Only count units for curriculum courses, excluding required_non_academic
+                                if (course._isCurriculumCourse && course.course_type !== 'required_non_academic') {
+                                  // For regular courses, use the units value
+                                  if (course.units) {
+                                    return total + (parseInt(course.units) || 0);
+                                  }
+                                  // For placeholders (GE electives, electives, majors), use default values
+                                  else if (course._isTypePlaceholder) {
+                                    if (course.course_type === 'ge_elective') return total + 3;
+                                    if (course.course_type === 'elective') return total + 3;
+                                    if (course.course_type === 'major') return total + 3;
+                                  }
+                                }
+                                return total;
+                              }, 0)})
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ) : (
-                      <p className={`text-xs ${isPrescribed ? 'text-blue-400' : 'text-gray-400'}`}>Empty</p>
+                      <p className={`text-xs mt-1 ${isPrescribed ? 'text-blue-400' : 'text-gray-400'}`}>Empty</p>
                     )}
                   </button>
                 );
@@ -1094,7 +1360,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
         }
       }
     });
-  }, [coursesByType, curriculumStructure]);
+  }, [coursesByType, curriculumStructure, getPrescribedSemestersForType]);
 
   const steps = [
     { title: "GE Electives", component: GEElectivesStep, type: "ge_elective" },
@@ -1160,20 +1426,87 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
           course_type: currentStepType
         };
         newPlan[year][semester] = [...newPlan[year][semester], courseToAdd];
+        
+        // Sort the courses chronologically and by type
+        newPlan[year][semester].sort((a, b) => {
+          // First compare by course type (academic courses before non-academic)
+          if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
+          if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
+          
+          // Then compare by course code
+          const aCode = a.course_code.replace(/\s+/g, '');
+          const bCode = b.course_code.replace(/\s+/g, '');
+          
+          // Extract prefixes and numbers
+          const aMatch = aCode.match(/([A-Za-z]+)(\d+)/);
+          const bMatch = bCode.match(/([A-Za-z]+)(\d+)/);
+          
+          if (aMatch && bMatch) {
+            const [, aPrefix, aNumber] = aMatch;
+            const [, bPrefix, bNumber] = bMatch;
+            
+            // First compare by prefixes (alphabetically, A before Z)
+            if (aPrefix !== bPrefix) return aPrefix.localeCompare(bPrefix);
+            
+            // Then compare by numbers (lower numbers first, 1 before 2)
+            return parseInt(aNumber) - parseInt(bNumber);
+          }
+          
+          // Fall back to simple string comparison
+          return aCode.localeCompare(bCode);
+        });
       }
       
       return newPlan;
     });
     
+    // Move the course to the top of the list in the current category
+    if (currentStepType && coursesByType[currentStepType]) {
+      setCoursesByType(prev => {
+        const newCoursesByType = { ...prev };
+        const courseIndex = newCoursesByType[currentStepType].findIndex(
+          course => course.course_id === selectedCourse.course_id
+        );
+        
+        if (courseIndex > 0) {
+          // Remove the course from its current position
+          const course = newCoursesByType[currentStepType][courseIndex];
+          newCoursesByType[currentStepType] = [
+            course, // Add course to the top
+            ...newCoursesByType[currentStepType].slice(0, courseIndex),
+            ...newCoursesByType[currentStepType].slice(courseIndex + 1)
+          ];
+        }
+        
+        return newCoursesByType;
+      });
+    }
+    
     // Clear selected course
     setSelectedCourse(null);
   };
 
-  const handleRemoveCourse = (year, semester, courseIndex) => {
+  const handleRemoveCourse = (year, semester, courseIndex, targetCourse) => {
+    // When in curriculum view, we need the actual course object that was passed from the PlanOverview
     setPlanData(prev => {
       const newPlan = { ...prev };
       if (newPlan[year]?.[semester]) {
-        newPlan[year][semester] = newPlan[year][semester].filter((_, idx) => idx !== courseIndex);
+        if (targetCourse?._isCurriculumCourse) return prev;
+        
+        if (targetCourse) {
+          // Find the course by ID instead of index
+          const actualIndex = newPlan[year][semester].findIndex(
+            course => course.course_id === targetCourse.course_id
+          );
+          
+          if (actualIndex !== -1) {
+            newPlan[year][semester] = newPlan[year][semester].filter((_, idx) => idx !== actualIndex);
+          }
+        } else {
+          // Fall back to original behavior if no target course is provided
+          newPlan[year][semester] = newPlan[year][semester].filter((_, idx) => idx !== courseIndex);
+        }
+        
         // Clean up empty arrays
         if (newPlan[year][semester].length === 0) {
           delete newPlan[year][semester];
@@ -1192,8 +1525,30 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
   };
 
   const canProceedToNextStep = () => {
-    // Temporarily disable course count requirement
-    return true;
+    // For the summary step, always allow proceeding
+    if (!currentStepType) return true;
+    
+    // For other steps, check if we've met the requirements
+    const selectedCount = Object.values(planData)
+      .flatMap(yearData => Object.values(yearData))
+      .flatMap(semData => semData)
+      .filter(c => {
+        if (currentStepType === 'required_academic') {
+          return c.course_type === 'required_academic' || (c.course_type === 'required' && c.is_academic);
+        } else if (currentStepType === 'required_non_academic') {
+          return c.course_type === 'required_non_academic' || (c.course_type === 'required' && !c.is_academic);
+        } else if (currentStepType === 'ge_elective') {
+          return c.course_type === 'ge_elective' || c.course_type === 'ge' || c.course_type === 'ge elective';
+        } else {
+          return c.course_type === currentStepType;
+        }
+      })
+      .length;
+    
+    const stats = getStatsForType(currentStepType);
+    
+    // Make the next button enabled when max number of courses are selected
+    return selectedCount >= stats.total;
   };
 
   // Add search filter function
@@ -1258,9 +1613,9 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
               <DialogTitle>Create Your Plan of Coursework</DialogTitle>
             </DialogHeader>
 
-            <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden">
+            <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden items-start">
               {/* Left side - Overview */}
-              <div className="flex-1 h-full flex flex-col min-w-0">
+              <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
                 <ScrollArea className="h-full w-full">
                   <div className="pr-4">
                     {selectedCourse && (
@@ -1272,23 +1627,42 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                         <p className="text-sm text-blue-600 font-medium ml-6">{selectedCourse.course_code}</p>
                         <div className="mt-2 pt-2 border-t border-blue-200 flex items-start">
                           <Info className="w-3.5 h-3.5 text-blue-500 mr-1.5 flex-shrink-0 mt-0.5" />
-                          <p className="text-xs text-blue-600">Highlighted semesters are prescribed by your curriculum, but you can add this course to any semester.</p>
+                          <p className="text-xs text-blue-600">Your curriculum designates the highlighted semesters, but you can assign this course to any semester.</p>
                         </div>
                       </div>
                     )}
+
+                    {/* Show completion message when a step has all required courses added */}
+                    {currentStepType && canProceedToNextStep() && (
+                      <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-100 flex-shrink-0">
+                        <div className="flex items-center">
+                          <Check className="w-4 h-4 text-green-500 mr-1.5" />
+                          <p className="text-xs text-green-600">
+                            You've added all required {currentStepType === 'ge_elective' ? 'GE Electives' : 
+                                                     currentStepType === 'elective' ? 'Electives' : 
+                                                     currentStepType === 'major' ? 'Major courses' : 
+                                                     currentStepType === 'required_academic' ? 'academic courses' : 
+                                                     'non-academic courses'}. You can proceed to the next step or modify your selections.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
                     <PlanOverview 
                       selectedCourse={selectedCourse}
                       onSemesterClick={handleSemesterClick}
                       planData={planData}
                       onRemoveCourse={handleRemoveCourse}
                       onClear={handleClear}
+                      coursesByType={coursesByType}
+                      getPrescribedSemestersForType={getPrescribedSemestersForType}
                     />
                   </div>
                 </ScrollArea>
               </div>
               
               {/* Right side - Course Selection Steps */}
-              <div className="w-[500px] flex flex-col h-full">
+              <div className="w-[500px] flex flex-col h-full overflow-hidden">
                 {/* Progress indicator */}
                 <div className="flex items-center gap-2 mb-4 flex-shrink-0">
                   {availableSteps.map((step, index) => (
@@ -1326,7 +1700,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                 {/* Step content */}
                 <div className="flex-1 min-h-0 overflow-hidden">
                   {CurrentStepComponent ? (
-                    <div className="h-full">
+                    <div className="h-full overflow-y-auto">
                       {currentStepType ? (
                         <CurrentStepComponent 
                           courses={filterCourses(currentStepCourses)}
@@ -1354,15 +1728,19 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                     Back
                   </Button>
                   
-                  <Button
-                    onClick={handleNext}
-                    disabled={currentStep === availableSteps.length - 1 || !canProceedToNextStep()}
-                  >
-                    {currentStep === availableSteps.length - 1 ? 'Create Plan' : 'Next'}
-                    {currentStep < availableSteps.length - 1 && (
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    )}
-                  </Button>
+                  <div className="relative">
+                    {/* Show tooltip only if button is disabled due to insufficient selections */}
+                    
+                    <Button
+                      onClick={handleNext}
+                      disabled={currentStep === availableSteps.length - 1 || !canProceedToNextStep()}
+                    >
+                      {currentStep === availableSteps.length - 1 ? 'Create Plan' : 'Next'}
+                      {currentStep < availableSteps.length - 1 && (
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
