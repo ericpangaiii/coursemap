@@ -89,7 +89,7 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
                           <div className="h-3 w-3 flex items-center justify-center">
-                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                            <Check className="h-2.5 w-2.5" />
                           </div>
                         </div>
                       )}
@@ -196,7 +196,7 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
                           <div className="h-3 w-3 flex items-center justify-center">
-                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                            <Check className="h-2.5 w-2.5" />
                           </div>
                         </div>
                       )}
@@ -304,7 +304,7 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
                           <div className="h-3 w-3 flex items-center justify-center">
-                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                            <Check className="h-2.5 w-2.5" />
                           </div>
                         </div>
                       )}
@@ -333,7 +333,7 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
   );
 };
 
-const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
+const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan, setPlanData }) => {
   const selectedCount = Object.values(planData)
     .flatMap(yearData => Object.values(yearData))
     .flatMap(semData => semData)
@@ -342,15 +342,108 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
     .length;
 
   const isMaxReached = selectedCount >= stats.total;
+  const courseType = 'required_academic'; // Define courseType locally
+
+  // Function to automatically assign all courses
+  const handleAssignAll = () => {
+    console.log("Starting handleAssignAll for", courseType, "with", courses.length, "courses");
+    
+    // Filter out courses that are already in the plan
+    const coursesToAssign = courses.filter(course => {
+      const isInPlan = course.course_code === "HK 12/13" 
+        ? courseIdsInPlan.hk1213Courses.has(`${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`)
+        : courseIdsInPlan.has(course.course_id) || 
+          (course.combined_courses && course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+      
+      return !isInPlan;
+    });
+    
+    console.log("Found", coursesToAssign.length, "courses to assign");
+    coursesToAssign.forEach(c => console.log(` - ${c.course_code}: year=${c.prescribed_year || c.year}, sem=${c.prescribed_semester || c.semester || c.sem}`));
+    
+    // Directly update plan data with these courses
+    setPlanData(prevPlanData => {
+      const newPlanData = {...prevPlanData};
+      let assignedCount = 0;
+      
+      for (const course of coursesToAssign) {
+        // Get year and semester from the course's prescribed data
+        const year = course.prescribed_year || course.year;
+        const semesterNum = course.prescribed_semester || course.semester || course.sem;
+        
+        console.log(`Attempting to assign ${course.course_code} to Year ${year}, Semester ${semesterNum}`);
+        
+        if (!year || !semesterNum) {
+          console.log(`Skipping ${course.course_code} - missing year or semester info`);
+          continue; // Skip if no placement info
+        }
+        
+        // Convert semester number to name
+        const semName = semesterNum === "1" ? "1st Sem" : 
+                      semesterNum === "2" ? "2nd Sem" : 
+                      semesterNum === "3" ? "Mid Year" : `Semester ${semesterNum}`;
+        
+        // Initialize the arrays if needed
+        if (!newPlanData[year]) newPlanData[year] = {};
+        if (!newPlanData[year][semName]) newPlanData[year][semName] = [];
+        
+        // Check if already exists
+        const exists = newPlanData[year][semName].some(c => c.course_id === course.course_id);
+        if (!exists) {
+          // Add with proper type
+          console.log(`Adding ${course.course_code} to Year ${year}, ${semName}`);
+          newPlanData[year][semName].push({
+            ...course,
+            course_type: courseType
+          });
+          assignedCount++;
+        } else {
+          console.log(`${course.course_code} already exists in Year ${year}, ${semName}`);
+        }
+      }
+      
+      // Sort the courses in all semesters after all have been added
+      for (const year in newPlanData) {
+        for (const sem in newPlanData[year]) {
+          newPlanData[year][sem].sort((a, b) => {
+            // Academic before non-academic
+            if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
+            if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
+            
+            // Sort by course code
+            const aCode = a.course_code.replace(/\s+/g, '');
+            const bCode = b.course_code.replace(/\s+/g, '');
+            
+            return aCode.localeCompare(bCode);
+          });
+        }
+      }
+      
+      console.log(`Successfully assigned ${assignedCount} courses of type ${courseType}`);
+      return newPlanData;
+    });
+  };
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex-shrink-0 mb-4">
-        <div className="flex items-center">
-          <h3 className="text-lg font-semibold">Required Academic</h3>
-          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
-            {selectedCount}/{stats.total}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <h3 className="text-lg font-semibold">Required Academic</h3>
+            <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+              {selectedCount}/{stats.total}
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAssignAll}
+            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+            disabled={isMaxReached}
+          >
+            <Check className="w-4 h-4 mr-1" />
+            Auto Assign
+          </Button>
         </div>
         <p className="text-sm text-gray-500 mt-1">
           {stats.total} required academic courses
@@ -413,7 +506,7 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
                           <div className="h-3 w-3 flex items-center justify-center">
-                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                            <Check className="h-2.5 w-2.5" />
                           </div>
                         </div>
                       )}
@@ -442,7 +535,7 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
   );
 };
 
-const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
+const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan, setPlanData }) => {
   const selectedCount = Object.values(planData)
     .flatMap(yearData => Object.values(yearData))
     .flatMap(semData => semData)
@@ -451,15 +544,108 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
     .length;
 
   const isMaxReached = selectedCount >= stats.total;
+  const courseType = 'required_non_academic'; // Define courseType locally
+
+  // Function to automatically assign all courses
+  const handleAssignAll = () => {
+    console.log("Starting handleAssignAll for", courseType, "with", courses.length, "courses");
+    
+    // Filter out courses that are already in the plan
+    const coursesToAssign = courses.filter(course => {
+      const isInPlan = course.course_code === "HK 12/13" 
+        ? courseIdsInPlan.hk1213Courses.has(`${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`)
+        : courseIdsInPlan.has(course.course_id) || 
+          (course.combined_courses && course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+      
+      return !isInPlan;
+    });
+    
+    console.log("Found", coursesToAssign.length, "courses to assign");
+    coursesToAssign.forEach(c => console.log(` - ${c.course_code}: year=${c.prescribed_year || c.year}, sem=${c.prescribed_semester || c.semester || c.sem}`));
+    
+    // Directly update plan data with these courses
+    setPlanData(prevPlanData => {
+      const newPlanData = {...prevPlanData};
+      let assignedCount = 0;
+      
+      for (const course of coursesToAssign) {
+        // Get year and semester from the course's prescribed data
+        const year = course.prescribed_year || course.year;
+        const semesterNum = course.prescribed_semester || course.semester || course.sem;
+        
+        console.log(`Attempting to assign ${course.course_code} to Year ${year}, Semester ${semesterNum}`);
+        
+        if (!year || !semesterNum) {
+          console.log(`Skipping ${course.course_code} - missing year or semester info`);
+          continue; // Skip if no placement info
+        }
+        
+        // Convert semester number to name
+        const semName = semesterNum === "1" ? "1st Sem" : 
+                      semesterNum === "2" ? "2nd Sem" : 
+                      semesterNum === "3" ? "Mid Year" : `Semester ${semesterNum}`;
+        
+        // Initialize the arrays if needed
+        if (!newPlanData[year]) newPlanData[year] = {};
+        if (!newPlanData[year][semName]) newPlanData[year][semName] = [];
+        
+        // Check if already exists
+        const exists = newPlanData[year][semName].some(c => c.course_id === course.course_id);
+        if (!exists) {
+          // Add with proper type
+          console.log(`Adding ${course.course_code} to Year ${year}, ${semName}`);
+          newPlanData[year][semName].push({
+            ...course,
+            course_type: courseType
+          });
+          assignedCount++;
+        } else {
+          console.log(`${course.course_code} already exists in Year ${year}, ${semName}`);
+        }
+      }
+      
+      // Sort the courses in all semesters after all have been added
+      for (const year in newPlanData) {
+        for (const sem in newPlanData[year]) {
+          newPlanData[year][sem].sort((a, b) => {
+            // Academic before non-academic
+            if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
+            if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
+            
+            // Sort by course code
+            const aCode = a.course_code.replace(/\s+/g, '');
+            const bCode = b.course_code.replace(/\s+/g, '');
+            
+            return aCode.localeCompare(bCode);
+          });
+        }
+      }
+      
+      console.log(`Successfully assigned ${assignedCount} courses of type ${courseType}`);
+      return newPlanData;
+    });
+  };
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex-shrink-0 mb-4">
-        <div className="flex items-center">
-          <h3 className="text-lg font-semibold">Required Non-Academic</h3>
-          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
-            {selectedCount}/{stats.total}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <h3 className="text-lg font-semibold">Required Non-Academic</h3>
+            <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+              {selectedCount}/{stats.total}
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAssignAll}
+            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+            disabled={isMaxReached}
+          >
+            <Check className="w-4 h-4 mr-1" />
+            Auto Assign
+          </Button>
         </div>
         <p className="text-sm text-gray-500 mt-1">
           {stats.total} required non-academic courses
@@ -522,7 +708,7 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
                       {isSelected && !isInPlan && (
                         <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
                           <div className="h-3 w-3 flex items-center justify-center">
-                            <div className="h-1.5 w-1.5 rounded-full bg-white"></div>
+                            <Check className="h-2.5 w-2.5" />
                           </div>
                         </div>
                       )}
@@ -1402,6 +1588,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
   };
 
   const handleCourseSelect = (course) => {
+    // Normal course selection behavior
     setSelectedCourse(course);
   };
   
@@ -1641,8 +1828,8 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                             You've added all required {currentStepType === 'ge_elective' ? 'GE Electives' : 
                                                      currentStepType === 'elective' ? 'Electives' : 
                                                      currentStepType === 'major' ? 'Major courses' : 
-                                                     currentStepType === 'required_academic' ? 'academic courses' : 
-                                                     'non-academic courses'}. You can proceed to the next step or modify your selections.
+                                                     currentStepType === 'required_academic' ? 'Academic courses' : 
+                                                     'Non-Academic courses'}. You can proceed to the next step or modify your selections.
                           </p>
                         </div>
                       </div>
@@ -1709,6 +1896,8 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                           planData={planData}
                           stats={getStatsForType(currentStepType)}
                           courseIdsInPlan={courseIdsInPlan()}
+                          onSemesterClick={handleSemesterClick}
+                          setPlanData={setPlanData}
                         />
                       ) : (
                         <SummaryStep planData={planData} />
@@ -1733,7 +1922,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                     
                     <Button
                       onClick={handleNext}
-                      disabled={currentStep === availableSteps.length - 1 || !canProceedToNextStep()}
+                      // disabled={currentStep === availableSteps.length - 1 || !canProceedToNextStep()}
                     >
                       {currentStep === availableSteps.length - 1 ? 'Create Plan' : 'Next'}
                       {currentStep < availableSteps.length - 1 && (
