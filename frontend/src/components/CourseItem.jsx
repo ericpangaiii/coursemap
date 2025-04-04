@@ -188,8 +188,8 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
         <TooltipProvider>
           <Tooltip open={showTooltip} onOpenChange={setShowTooltip}>
             <TooltipTrigger asChild>
-              <button 
-                className="mt-1 inline-flex items-center text-xs text-gray-500 hover:text-gray-700"
+              <div 
+                className="mt-1 inline-flex items-center text-xs text-gray-500 hover:text-gray-700 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -200,7 +200,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
               >
                 <Info className="h-3 w-3 mr-1" />
                 Details
-              </button>
+              </div>
             </TooltipTrigger>
             <TooltipContent 
               side="right" 

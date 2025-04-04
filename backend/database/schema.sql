@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS plan_courses (
   plan_id INTEGER NOT NULL,
   course_id INTEGER NOT NULL,
   year INTEGER NOT NULL,
-  semester INTEGER NOT NULL,
+  sem INTEGER NOT NULL,
   status VARCHAR(50) DEFAULT 'planned', -- planned, in_progress, completed, dropped
   grade VARCHAR(10),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

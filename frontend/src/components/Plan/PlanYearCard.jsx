@@ -9,11 +9,11 @@ const PlanYearCard = ({ year, yearData }) => {
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[1, 2, 3].map(semester => (
+          {[1, 2, 3].map(sem => (
             <PlanSemesterCard 
-              key={semester} 
-              semester={semester}
-              courses={yearData[semester] || []}
+              key={sem} 
+              sem={sem}
+              courses={yearData[sem] || []}
             />
           ))}
         </div>

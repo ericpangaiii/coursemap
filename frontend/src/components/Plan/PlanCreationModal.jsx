@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -22,6 +22,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { getCourseTypeColor } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { plansAPI } from "@/lib/api";
 
 // Step components
 const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
@@ -51,27 +52,13 @@ const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planDat
           <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                // Check if this course is in the plan
-                let isInPlan = false;
-                if (course.course_code === "HK 12/13") {
-                  // For HK 12/13 courses, check specific instance with year and semester
-                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
-                } else {
-                  // For regular courses
-                  isInPlan = courseIdsInPlan.has(course.course_id) || 
-                    (course.combined_courses && 
-                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                }
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
                 
-                // Enhanced selection check for HK 12/13 courses
-                const isSelected = selectedCourse && 
-                  // Check exact course ID match
-                  selectedCourse.course_id === course.course_id && 
-                  // For HK 12/13 courses, also check prescribed year and semester
-                  !(course.course_code === "HK 12/13" && 
-                    (selectedCourse.prescribed_year !== course.prescribed_year || 
-                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
                 
                 const isDisabled = isInPlan || (isMaxReached && !isSelected);
                 
@@ -158,27 +145,13 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
           <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                // Check if this course is in the plan
-                let isInPlan = false;
-                if (course.course_code === "HK 12/13") {
-                  // For HK 12/13 courses, check specific instance with year and semester
-                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
-                } else {
-                  // For regular courses
-                  isInPlan = courseIdsInPlan.has(course.course_id) || 
-                    (course.combined_courses && 
-                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                }
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
                 
-                // Enhanced selection check for HK 12/13 courses
-                const isSelected = selectedCourse && 
-                  // Check exact course ID match
-                  selectedCourse.course_id === course.course_id && 
-                  // For HK 12/13 courses, also check prescribed year and semester
-                  !(course.course_code === "HK 12/13" && 
-                    (selectedCourse.prescribed_year !== course.prescribed_year || 
-                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
                 
                 const isDisabled = isInPlan || (isMaxReached && !isSelected);
                 
@@ -266,27 +239,13 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
           <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                // Check if this course is in the plan
-                let isInPlan = false;
-                if (course.course_code === "HK 12/13") {
-                  // For HK 12/13 courses, check specific instance with year and semester
-                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
-                } else {
-                  // For regular courses
-                  isInPlan = courseIdsInPlan.has(course.course_id) || 
-                    (course.combined_courses && 
-                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                }
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
                 
-                // Enhanced selection check for HK 12/13 courses
-                const isSelected = selectedCourse && 
-                  // Check exact course ID match
-                  selectedCourse.course_id === course.course_id && 
-                  // For HK 12/13 courses, also check prescribed year and semester
-                  !(course.course_code === "HK 12/13" && 
-                    (selectedCourse.prescribed_year !== course.prescribed_year || 
-                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
                 
                 const isDisabled = isInPlan || (isMaxReached && !isSelected);
                 
@@ -346,7 +305,16 @@ const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, st
   );
 };
 
-const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan, setPlanData }) => {
+const RequiredAcademicStep = ({ 
+  courses = [], 
+  onCourseSelect, 
+  selectedCourse, 
+  planData, 
+  stats, 
+  courseIdsInPlan,
+  setPlanData,
+  setPendingHKCourses 
+}) => {
   const selectedCount = Object.values(planData)
     .flatMap(yearData => Object.values(yearData))
     .flatMap(semData => semData)
@@ -355,31 +323,43 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
     .length;
 
   const isMaxReached = selectedCount >= stats.total;
-  const courseType = 'required_academic'; // Define courseType locally
+  const courseType = 'required_academic';
 
   // Function to automatically assign all courses
   const handleAssignAll = () => {
     console.log("Starting handleAssignAll for", courseType, "with", courses.length, "courses");
     
-    // Filter out courses that are already in the plan
-    const coursesToAssign = courses.filter(course => {
-      const isInPlan = course.course_code === "HK 12/13" 
-        ? courseIdsInPlan.hk1213Courses.has(`${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`)
-        : courseIdsInPlan.has(course.course_id) || 
-          (course.combined_courses && course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-      
-      return !isInPlan;
+    // Separate HIST 1/KAS 1 courses and regular courses
+    const regularCourses = [];
+    const histKasCourses = [];
+    
+    courses.forEach(course => {
+      if (course.course_code === "HIST 1/KAS 1") {
+        if (!courseIdsInPlan.has(course.course_id)) {
+          histKasCourses.push(course);
+        }
+      } else {
+        let isInPlan = courseIdsInPlan.has(course.course_id) || 
+          (course.combined_courses && 
+           course.combined_courses.some(c => courseIdsInPlan.has(c.curriculum_course_id)));
+        
+        if (!isInPlan) {
+          regularCourses.push(course);
+        }
+      }
     });
     
-    console.log("Found", coursesToAssign.length, "courses to assign");
-    coursesToAssign.forEach(c => console.log(` - ${c.course_code}: year=${c.prescribed_year || c.year}, sem=${c.prescribed_semester || c.semester || c.sem}`));
+    console.log("Found", regularCourses.length, "regular courses and", histKasCourses.length, "HIST 1/KAS 1 courses to assign");
     
-    // Directly update plan data with these courses
+    // Set all HIST 1/KAS 1 courses as pending
+    setPendingHKCourses(histKasCourses);
+    
+    // Start with regular courses
     setPlanData(prevPlanData => {
       const newPlanData = {...prevPlanData};
       let assignedCount = 0;
       
-      for (const course of coursesToAssign) {
+      for (const course of regularCourses) {
         // Get year and semester from the course's prescribed data
         const year = course.prescribed_year || course.year;
         const semesterNum = course.prescribed_semester || course.semester || course.sem;
@@ -432,7 +412,14 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
         }
       }
       
-      console.log(`Successfully assigned ${assignedCount} courses of type ${courseType}`);
+      console.log(`Successfully assigned ${assignedCount} regular courses of type ${courseType}`);
+      
+      // Trigger the first HIST 1/KAS 1 course selection if any exist
+      if (histKasCourses.length > 0) {
+        console.log("Starting HIST 1/KAS 1 course selections");
+        onCourseSelect(histKasCourses[0]);
+      }
+      
       return newPlanData;
     });
   };
@@ -468,27 +455,13 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
           <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                // Check if this course is in the plan
-                let isInPlan = false;
-                if (course.course_code === "HK 12/13") {
-                  // For HK 12/13 courses, check specific instance with year and semester
-                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
-                } else {
-                  // For regular courses
-                  isInPlan = courseIdsInPlan.has(course.course_id) || 
-                    (course.combined_courses && 
-                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-                }
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
                 
-                // Enhanced selection check for HK 12/13 courses
-                const isSelected = selectedCourse && 
-                  // Check exact course ID match
-                  selectedCourse.course_id === course.course_id && 
-                  // For HK 12/13 courses, also check prescribed year and semester
-                  !(course.course_code === "HK 12/13" && 
-                    (selectedCourse.prescribed_year !== course.prescribed_year || 
-                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
                 
                 const isDisabled = isInPlan || (isMaxReached && !isSelected);
                 
@@ -548,7 +521,16 @@ const RequiredAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, pl
   );
 };
 
-const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan, setPlanData }) => {
+const RequiredNonAcademicStep = ({ 
+  courses = [], 
+  onCourseSelect, 
+  selectedCourse, 
+  planData, 
+  stats, 
+  courseIdsInPlan, 
+  setPlanData,
+  setPendingHKCourses 
+}) => {
   const selectedCount = Object.values(planData)
     .flatMap(yearData => Object.values(yearData))
     .flatMap(semData => semData)
@@ -563,25 +545,39 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
   const handleAssignAll = () => {
     console.log("Starting handleAssignAll for", courseType, "with", courses.length, "courses");
     
-    // Filter out courses that are already in the plan
-    const coursesToAssign = courses.filter(course => {
-      const isInPlan = course.course_code === "HK 12/13" 
-        ? courseIdsInPlan.hk1213Courses.has(`${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`)
-        : courseIdsInPlan.has(course.course_id) || 
-          (course.combined_courses && course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
-      
-      return !isInPlan;
+    // Separate HK 12/13 courses and regular courses
+    const regularCourses = [];
+    const hk1213Courses = [];
+    
+    courses.forEach(course => {
+      if (course.course_code === "HK 12/13") {
+        const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+        // Use courseIdsInPlan directly from props
+        if (!courseIdsInPlan.hk1213Courses.has(key)) {
+          hk1213Courses.push(course);
+        }
+      } else {
+        let isInPlan = courseIdsInPlan.has(course.course_id) || 
+          (course.combined_courses && 
+           course.combined_courses.some(c => courseIdsInPlan.has(c.curriculum_course_id)));
+        
+        if (!isInPlan) {
+          regularCourses.push(course);
+        }
+      }
     });
     
-    console.log("Found", coursesToAssign.length, "courses to assign");
-    coursesToAssign.forEach(c => console.log(` - ${c.course_code}: year=${c.prescribed_year || c.year}, sem=${c.prescribed_semester || c.semester || c.sem}`));
+    console.log("Found", regularCourses.length, "regular courses and", hk1213Courses.length, "HK 12/13 courses to assign");
     
-    // Directly update plan data with these courses
+    // Set all HK 12/13 courses as pending
+    setPendingHKCourses(hk1213Courses);
+    
+    // Start with regular courses
     setPlanData(prevPlanData => {
       const newPlanData = {...prevPlanData};
       let assignedCount = 0;
       
-      for (const course of coursesToAssign) {
+      for (const course of regularCourses) {
         // Get year and semester from the course's prescribed data
         const year = course.prescribed_year || course.year;
         const semesterNum = course.prescribed_semester || course.semester || course.sem;
@@ -634,7 +630,14 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
         }
       }
       
-      console.log(`Successfully assigned ${assignedCount} courses of type ${courseType}`);
+      console.log(`Successfully assigned ${assignedCount} regular courses of type ${courseType}`);
+      
+      // Trigger the first HK 12/13 course selection if any exist
+      if (hk1213Courses.length > 0) {
+        console.log("Starting HK 12/13 course selections");
+        onCourseSelect(hk1213Courses[0]);
+      }
+      
       return newPlanData;
     });
   };
@@ -670,27 +673,22 @@ const RequiredNonAcademicStep = ({ courses = [], onCourseSelect, selectedCourse,
           <div className="space-y-3 pr-4 p-1 pt-0">
             {courses.length > 0 ? (
               courses.map((course, index) => {
-                // Check if this course is in the plan
+                // Special handling for HK 12/13 courses
                 let isInPlan = false;
                 if (course.course_code === "HK 12/13") {
-                  // For HK 12/13 courses, check specific instance with year and semester
-                  const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-                  isInPlan = courseIdsInPlan.hk1213Courses.has(key);
+                  // Check if either of the combined courses exists in the plan using curriculum_course_id
+                  isInPlan = course.combined_courses && course.combined_courses.some(c => 
+                    courseIdsInPlan.has(c.curriculum_course_id)
+                  );
                 } else {
                   // For regular courses
                   isInPlan = courseIdsInPlan.has(course.course_id) || 
                     (course.combined_courses && 
-                     course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.curriculum_course_id)));
                 }
-                
-                // Enhanced selection check for HK 12/13 courses
-                const isSelected = selectedCourse && 
-                  // Check exact course ID match
-                  selectedCourse.course_id === course.course_id && 
-                  // For HK 12/13 courses, also check prescribed year and semester
-                  !(course.course_code === "HK 12/13" && 
-                    (selectedCourse.prescribed_year !== course.prescribed_year || 
-                     selectedCourse.prescribed_semester !== course.prescribed_semester));
+
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
                 
                 const isDisabled = isInPlan || (isMaxReached && !isSelected);
                 
@@ -1161,6 +1159,44 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
     
     const curriculumCourses = getCurriculumCourses();
     const mergedData = JSON.parse(JSON.stringify(curriculumCourses));
+
+    // First check if HIST 1/KAS 1 or HK 12/13 exists in the plan
+    let hasHistKas = false;
+    let hasHK = false;
+    Object.values(planData).forEach(yearData => {
+      Object.values(yearData).forEach(semData => {
+        semData.forEach(course => {
+          if (course.course_code === "HIST 1" || course.course_code === "KAS 1") {
+            hasHistKas = true;
+          }
+          if (course.course_code === "HK 12" || course.course_code === "HK 13") {
+            hasHK = true;
+          }
+        });
+      });
+    });
+
+    // If HIST 1 or KAS 1 exists, remove HIST 1/KAS 1 curriculum courses
+    if (hasHistKas) {
+      Object.keys(mergedData).forEach(year => {
+        Object.keys(mergedData[year]).forEach(sem => {
+          mergedData[year][sem] = mergedData[year][sem].filter(course => 
+            !(course._isCurriculumCourse && course.course_code === "HIST 1/KAS 1")
+          );
+        });
+      });
+    }
+
+    // If HK 12 or HK 13 exists, remove HK 12/13 curriculum courses
+    if (hasHK) {
+      Object.keys(mergedData).forEach(year => {
+        Object.keys(mergedData[year]).forEach(sem => {
+          mergedData[year][sem] = mergedData[year][sem].filter(course => 
+            !(course._isCurriculumCourse && course.course_code === "HK 12/13")
+          );
+        });
+      });
+    }
     
     // Merge user's plan into the curriculum data
     Object.entries(planData).forEach(([year, yearData]) => {
@@ -1417,10 +1453,10 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                   
                   return (
                     <div key={sem} className="relative">
-                      <button
+                      <div
                         onClick={() => selectedCourse && onSemesterClick(year, sem)}
                         className={`w-full border rounded p-2 text-left transition-colors relative min-h-[4rem] flex flex-col
-                          ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : 'cursor-default'}
+                          ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : ''}
                           ${hasContent && !isPrescribed ? 'bg-gray-50' : ''}
                           ${isPrescribed ? 'bg-blue-50 border-blue-300' : ''}`}
                       >
@@ -1462,12 +1498,10 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                           <div className="space-y-1 mt-1 flex-1 flex flex-col">
                             <div className="flex-1 space-y-1">
                               {coursesInSem.sort((a, b) => {
-                                // Only sort by course type (academic courses before non-academic)
                                 if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
                                 if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
                                 return 0;
                               }).map((course, idx) => {
-                                // Determine the correct type to use for color
                                 let colorType = course.course_type;
                                 if (colorType === 'required_academic') colorType = 'academic';
                                 if (colorType === 'required_non_academic') colorType = 'non_academic';
@@ -1482,26 +1516,24 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                                       {course.course_code}
                                     </p>
                                     {!course._isCurriculumCourse && !isReviewStep && (
-                                      <button
+                                      <div
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           onRemoveCourse(year, sem, idx, course);
                                         }}
-                                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 rounded transition-opacity"
+                                        className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-100 rounded transition-opacity cursor-pointer"
                                       >
                                         <Trash2 className="h-3 w-3 text-red-500" />
-                                      </button>
+                                      </div>
                                     )}
                                   </div>
                                 );
                               })}
                             </div>
                             
-                            {/* Units display at the bottom with lighter colors - exclude non-academic courses */}
                             <div className="flex justify-end mt-auto pt-1.5 gap-1 text-[10px] font-normal">
                               <span className={`${isPrescribed ? 'text-blue-600' : 'text-gray-500'}`}>
                                 {coursesInSem.reduce((total, course) => {
-                                  // Only count academic units for courses that are actually in the user's plan
                                   if (!course._isCurriculumCourse && course.course_type !== 'required_non_academic') {
                                     return total + (parseInt(course.units) || 0);
                                   }
@@ -1509,17 +1541,13 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                                 }, 0)} units
                               </span>
                               
-                              {/* Show curriculum units separately when in curriculum view - exclude non-academic courses */}
                               {showFullCurriculum && coursesInSem.some(c => c._isCurriculumCourse) && (
                                 <span className="text-gray-400 italic">
                                   ({coursesInSem.reduce((total, course) => {
-                                    // Only count units for curriculum courses, excluding required_non_academic
                                     if (course._isCurriculumCourse && course.course_type !== 'required_non_academic') {
-                                      // For regular courses, use the units value
                                       if (course.units) {
                                         return total + (parseInt(course.units) || 0);
                                       }
-                                      // For placeholders (GE electives, electives, majors), use default values
                                       else if (course._isTypePlaceholder) {
                                         if (course.course_type === 'ge_elective') return total + 3;
                                         if (course.course_type === 'elective') return total + 3;
@@ -1535,7 +1563,7 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                         ) : (
                           <p className={`text-xs mt-1 ${isPrescribed ? 'text-blue-400' : 'text-gray-400'}`}>Empty</p>
                         )}
-                      </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -1549,7 +1577,11 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
 };
 
 // Main modal component
-const PlanCreationModal = ({ open, onOpenChange }) => {
+const PlanCreationModal = ({ 
+  open, 
+  onOpenChange, 
+  onPlanCreated 
+}) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -1558,6 +1590,9 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
   const [planData, setPlanData] = useState({});
   const [curriculumStructure, setCurriculumStructure] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCombinedCourseDialog, setShowCombinedCourseDialog] = useState(false);
+  const [combinedCourseOptions, setCombinedCourseOptions] = useState(null);
+  const [pendingHKCourses, setPendingHKCourses] = useState([]);
   
   // Fetch courses and curriculum structure on mount
   useEffect(() => {
@@ -1653,6 +1688,12 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                   description: "Physical Education & Health (HK 12 or HK 13)",
                   combined_courses: [group.hk12, group.hk13]
                 };
+                
+                console.log('Created HK 12/13 combined course:', {
+                  course: combinedHKCourse,
+                  year: group.year,
+                  sem: group.sem
+                });
                 
                 const targetType = courseType === 'required' ? "required_non_academic" : courseType;
                 if (!grouped[targetType]) {
@@ -1783,7 +1824,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
   };
 
   // Function to get prescribed semesters for each course type from curriculum structure
-  const getPrescribedSemestersForType = (type) => {
+  const getPrescribedSemestersForType = useCallback((type) => {
     if (!curriculumStructure || !curriculumStructure.structures || curriculumStructure.structures.length === 0) {
       console.log(`No curriculum structures found for type: ${type}`);
       return [];
@@ -1815,7 +1856,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
       console.error(`Error processing structure data for ${type}:`, error);
       return [];
     }
-  };
+  }, [curriculumStructure]); // Only depend on curriculumStructure
 
   // After fetching data, update courses with prescribed semester information 
   useEffect(() => {
@@ -1889,7 +1930,97 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
       setCurrentStep(currentStep + 1);
     }
   };
-  
+
+  const handleCreatePlan = async () => {
+    console.log('Starting plan creation process...');
+    console.log('Current plan data:', planData);
+
+    try {
+      // Get the current plan first
+      console.log('Fetching current plan...');
+      const currentPlan = await plansAPI.getCurrentPlan();
+      if (!currentPlan) {
+        console.error('Failed to get current plan');
+        throw new Error('Failed to get current plan');
+      }
+      console.log('Retrieved current plan:', currentPlan);
+
+      // Add each course to the plan
+      for (const [year, semesters] of Object.entries(planData)) {
+        console.log(`Processing Year ${year}...`);
+        
+        for (const [semester, courses] of Object.entries(semesters)) {
+          console.log(`Processing ${semester} of Year ${year}...`);
+          
+          for (const course of courses) {
+            // Convert semester name to number
+            const semNum = semester === "1st Sem" ? 1 : 
+                          semester === "2nd Sem" ? 2 : 
+                          semester === "Mid Year" ? 3 : 1;
+            
+            console.log('Adding course:', {
+              course_code: course.course_code,
+              course_id: course.course_id,
+              original_course_id: course.original_course_id,
+              year: parseInt(year),
+              semester: semNum,
+              type: course.course_type,
+              isHKCourse: course.course_code === "HK 12" || course.course_code === "HK 13",
+              isHistKasCourse: course.course_code === "HIST 1" || course.course_code === "KAS 1"
+            });
+            
+            try {
+              // For HK 12/13 or HIST 1/KAS 1 courses, use the original_course_id
+              if ((course.course_code === "HK 12" || course.course_code === "HK 13" || 
+                   course.course_code === "HIST 1" || course.course_code === "KAS 1") && 
+                  course.original_course_id) {
+                console.log('Adding alternative course with original ID:', course.original_course_id);
+                await plansAPI.addCourseToPlan(
+                  currentPlan.id,
+                  course.original_course_id,
+                  parseInt(year),
+                  semNum,
+                  'planned'
+                );
+                console.log('Successfully added alternative course');
+              } else {
+                // For regular courses
+                console.log('Adding regular course with ID:', course.course_id);
+                await plansAPI.addCourseToPlan(
+                  currentPlan.id,
+                  course.course_id,
+                  parseInt(year),
+                  semNum,
+                  'planned'
+                );
+                console.log('Successfully added regular course');
+              }
+            } catch (error) {
+              // If the course already exists, that's fine - continue with the next one
+              if (error.message.includes('already exists')) {
+                console.log('Course already exists in plan, continuing...');
+                continue;
+              }
+              console.error('Error adding course:', error);
+              throw error; // Re-throw other errors
+            }
+          }
+        }
+      }
+
+      console.log('Plan creation completed successfully');
+      
+      // Close the modal and refresh the plan display
+      onOpenChange(false);
+      if (typeof onPlanCreated === 'function') {
+        console.log('Calling onPlanCreated callback...');
+        onPlanCreated(currentPlan);
+      }
+    } catch (error) {
+      console.error('Error creating plan:', error);
+    }
+  };
+
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -1897,12 +2028,65 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
   };
 
   const handleCourseSelect = (course) => {
+    // Check if this is a combined course
+    if (course?.combined_courses?.length > 0) {
+      // For HK 12/13 courses, we need to check if this specific instance is already in the plan
+      if (course.course_code === "HK 12/13") {
+        const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+        const courseIds = courseIdsInPlan();
+        if (courseIds.hk1213Courses.has(key)) {
+          return; // Don't show the dialog if this instance is already in the plan
+        }
+      }
+      setCombinedCourseOptions({
+        course,
+        options: course.combined_courses
+      });
+      setShowCombinedCourseDialog(true);
+      return;
+    }
+    
     // Normal course selection behavior
     setSelectedCourse(course);
   };
-  
+
+  const handleCombinedCourseSelect = (selectedOption) => {
+    console.log('Selected HK Component:', {
+      selectedOption,
+      linkedToCombinedCourse: combinedCourseOptions?.course ? {
+        course_id: combinedCourseOptions.course.course_id,
+        prescribed_year: combinedCourseOptions.course.prescribed_year,
+        prescribed_semester: combinedCourseOptions.course.prescribed_semester
+      } : null
+    });
+
+    // Create a new course object based on the selected option
+    const selectedCourse = {
+      ...combinedCourseOptions.course,
+      course_id: selectedOption.curriculum_course_id,
+      original_course_id: selectedOption.course_id,
+      course_code: selectedOption.course_code,
+      title: selectedOption.title,
+      units: selectedOption.units,
+      description: selectedOption.description,
+      prescribed_year: combinedCourseOptions.course.prescribed_year,
+      prescribed_semester: combinedCourseOptions.course.prescribed_semester,
+      combined_courses: combinedCourseOptions.course.combined_courses,
+      _isCombinedComponent: true,
+      _selectedComponentId: selectedOption.curriculum_course_id
+    };
+    
+    setSelectedCourse(selectedCourse);
+    setShowCombinedCourseDialog(false);
+};
+
   const handleSemesterClick = (year, semester) => {
     if (!selectedCourse) return;
+    
+    // Check if there are pending HK courses to process
+    if (pendingHKCourses.length > 0) {
+      console.log('Processing pending HK courses:', pendingHKCourses.length);
+    }
     
     // Update plan data
     setPlanData(prev => {
@@ -1911,19 +2095,55 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
       if (!newPlan[year][semester]) newPlan[year][semester] = [];
       
       // Check if course is already in the semester
-      const courseExists = newPlan[year][semester].some(
-        course => course.course_id === selectedCourse.course_id
-      );
+      const courseExists = newPlan[year][semester].some(course => {
+        if (course.course_code === "HK 12/13") {
+          const exists = course._selectedComponentId === selectedCourse._selectedComponentId;
+          return exists;
+        }
+        return course.course_id === selectedCourse.course_id;
+      });
       
       if (!courseExists) {
-        // Ensure we preserve the course_type and combined courses when adding to plan
         const courseToAdd = {
           ...selectedCourse,
-          course_type: currentStepType
+          course_type: currentStepType,
+          prescribed_year: selectedCourse.prescribed_year,
+          prescribed_semester: selectedCourse.prescribed_semester,
+          _selectedComponentId: selectedCourse._selectedComponentId
         };
+
+        // If adding HIST 1 or KAS 1, remove HIST 1/KAS 1 curriculum course from all semesters
+        if (courseToAdd.course_code === "HIST 1" || courseToAdd.course_code === "KAS 1") {
+          // Search through all years and semesters
+          Object.keys(newPlan).forEach(planYear => {
+            Object.keys(newPlan[planYear]).forEach(planSem => {
+              // Filter out HIST 1/KAS 1 curriculum courses
+              newPlan[planYear][planSem] = newPlan[planYear][planSem].filter(course => 
+                !(course._isCurriculumCourse && course.course_code === "HIST 1/KAS 1")
+              );
+            });
+          });
+        }
+
+        if (courseToAdd.course_code === "HK 12" || courseToAdd.course_code === "HK 13") {
+          console.log('Adding HK Component to Plan:', {
+            course_code: courseToAdd.course_code,
+            curriculum_course_id: courseToAdd.course_id,
+            _selectedComponentId: courseToAdd._selectedComponentId,
+            year,
+            semester,
+            prescribed_year: courseToAdd.prescribed_year,
+            prescribed_semester: courseToAdd.prescribed_semester,
+            linkedToCombinedCourse: selectedCourse.combined_courses ? {
+              course_id: selectedCourse.course_id,
+              prescribed_year: selectedCourse.prescribed_year,
+              prescribed_semester: selectedCourse.prescribed_semester
+            } : 'Not linked to combined course'
+          });
+        }
+        
         newPlan[year][semester] = [...newPlan[year][semester], courseToAdd];
         
-        // Sort only by course type (academic before non-academic)
         newPlan[year][semester].sort((a, b) => {
           if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
           if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
@@ -1934,31 +2154,30 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
       return newPlan;
     });
     
-    // Move the course to the top of the list in the current category
-    if (currentStepType && coursesByType[currentStepType]) {
-      setCoursesByType(prev => {
-        const newCoursesByType = { ...prev };
-        const courseIndex = newCoursesByType[currentStepType].findIndex(
-          course => course.course_id === selectedCourse.course_id
-        );
-        
-        if (courseIndex > 0) {
-          // Remove the course from its current position
-          const course = newCoursesByType[currentStepType][courseIndex];
-          newCoursesByType[currentStepType] = [
-            course, // Add course to the top
-            ...newCoursesByType[currentStepType].slice(0, courseIndex),
-            ...newCoursesByType[currentStepType].slice(courseIndex + 1)
-          ];
-        }
-        
-        return newCoursesByType;
-      });
-    }
-    
     // Clear selected course
     setSelectedCourse(null);
-  };
+    setCombinedCourseOptions(null);  // Clear combined course options
+
+    // Process next pending HK course after a short delay
+    setTimeout(() => {
+      setPendingHKCourses(prev => {
+        // Get the current course from the pending list
+        const currentCourse = prev[0];
+        if (!currentCourse) return prev; // No more courses to process
+        
+        // Remove the current course and get remaining courses
+        const remaining = prev.slice(1);
+        
+        // If there are more courses, select the next one
+        if (remaining.length > 0) {
+          const nextCourse = remaining[0];
+          handleCourseSelect(nextCourse);
+        }
+        
+        return remaining;
+      });
+    }, 100);
+};
 
   const handleRemoveCourse = (year, semester, courseIndex, targetCourse) => {
     // When in curriculum view, we need the actual course object that was passed from the PlanOverview
@@ -2037,21 +2256,20 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
 
   const courseIdsInPlan = () => {
     const ids = new Set();
-    const hk1213Courses = new Map(); // Map to track HK 12/13 courses by year and semester
+    const hk1213Courses = new Set();
     
     Object.values(planData).forEach(yearData => {
       Object.values(yearData).forEach(semData => {
         semData.forEach(course => {
-          if (course.course_code === "HK 12/13") {
-            // For HK 12/13 courses, track them with their prescribed year and semester
-            const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-            hk1213Courses.set(key, true);
+          if (course.course_code === "HK 12" || course.course_code === "HK 13") {
+            // For HK courses, use the curriculum_course_id
+            ids.add(course.curriculum_course_id || course.course_id);
           } else {
             // For regular courses
             ids.add(course.course_id);
             // For combined courses (non-HK), also add their individual course IDs
             if (course.combined_courses) {
-              course.combined_courses.forEach(c => ids.add(c.course_id));
+              course.combined_courses.forEach(c => ids.add(c.curriculum_course_id || c.course_id));
             }
           }
         });
@@ -2059,13 +2277,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
     });
     
     return {
-      has: (course_id) => {
-        if (course_id.startsWith('hk_combined_')) {
-          // Not just check course_id for HK 12/13, also check the specific instance
-          return false; // We'll handle this in the isInPlan check
-        }
-        return ids.has(course_id);
-      },
+      has: (course_id) => ids.has(course_id),
       hk1213Courses
     };
   };
@@ -2073,6 +2285,12 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl h-[95vh]">
+        <DialogHeader>
+          <DialogTitle>Create Your Plan of Coursework</DialogTitle>
+          <DialogDescription>
+            Select and organize your courses to create your academic plan.
+          </DialogDescription>
+        </DialogHeader>
         {loading ? (
           <div className="flex items-center justify-center h-full gap-2">
             <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
@@ -2084,9 +2302,34 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
           </div>
         ) : (
           <>
-            <DialogHeader className="flex-shrink-0">
-              <DialogTitle>Create Your Plan of Coursework</DialogTitle>
-            </DialogHeader>
+            {/* Combined Course Selection Dialog */}
+            {showCombinedCourseDialog && combinedCourseOptions && (
+              <Dialog open={showCombinedCourseDialog} onOpenChange={setShowCombinedCourseDialog}>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Select Course Option</DialogTitle>
+                    <DialogDescription>
+                      Choose which course you want to add to your plan.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    {combinedCourseOptions.options.map((option) => (
+                      <button
+                        key={option.course_id}
+                        onClick={() => handleCombinedCourseSelect(option)}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div>
+                          <p className="font-medium">{option.course_code}</p>
+                          <p className="text-sm text-gray-500">{option.title}</p>
+                        </div>
+                        <div className="text-sm text-gray-500">{option.units} units</div>
+                      </button>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
 
             <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden items-start">
               {/* Left side - Overview */}
@@ -2178,20 +2421,26 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                   {CurrentStepComponent ? (
                     <ScrollArea className="h-full">
                       <div className="pr-4">
-                        {currentStepType ? (
-                          <CurrentStepComponent 
-                            courses={filterCourses(currentStepCourses)}
-                            onCourseSelect={handleCourseSelect}
-                            selectedCourse={selectedCourse}
-                            planData={planData}
-                            stats={getStatsForType(currentStepType)}
-                            courseIdsInPlan={courseIdsInPlan()}
-                            onSemesterClick={handleSemesterClick}
-                            setPlanData={setPlanData}
-                          />
-                        ) : (
-                          <SummaryStep planData={planData} />
-                        )}
+                        {(() => {
+                          // Get the course IDs in plan once for this render
+                          const courseIds = courseIdsInPlan();
+                          
+                          return currentStepType ? (
+                            <CurrentStepComponent 
+                              courses={filterCourses(currentStepCourses)}
+                              onCourseSelect={handleCourseSelect}
+                              selectedCourse={selectedCourse}
+                              planData={planData}
+                              stats={getStatsForType(currentStepType)}
+                              courseIdsInPlan={courseIds}
+                              onSemesterClick={handleSemesterClick}
+                              setPlanData={setPlanData}
+                              setPendingHKCourses={setPendingHKCourses}
+                            />
+                          ) : (
+                            <SummaryStep planData={planData} />
+                          );
+                        })()}
                       </div>
                     </ScrollArea>
                   ) : null}
@@ -2209,7 +2458,7 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
                   </Button>
                   
                   <Button
-                    onClick={handleNext}
+                    onClick={currentStep === availableSteps.length - 1 ? handleCreatePlan : handleNext}
                     className={currentStep === availableSteps.length - 1 ? 
                       "bg-blue-600 hover:bg-blue-700 text-white" : ""}
                   >
@@ -2242,20 +2491,34 @@ const CourseItemWithPlacement = ({ course, type, planData }) => {
   
   Object.entries(planData).forEach(([year, yearData]) => {
     Object.entries(yearData).forEach(([sem, courses]) => {
-      // For regular courses, check just the course ID
-      if (course.course_code !== "HK 12/13" && courses.some(c => c.course_id === course.course_id)) {
-        placement = { year, sem };
-      } 
-      // For HK 12/13 courses, check both course ID AND prescribed year/semester
-      else if (course.course_code === "HK 12/13") {
-        courses.forEach(c => {
-          if (c.course_id === course.course_id && 
-              c.prescribed_year === course.prescribed_year && 
-              c.prescribed_semester === course.prescribed_semester) {
+      courses.forEach(c => {
+        if (course.course_code === "HK 12/13") {
+          // For HK 12/13 courses, check if any of its components are in the plan using curriculum_course_id
+          const courseComponents = course.combined_courses || [];
+          const isComponentInPlan = courseComponents.some(component => {
+            // Check if this component's curriculum_course_id matches any course in the plan
+            return c.curriculum_course_id === component.curriculum_course_id ||
+                   c._selectedComponentId === component.curriculum_course_id;
+          });
+          if (isComponentInPlan) {
             placement = { year, sem };
           }
-        });
-      }
+        } else if (course.combined_courses) {
+          // For other combined courses
+          const isComponentInPlan = course.combined_courses.some(component => 
+            c.curriculum_course_id === component.curriculum_course_id
+          );
+          if (isComponentInPlan) {
+            placement = { year, sem };
+          }
+        } else {
+          // For regular courses
+          if (c.curriculum_course_id === course.curriculum_course_id || 
+              c.course_id === course.course_id) {
+            placement = { year, sem };
+          }
+        }
+      });
     });
   });
 

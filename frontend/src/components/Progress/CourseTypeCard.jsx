@@ -149,7 +149,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                       className="text-sm text-blue-600 border border-blue-600 hover:bg-blue-50 mt-4 flex items-center w-full justify-center py-2 rounded-md transition-colors"
                     >
                       <List className="h-4 w-4 mr-1.5" />
-                      View all {courseList.length}
+                      View all
                     </button>
                   </DialogTrigger>
                   <DialogContent 

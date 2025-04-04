@@ -23,7 +23,7 @@ export const getPlanByUserId = async (req, res) => {
        FROM plan_courses pc 
        JOIN courses c ON pc.course_id = c.course_id 
        WHERE pc.plan_id = $1
-       ORDER BY pc.year, pc.semester`,
+       ORDER BY pc.year, pc.sem`,
       [plan.id]
     );
     
@@ -81,19 +81,9 @@ export const addCourseToPlan = async (req, res) => {
   try {
     const { planId, courseId, year, semester, status } = req.body;
     
-    // Check if the course already exists in the plan
-    const existingCourseResult = await client.query(
-      'SELECT * FROM plan_courses WHERE plan_id = $1 AND course_id = $2',
-      [planId, courseId]
-    );
-    
-    if (existingCourseResult.rows.length > 0) {
-      return res.status(400).json({ error: "Course already exists in the plan" });
-    }
-    
     // Add the course to the plan
     const result = await client.query(
-      'INSERT INTO plan_courses (plan_id, course_id, year, semester, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO plan_courses (plan_id, course_id, year, sem, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [planId, courseId, year, semester, status || 'planned']
     );
     
@@ -175,7 +165,7 @@ export const getCurrentUserPlan = async (req, res) => {
        FROM plan_courses pc 
        JOIN courses c ON pc.course_id = c.course_id 
        WHERE pc.plan_id = $1
-       ORDER BY pc.year, pc.semester`,
+       ORDER BY pc.year, pc.sem`,
       [plan.id]
     );
     

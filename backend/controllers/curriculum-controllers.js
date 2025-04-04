@@ -234,7 +234,7 @@ export const getCurrentUserCurriculumCourses = async (req, res) => {
     const result = await client.query(
       `SELECT 
           c.*, 
-          c.units,
+          cc.id as "curriculum_course_id",
           cc.course_type,
           cc.year,
           cc.sem

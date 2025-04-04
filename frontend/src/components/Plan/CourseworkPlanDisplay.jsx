@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { plansAPI } from "@/lib/api";
+import { plansAPI, curriculumsAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Edit, AlertCircle, Plus, FileText } from "lucide-react";
 import PlanYearCard from "./PlanYearCard";
@@ -13,33 +13,42 @@ const CourseworkPlanDisplay = () => {
   const [error, setError] = useState(null);
   const [organizedCourses, setOrganizedCourses] = useState({});
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [curriculumId, setCurriculumId] = useState(null);
   
   // Check if plan has courses
   const hasCourses = plan?.courses && plan.courses.length > 0;
 
   useEffect(() => {
-    const fetchPlan = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const planData = await plansAPI.getCurrentPlan();
+        // Fetch both plan and curriculum structure
+        const [planData, curriculumData] = await Promise.all([
+          plansAPI.getCurrentPlan(),
+          curriculumsAPI.getCurrentCurriculumStructure()
+        ]);
+        
         setPlan(planData);
+        if (curriculumData?.curriculum_id) {
+          setCurriculumId(curriculumData.curriculum_id);
+        }
         
         // Organize courses by year and semester
         const organized = {};
         if (planData?.courses) {
           planData.courses.forEach(course => {
             const year = course.year;
-            const semester = course.semester;
+            const sem = course.sem;
             
             if (!organized[year]) {
               organized[year] = {};
             }
             
-            if (!organized[year][semester]) {
-              organized[year][semester] = [];
+            if (!organized[year][sem]) {
+              organized[year][sem] = [];
             }
             
-            organized[year][semester].push(course);
+            organized[year][sem].push(course);
           });
         }
         setOrganizedCourses(organized);
@@ -51,7 +60,7 @@ const CourseworkPlanDisplay = () => {
       }
     };
 
-    fetchPlan();
+    fetchData();
   }, []);
 
   // Create a default structure for years 1-4
@@ -111,6 +120,7 @@ const CourseworkPlanDisplay = () => {
       <PlanCreationModal 
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
+        curriculumId={curriculumId}
       />
       
       {!hasCourses && (
