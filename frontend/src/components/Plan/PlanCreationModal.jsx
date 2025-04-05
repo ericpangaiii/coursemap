@@ -16,13 +16,14 @@ import {
   ArrowUpDown
 } from "lucide-react";
 import { curriculumsAPI } from "@/lib/api";
-import CourseItem from "@/components/CourseItem";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getCourseTypeColor } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { plansAPI } from "@/lib/api";
+import CourseItem from "@/components/CourseItem";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { CourseSelectionDialog } from "./utils/CourseSelectionDialog";
 
 // Import step components
 import GEElectivesStep from "./Steps/GEElectivesStep";
@@ -564,6 +565,9 @@ const PlanCreationModal = ({
   const [showCombinedCourseDialog, setShowCombinedCourseDialog] = useState(false);
   const [combinedCourseOptions, setCombinedCourseOptions] = useState(null);
   const [pendingHKCourses, setPendingHKCourses] = useState([]);
+  const [courseSelectionOpen, setCourseSelectionOpen] = useState(false);
+  const [courseSelectionType, setCourseSelectionType] = useState("HIST 1/KAS 1");
+  const [coursesToSelect, setCoursesToSelect] = useState([]);
   
   // Fetch courses and curriculum structure on mount
   useEffect(() => {
@@ -998,59 +1002,31 @@ const PlanCreationModal = ({
     }
   };
 
-  const handleCourseSelect = (course) => {
-    // Check if this is a combined course
-    if (course?.combined_courses?.length > 0) {
-      // For HK 12/13 courses, we need to check if this specific instance is already in the plan
-      if (course.course_code === "HK 12/13") {
-        const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
-        const courseIds = courseIdsInPlan();
-        if (courseIds.hk1213Courses.has(key)) {
-          return; // Don't show the dialog if this instance is already in the plan
-        }
-      }
-      setCombinedCourseOptions({
-        course,
-        options: course.combined_courses
-      });
-      setShowCombinedCourseDialog(true);
-      return;
+  const handleCourseSelect = useCallback((course) => {
+    // If this is a combined course (HIST 1/KAS 1 or HK 12/13)
+    if (course.combined_courses) {
+      // Open the course selection dialog
+      setCoursesToSelect(course.combined_courses);
+      setCourseSelectionType(course.course_code);
+      setCourseSelectionOpen(true);
+    } else {
+      // Handle regular course selection
+      setSelectedCourse(course);
     }
-    
-    // Normal course selection behavior
-    setSelectedCourse(course);
-  };
+  }, []);
 
-  const handleCombinedCourseSelect = (selectedOption) => {
-    console.log('Selected HK Component:', {
-      selectedOption,
-      linkedToCombinedCourse: combinedCourseOptions?.course ? {
-        course_id: combinedCourseOptions.course.course_id,
-        prescribed_year: combinedCourseOptions.course.prescribed_year,
-        prescribed_semester: combinedCourseOptions.course.prescribed_semester
-      } : null
+  const handleCourseVariantSelect = useCallback((selectedVariant) => {
+    // Close the dialog
+    setCourseSelectionOpen(false);
+    
+    // Add the selected course variant
+    setSelectedCourse({
+      ...selectedVariant,
+      original_course_id: selectedVariant.course_id,
+      course_type: currentStepType
     });
+  }, [currentStepType]);
 
-    // Create a new course object based on the selected option
-    const selectedCourse = {
-      ...combinedCourseOptions.course,
-      course_id: selectedOption.curriculum_course_id,
-      original_course_id: selectedOption.course_id,
-      course_code: selectedOption.course_code,
-      title: selectedOption.title,
-      units: selectedOption.units,
-      description: selectedOption.description,
-      prescribed_year: combinedCourseOptions.course.prescribed_year,
-      prescribed_semester: combinedCourseOptions.course.prescribed_semester,
-      combined_courses: combinedCourseOptions.course.combined_courses,
-      _isCombinedComponent: true,
-      _selectedComponentId: selectedOption.curriculum_course_id
-    };
-    
-    setSelectedCourse(selectedCourse);
-    setShowCombinedCourseDialog(false);
-  };
-  
   const handleSemesterClick = (year, semester) => {
     if (!selectedCourse) return;
     
@@ -1282,12 +1258,12 @@ const PlanCreationModal = ({
                     <DialogDescription>
                       Choose which course you want to add to your plan.
                     </DialogDescription>
-            </DialogHeader>
+                  </DialogHeader>
                   <div className="grid gap-4 py-4">
                     {combinedCourseOptions.options.map((option) => (
                       <button
                         key={option.course_id}
-                        onClick={() => handleCombinedCourseSelect(option)}
+                        onClick={() => handleCourseVariantSelect(option)}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div>
@@ -1451,6 +1427,14 @@ const PlanCreationModal = ({
           </>
         )}
       </DialogContent>
+      
+      <CourseSelectionDialog
+        open={courseSelectionOpen}
+        onOpenChange={setCourseSelectionOpen}
+        courses={coursesToSelect}
+        onSelect={handleCourseVariantSelect}
+        type={courseSelectionType}
+      />
     </Dialog>
   );
 };
