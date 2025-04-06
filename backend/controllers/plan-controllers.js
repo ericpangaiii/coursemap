@@ -158,16 +158,25 @@ export const getCurrentUserPlan = async (req, res) => {
     }
     
     const plan = planResult.rows[0];
+    console.log('Plan:', plan);
     
-    // Get the courses in the plan
+    // Get the courses in the plan, including course type from curriculum_courses
     const coursesResult = await client.query(
-      `SELECT pc.*, c.title, c.course_code, c.units 
+      `SELECT 
+        pc.*,
+        c.title,
+        c.course_code,
+        c.units,
+        cc.course_type
        FROM plan_courses pc 
        JOIN courses c ON pc.course_id = c.course_id 
+       JOIN curriculum_courses cc ON c.course_id = cc.course_id AND cc.curriculum_id = $2
        WHERE pc.plan_id = $1
        ORDER BY pc.year, pc.sem`,
-      [plan.id]
+      [plan.id, plan.curriculum_id]
     );
+    
+    console.log('Courses in plan:', coursesResult.rows);
     
     const planWithCourses = {
       ...plan,

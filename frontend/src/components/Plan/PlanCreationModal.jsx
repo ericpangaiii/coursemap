@@ -5,15 +5,11 @@ import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  X, 
   Trash2, 
   Info, 
-  SearchX, 
   Check, 
-  ChevronDown, 
   AlertTriangle, 
-  FileCheck,
-  ArrowUpDown
+  FileCheck
 } from "lucide-react";
 import { curriculumsAPI } from "@/lib/api";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -21,9 +17,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { getCourseTypeColor } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { plansAPI } from "@/lib/api";
-import CourseItem from "@/components/CourseItem";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CourseSelectionDialog } from "./utils/CourseSelectionDialog";
+import { CourseSelectionDialog } from "./CourseSelectionDialog";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 // Import step components
 import GEElectivesStep from "./Steps/GEElectivesStep";
@@ -572,8 +567,8 @@ const PlanCreationModal = ({
   // Fetch courses and curriculum structure on mount
   useEffect(() => {
     const fetchData = async () => {
-        try {
-          setLoading(true);
+      try {
+        setLoading(true);
         const [coursesData, structureData] = await Promise.all([
           curriculumsAPI.getCurrentCurriculumCourses(),
           curriculumsAPI.getCurrentCurriculumStructure()
@@ -745,16 +740,19 @@ const PlanCreationModal = ({
         
         setCoursesByType(grouped);
         setCurriculumStructure(structureData);
-        } catch (err) {
+      } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load curriculum data");
-        } finally {
-          setLoading(false);
+      } finally {
+        setLoading(false);
       }
     };
 
     if (open) {
       fetchData();
+    } else {
+      // Reset loading state when modal is closed
+      setLoading(false);
     }
   }, [open]);
   
@@ -1229,6 +1227,14 @@ const PlanCreationModal = ({
     };
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="text-sm text-gray-500">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-6xl h-[95vh]">
@@ -1238,12 +1244,7 @@ const PlanCreationModal = ({
             Select and organize your courses to create your academic plan.
           </DialogDescription>
         </DialogHeader>
-        {loading ? (
-          <div className="flex items-center justify-center h-full gap-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
-            <p className="text-gray-500 text-sm">Loading courses...</p>
-          </div>
-        ) : error ? (
+        {error ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-red-500">{error}</p>
           </div>

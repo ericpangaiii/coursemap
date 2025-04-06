@@ -369,4 +369,29 @@ export const usersAPI = {
       return null;
     }
   }
+};
+
+export const coursesAPI = {
+  // Get courses by their IDs
+  getCoursesByIds: async (courseIds) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courses/batch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ courseIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch courses');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching courses by IDs:', error);
+      return [];
+    }
+  }
 }; 

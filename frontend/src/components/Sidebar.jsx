@@ -92,9 +92,8 @@ const Sidebar = () => {
             </div>
             <div className="text-xs text-gray-600 mt-2">
               {loading ? (
-                <div className="flex items-center text-xs text-gray-500">
-                  <ReloadIcon className="h-3 w-3 animate-spin mr-1" />
-                  <span>Loading...</span>
+                <div className="text-xs text-gray-500">
+                  Loading...
                 </div>
               ) : (
                 <div>{programTitle || "No program selected"}</div>
@@ -135,17 +134,17 @@ const Sidebar = () => {
 
       {/* Logout button */}
       <SidebarFooter className={cn("p-4", state === "collapsed" ? "p-2" : "")}>
-        <Button 
-          variant="default"
-          className={cn(
-            "bg-black hover:bg-gray-800 text-white",
-            state === "collapsed" ? "w-auto p-2 h-auto justify-center" : "w-full justify-start"
-          )}
-          onClick={handleLogout}
-        >
-          <LogOut className={cn("h-5 w-5 flex-shrink-0 text-white", state === "expanded" ? "mr-3" : "")} />
-          {state === "expanded" && <span>Log Out</span>}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="default"
+            onClick={handleLogout}
+            className="h-10 px-4 text-gray-500 hover:text-red-600 hover:bg-red-50 w-full justify-start"
+          >
+            <LogOut className="w-5 h-5 mr-2" />
+            Logout
+          </Button>
+        </div>
       </SidebarFooter>
     </ShadcnSidebar>
   );

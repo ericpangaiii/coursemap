@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { programsAPI, curriculumsAPI } from "@/lib/api";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import PageHeader from "@/components/PageHeader";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -54,6 +55,10 @@ const ProfilePage = () => {
       .substring(0, 2);
   };
 
+  if (loading) {
+    return <LoadingSpinner fullPage />;
+  }
+
   return (
     <div className="w-full max-w-full">
       <PageHeader title="Your Profile" />
@@ -77,26 +82,12 @@ const ProfilePage = () => {
             
             <div className="pt-4 border-t">
               <h3 className="font-medium mb-1">Program</h3>
-              {loading ? (
-                <div className="flex items-center text-sm text-gray-500">
-                  <ReloadIcon className="h-4 w-4 animate-spin mr-2" />
-                  <span>Loading...</span>
-                </div>
-              ) : (
-                <p className="text-base">{programTitle}</p>
-              )}
+              <p className="text-base">{programTitle}</p>
             </div>
             
             <div className="pt-4 border-t">
               <h3 className="font-medium mb-1">Curriculum</h3>
-              {loading ? (
-                <div className="flex items-center text-sm text-gray-500">
-                  <ReloadIcon className="h-4 w-4 animate-spin mr-2" />
-                  <span>Loading...</span>
-                </div>
-              ) : (
-                <p className="text-base">{curriculumName}</p>
-              )}
+              <p className="text-base">{curriculumName}</p>
             </div>
           </CardContent>
         </Card>

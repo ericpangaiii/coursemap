@@ -1,4 +1,4 @@
-import { Info } from "lucide-react";
+import { Info, CheckCircle2, Clock } from "lucide-react";
 import { useState } from "react";
 import {
   Tooltip,
@@ -43,11 +43,12 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   ];
   
   // Normalize course type for color determination
-  const normalizedType = (type && type !== "course") ? type : 
-                         (course.course_type ? course.course_type : "course");
+  const normalizedType = (type && type !== "course") ? type.toLowerCase() : 
+                         (course.course_type ? course.course_type.toLowerCase() : "course");
   
   // Get color based on course type using the utility function
   const getCourseColor = () => {
+    console.log('Course type:', course.course_type, 'Normalized type:', normalizedType);
     return getCourseTypeColor(normalizedType);
   };
   
@@ -176,6 +177,14 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   return (
     <div className="p-3 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-between relative overflow-hidden">
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
+      {course.status === 'completed' && (
+        <div className="absolute right-3 top-3 flex items-center gap-1">
+          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+          {course.grade && (
+            <span className="text-xs text-gray-500">({course.grade})</span>
+          )}
+        </div>
+      )}
       <div className="flex-1 min-w-0 pl-2">
         <div className="flex items-center flex-wrap gap-y-1">
           <h4 className="font-medium text-gray-900 mr-2">{courseCode}</h4>

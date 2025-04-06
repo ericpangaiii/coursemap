@@ -3,9 +3,9 @@ import { Card, Button } from '@/components/ui';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { getMergedData, isPrescribedSchedule } from './utils/planUtils';
-import { calculateSemesterUnits, getSemesterStatus, getSemesterStatusColor } from './utils/semesterUtils';
-import { generatePlanWarnings, getWarningIcon, getWarningColor } from './utils/warningsUtils';
-import { getCourseItemClass, getCourseIndicatorClass } from './utils/courseUtils';
+import { calculateSemesterUnits, getSemesterStatus, getSemesterStatusColor } from '@/lib/planUtils';
+import { generatePlanWarnings, getWarningIcon, getWarningColor } from '@/lib/planUtils';
+import { getCourseItemClass, getCourseIndicatorClass } from '@/lib/planUtils';
 import CourseItemWithPlacement from './CourseItemWithPlacement';
 
 const PlanOverview = ({ planData, coursesByType, getPrescribedSemestersForType, showFullCurriculum, selectedCourse }) => {

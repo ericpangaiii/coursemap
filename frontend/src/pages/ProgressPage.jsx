@@ -6,6 +6,7 @@ import { curriculumsAPI } from "@/lib/api";
 import CourseTypeCard from "@/components/Progress/CourseTypeCard";
 import { AlertCircle } from "lucide-react";
 import { getCourseTypeName } from "@/lib/utils";
+import { LoadingSpinner } from "@/components/ui/loading";
 
 const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
@@ -533,6 +534,10 @@ const ProgressPage = () => {
   const remainingCourses = totalRequired - completedCourses;
   const completionPercentage = Math.round((completedCourses / totalRequired) * 100) || 0;
   
+  if (loading) {
+    return <LoadingSpinner fullPage />;
+  }
+  
   return (
     <div className="container mx-auto p-4 max-w-7xl">
       <PageHeader 
@@ -540,12 +545,7 @@ const ProgressPage = () => {
         description="Track your progress towards completing your degree requirements."
       />
       
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <ReloadIcon className="h-6 w-6 animate-spin mr-2" />
-          <p>Loading curriculum data...</p>
-        </div>
-      ) : error ? (
+      {error ? (
         <Card className="border-red-200 bg-red-50">
           <CardContent className="pt-6">
             <p className="text-red-700">{error}</p>
@@ -568,23 +568,15 @@ const ProgressPage = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="flex items-start space-x-2 p-4 bg-amber-50 text-amber-800 rounded-md border border-amber-100">
-                  <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm">Progress tracking will be available soon! For now, this displays placeholder values.</p>
-                  </div>
-                </div>
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium">Course Completion</span>
-                    <span className="text-sm font-medium text-gray-700">
-                      {totalRequired > 0 ? `${completedCourses} of ${totalRequired} courses` : "No courses available"}
-                    </span>
+                    <span className="text-sm font-medium text-gray-700">0 of 0 courses</span>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                     <div 
                       className="h-3 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
-                      style={{ width: `${completionPercentage}%` }}
+                      style={{ width: "0%" }}
                     ></div>
                   </div>
                 </div>
@@ -592,20 +584,20 @@ const ProgressPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-2">
                   {totalRequired > 0 ? (
                     <>
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <h3 className="text-3xl font-bold text-blue-600">{completedCourses}</h3>
-                    <p className="text-sm text-blue-700 font-medium mt-1">Courses Completed</p>
-                  </div>
-                  
-                  <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
-                        <h3 className="text-3xl font-bold text-amber-600">{remainingCourses}</h3>
-                    <p className="text-sm text-amber-700 font-medium mt-1">Courses Remaining</p>
-                  </div>
-                  
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                        <h3 className="text-3xl font-bold text-green-600">{completionPercentage}%</h3>
-                    <p className="text-sm text-green-700 font-medium mt-1">Overall Completion</p>
-                  </div>
+                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <h3 className="text-3xl font-bold text-blue-600">{completedCourses}</h3>
+                        <p className="text-sm text-blue-700 font-medium mt-1">Courses Completed</p>
+                      </div>
+                      
+                      <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
+                            <h3 className="text-3xl font-bold text-amber-600">{remainingCourses}</h3>
+                        <p className="text-sm text-amber-700 font-medium mt-1">Courses Remaining</p>
+                      </div>
+                      
+                      <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                            <h3 className="text-3xl font-bold text-green-600">{completionPercentage}%</h3>
+                        <p className="text-sm text-green-700 font-medium mt-1">Overall Completion</p>
+                      </div>
                     </>
                   ) : (
                     <div className="col-span-full p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
