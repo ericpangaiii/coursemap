@@ -10,8 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LoadingSpinner } from "@/components/ui/loading";
 
-const CompactPlanView = ({ organizedCourses }) => {
+const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   // Check if plan has courses
@@ -19,9 +20,13 @@ const CompactPlanView = ({ organizedCourses }) => {
     semesters => Object.values(semesters).some(courses => courses.length > 0)
   );
 
+  const handlePlanButtonClick = () => {
+    setIsCreateModalOpen(true);
+  };
+
   return (
     <Card>
-      <CardHeader className="bg-slate-50">
+      <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>Plan of Coursework</CardTitle>
           <div className="flex gap-2">
@@ -35,37 +40,38 @@ const CompactPlanView = ({ organizedCourses }) => {
                   Export as PDF
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
-                <DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem className="flex items-center gap-2">
+                  <div className="w-1 h-4 rounded bg-yellow-500" />
                   GE Elective POS
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="flex items-center gap-2">
+                  <div className="w-1 h-4 rounded bg-purple-500" />
                   Free Elective POS
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="flex items-center gap-2">
+                  <div className="w-1 h-4 rounded bg-gray-300" />
                   Plan of Coursework
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {!hasCourses ? (
-              <Button 
-                size="sm" 
-                onClick={() => setIsCreateModalOpen(true)} 
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Plan
-              </Button>
-            ) : (
-              <Button 
-                size="sm" 
-                onClick={() => setIsCreateModalOpen(true)} 
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Plan
-              </Button>
-            )}
+            <Button 
+              size="sm" 
+              onClick={handlePlanButtonClick}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+            >
+              {hasCourses ? (
+                <>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Plan
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Plan
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -85,8 +91,35 @@ const CompactPlanView = ({ organizedCourses }) => {
         )}
       </CardContent>
       <PlanCreationModal 
-        isOpen={isCreateModalOpen}
-        setIsOpen={setIsCreateModalOpen}
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        onPlanCreated={(newPlan) => {
+          // Reorganize courses after plan update
+          const organized = {};
+          if (newPlan?.courses) {
+            newPlan.courses.forEach(course => {
+              const year = course.year;
+              const sem = course.sem;
+              
+              if (!organized[year]) {
+                organized[year] = {};
+              }
+              
+              if (!organized[year][sem]) {
+                organized[year][sem] = [];
+              }
+              
+              organized[year][sem].push(course);
+            });
+          }
+          // Update the parent component's organizedCourses through the prop
+          if (onOrganizedCoursesChange) {
+            onOrganizedCoursesChange(organized);
+          }
+        }}
+        isEditMode={hasCourses}
+        existingPlan={organizedCourses}
+        loadingSpinner={<LoadingSpinner />}
       />
     </Card>
   );

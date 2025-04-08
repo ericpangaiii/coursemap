@@ -57,34 +57,28 @@ export const getNormalizedCourseType = (type) => {
   if (!type) return "course";
   
   const typeToCheck = type.toLowerCase();
-  console.log('Normalizing course type:', type, 'Lowercase:', typeToCheck);
   
   // Handle variations of course types
   if (typeToCheck === "ge_elective" || typeToCheck === "ge elective" || 
       typeToCheck === "geelective" || typeToCheck === "ge elective") {
-    console.log('Matched GE elective');
     return "ge";
   }
   
   if (typeToCheck === "required" || typeToCheck === "required_academic" || 
       typeToCheck === "required academic" || typeToCheck === "required-academic") {
-    console.log('Matched required academic');
     return "academic";
   }
   
   if (typeToCheck === "required_non_academic" || typeToCheck === "required non academic" || 
       typeToCheck === "required non-academic" || typeToCheck === "required-non-academic" ||
       typeToCheck === "required nonacademic" || typeToCheck === "required_nonacademic") {
-    console.log('Matched required non-academic');
     return "non_academic";
   }
   
   if (typeToCheck === "elective") {
-    console.log('Matched elective');
     return "elective";
   }
   
-  console.log('No match found, returning original type:', typeToCheck);
   return typeToCheck;
 };
 

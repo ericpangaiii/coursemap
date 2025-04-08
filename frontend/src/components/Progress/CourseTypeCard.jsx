@@ -1,195 +1,309 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import CourseItem from "@/components/CourseItem";
-import { useState } from "react";
-import { List, Search, SearchX } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { getCourseTypeColor, getCourseTypeName } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Expand, Search, SearchX, ChevronDown, CheckCircle2, Info, Filter } from "lucide-react";
+import { getCourseTypeName, getCourseTypeColor, getNormalizedCourseType } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { plansAPI } from "@/lib/api";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import CourseItem from "../CourseItem";
 
 const CourseTypeCard = ({ type, courses, stats }) => {
-  const [open, setOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [planCourses, setPlanCourses] = useState([]);
+  const typeName = getCourseTypeName(type);
+  const typeColor = getCourseTypeColor(type);
   
-  // Ensure courses is an array
-  const courseList = Array.isArray(courses) ? courses : [];
-  
-  // Function to filter courses based on search query
-  const filterCourses = (courses) => {
-    if (!searchQuery) return courses;
-    const query = searchQuery.toLowerCase();
-    return courses.filter(course => 
-      course.course_code.toLowerCase().includes(query) || 
-      course.title.toLowerCase().includes(query)
-    );
-  };
-  
-  // Apply the filter to the course list
-  const filteredCourseList = filterCourses(courseList);
-  
-  // Check if this is an elective course type
-  const standardType = type.toLowerCase();
-  const isElectiveType = standardType === 'elective' || 
-                        standardType === 'ge_elective' || 
-                        standardType === 'major';
-                        
-  // Determine if this is a required academic or non-academic type
-  const isRequiredAcademic = standardType === 'required_academic';
-  const isRequiredNonAcademic = standardType === 'required_non_academic';
-  
-  // For course type utility functions, use the actual type
-  const displayType = type;
-  
-  // Log what we're displaying for debugging
-  console.log(`CourseTypeCard for ${type}: isRequiredAcademic=${isRequiredAcademic}, isRequiredNonAcademic=${isRequiredNonAcademic}, displayType=${displayType}, courses=${courseList.length}`);
-  
-  // Determine whether to show the "Show more" button (for many courses)
-  const shouldShowViewAll = courseList.length > 5;
-  
-  // Limit the display to the first 5 courses
-  const displayedCourses = courseList.slice(0, 5);
-    
-  // Placeholder values for progress (to be implemented with real data later)
-  const placeholderProgress = {
-    completed: 0,
-    percentage: 0
-  };
-  
-  // Create a description based on the course type
-  const getCardDescription = () => {
-    // If there are no courses for this type in the courseList, check if we still need to take some
-    if (courseList.length === 0) {
-      // If stats exists and has a total > 0, we need to take courses of this type
-      if (stats && stats.total > 0) {
-        return `Need to take ${stats.total}`;
+  // Fetch plan courses when component mounts
+  useEffect(() => {
+    const fetchPlanCourses = async () => {
+      try {
+        const planData = await plansAPI.getCurrentPlan();
+        if (planData?.courses) {
+          setPlanCourses(planData.courses);
+        }
+      } catch (error) {
+        console.error('Error fetching plan courses:', error);
       }
-      return `None in your curriculum`;
+    };
+    
+    fetchPlanCourses();
+  }, []);
+  
+  const filterCourses = (courses) => {
+    let filtered = courses;
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(course => 
+        course.course_code.toLowerCase().includes(query) || 
+        course.title.toLowerCase().includes(query)
+      );
+      console.log(`Search filter applied (${searchQuery}): ${filtered.length} courses remaining`);
     }
     
-    // For elective types and majors, show how many to choose from
-    if (isElectiveType && stats.available > stats.total) {
-      return `Choose ${stats.total} from ${stats.available} available`;
+    // Apply semester filter
+    if (selectedSemester) {
+      filtered = filtered.filter(course => {
+        // Check if course is offered exclusively in the selected semester
+        const semesters = course.sem_offered?.split(',').map(s => s.trim().toLowerCase()) || [];
+        const isExclusive = semesters.length === 1 && (
+          (selectedSemester === 'M' && semesters[0] === 'm') || 
+          (selectedSemester !== 'M' && semesters[0] === `${selectedSemester}s`)
+        );
+        
+        // Also check plan data
+        const planSemester = planCourses.find(pc => 
+          pc.course_id === course.course_id && 
+          pc.sem === selectedSemester
+        );
+        
+        const matches = isExclusive || planSemester;
+        console.log(`Course ${course.course_code} semester check:`, {
+          sem_offered: course.sem_offered,
+          selectedSemester,
+          isExclusive,
+          planSemester,
+          matches
+        });
+        return matches;
+      });
+      console.log(`Semester filter applied (${selectedSemester}): ${filtered.length} courses remaining`);
     }
     
-    // For all courses including required courses, use the actual count
-    return `${courseList.length} required`;
+    // Apply status filter
+    if (selectedStatus) {
+      filtered = filtered.map(course => {
+        // Find corresponding plan course to get status
+        const planCourse = planCourses.find(pc => pc.course_id === course.course_id);
+        return {
+          ...course,
+          status: planCourse?.status || 'planned'
+        };
+      }).filter(course => course.status === selectedStatus);
+      console.log(`Status filter applied (${selectedStatus}): ${filtered.length} courses remaining`);
+    }
+    
+    return filtered;
   };
 
+  const filteredCourses = filterCourses(courses);
+
   return (
-    <Card className="shadow-sm h-full flex flex-col">
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <div className={`w-2 h-6 rounded mr-2 ${getCourseTypeColor(displayType)}`}></div>
-            <CardTitle className="text-lg">{getCourseTypeName(displayType)}</CardTitle>
-            <div className="ml-2 px-2 py-1 bg-gray-100 rounded-md text-sm font-medium">
-              {placeholderProgress.completed}/{standardType === 'required' || standardType === 'required_academic' || standardType === 'required_non_academic' ? courseList.length : stats.total}
+    <>
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className={`w-1 h-4 rounded ${typeColor}`}></div>
+              <CardTitle className="text-base font-medium">{typeName}</CardTitle>
+            </div>
+            <div className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800">
+              {stats.percentage}%
             </div>
           </div>
-          <div className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-800">
-            {placeholderProgress.percentage}%
-          </div>
-        </div>
-        <CardDescription>{getCardDescription()}</CardDescription>
-      </CardHeader>
-      
-      <CardContent className="flex-1 flex flex-col justify-between">
-        {courseList.length === 0 ? (
-          <p className="text-gray-500 text-sm">
-            {stats && stats.total > 0 
-              ? `You need to take ${stats.total} ${getCourseTypeName(displayType).toLowerCase()}.`
-              : "None assigned in your curriculum."}
-          </p>
-        ) : (
-          <>
-            {/* Progress bar (placeholder) */}
-            <div className="mb-4">
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* Progress bar */}
+            <div>
               <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium">Completion</span>
+                <span className="text-xs font-medium">Completion</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                 <div 
-                  className={`h-2.5 rounded-full ${getCourseTypeColor(displayType)}`} 
+                  className={`h-2.5 rounded-full ${typeColor}`} 
                   style={{ 
-                    width: `${placeholderProgress.percentage}%`,
+                    width: `${stats.percentage}%`,
                     transition: 'width 1s ease-in-out'
                   }}
                 ></div>
               </div>
             </div>
             
-            <div className="flex-1">
-              {/* Course list (showing only 5) */}
+            {/* Course list */}
               <div className="space-y-2">
-                {displayedCourses.map((course, index) => (
-                  <CourseItem 
-                    key={`${course.course_id}-${index}`}
-                    course={{
-                      ...course,
-                      // Ensure the course_type is set if it isn't already
-                      course_type: course.course_type || type
-                    }}
-                    type={displayType} 
-                  />
-                ))}
-              </div>
-              
-              {/* View all courses button */}
-              {shouldShowViewAll && (
-                <Dialog open={open} onOpenChange={setOpen}>
-                  <DialogTrigger asChild>
-                    <button 
-                      className="text-sm text-blue-600 border border-blue-600 hover:bg-blue-50 mt-4 flex items-center w-full justify-center py-2 rounded-md transition-colors"
-                    >
-                      <List className="h-4 w-4 mr-1.5" />
-                      View all
-                    </button>
-                  </DialogTrigger>
-                  <DialogContent 
-                    className="sm:max-w-2xl"
-                    onOpenAutoFocus={(e) => e.preventDefault()}
+              {courses.length > 0 ? (
+                courses.slice(0, 5).map(course => (
+                  <div 
+                    key={course.course_id} 
+                    className="text-xs px-2 py-1.5 rounded bg-gray-50 flex items-center justify-between relative overflow-hidden"
                   >
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center">
-                        <div className={`w-3 h-6 rounded mr-2 ${getCourseTypeColor(displayType)}`}></div>
-                        {getCourseTypeName(displayType)}
-                      </DialogTitle>
-                      <DialogDescription className="pb-4">
-                        {isElectiveType && stats.available > stats.total
-                          ? `Choose ${stats.total} from ${stats.available} available options.`
-                          : `These are the ${getCourseTypeName(displayType).toLowerCase()} courses you need to complete.`}
-                      </DialogDescription>
-                      
-                      {/* Search bar */}
-                      <div className="mt-8 relative">
-                        <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-500" />
-                        <Input
-                          type="text"
-                          placeholder="Search by course code or title..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full h-9 pl-9 text-sm"
-                        />
+                    <div 
+                      className={`absolute left-0 top-0 bottom-0 w-1 ${!course.is_academic ? 'bg-blue-300' : getCourseTypeColor(getNormalizedCourseType(course.course_type))}`}
+                    />
+                    <div className="flex-1 min-w-0 ml-1.5">
+                      <div className="flex items-center justify-between">
+                        <p className="font-medium truncate">{course.course_code}</p>
+                        <p className="text-gray-500">{course.units}</p>
                       </div>
-                    </DialogHeader>
-                    <ScrollArea className="max-h-[70vh] mt-2">
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3 text-center bg-gray-50 rounded-md border border-gray-200">
+                  <p className="text-sm text-gray-500">No courses found</p>
+                </div>
+              )}
+            </div>
+
+            {/* View all button */}
+            {courses.length > 5 && (
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  onClick={() => setIsDialogOpen(true)}
+                >
+                  View All
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* View All Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-2xl">
+                    <DialogHeader>
+            <div>
+              <DialogTitle className="text-lg font-medium">
+                {typeName}
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+          
+          {/* Search and Filters */}
+          <div className="space-y-3">
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-500" />
+              <Input
+                type="text"
+                placeholder="Search by course code or title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-9 pl-9 text-sm"
+              />
+            </div>
+
+            {/* Filter buttons and course count */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Semester filter dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    >
+                      <Filter className="w-4 h-4 mr-1" />
+                      {selectedSemester 
+                        ? (selectedSemester === '1' ? '1st Sem Only' : 
+                           selectedSemester === '2' ? '2nd Sem Only' : 'Mid Year Only')
+                        : "All Semesters"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={() => setSelectedSemester(null)}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={`w-1 h-4 rounded ${!selectedSemester ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                      All Semesters
+                    </DropdownMenuItem>
+                    {['1', '2', 'M'].map((sem) => {
+                      const isSelected = selectedSemester === sem;
+                      const label = sem === '1' ? '1st Sem Only' : sem === '2' ? '2nd Sem Only' : 'Mid Year Only';
+                      return (
+                        <DropdownMenuItem 
+                          key={sem}
+                          onClick={() => setSelectedSemester(sem)}
+                          className="flex items-center gap-2"
+                        >
+                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                          {label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Status filter dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    >
+                      <Filter className="w-4 h-4 mr-1" />
+                      {selectedStatus 
+                        ? (selectedStatus === 'planned' ? 'Planned' : 'Completed')
+                        : "All Statuses"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={() => setSelectedStatus(null)}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                      All Statuses
+                    </DropdownMenuItem>
+                    {['planned', 'completed'].map((status) => {
+                      const isSelected = selectedStatus === status;
+                      const label = status === 'planned' ? 'Planned' : 'Completed';
+                      return (
+                        <DropdownMenuItem 
+                          key={status}
+                          onClick={() => setSelectedStatus(status)}
+                          className="flex items-center gap-2"
+                        >
+                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                          {label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+              </div>
+            </div>
+          </div>
+
+          <ScrollArea className="max-h-[60vh]">
                       <div className="space-y-2 px-1">
-                        {filteredCourseList.length > 0 ? (
-                          filteredCourseList.map((course, index) => (
+              {filteredCourses.length > 0 ? (
+                filteredCourses.map((course, index) => (
                             <CourseItem 
-                              key={`${course.course_id}-${index}`}
-                              course={{
-                                ...course,
-                                course_type: course.course_type || type
-                              }}
-                              type={displayType} 
+                    key={index}
+                    course={course}
+                    type={type}
+                    showStatus={true}
                             />
                           ))
                         ) : (
@@ -203,12 +317,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                     </ScrollArea>
                   </DialogContent>
                 </Dialog>
-              )}
-            </div>
           </>
-        )}
-      </CardContent>
-    </Card>
   );
 };
 

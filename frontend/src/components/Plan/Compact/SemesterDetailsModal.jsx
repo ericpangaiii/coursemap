@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import CourseItem from "@/components/CourseItem";
-import { Calendar, CircleDashed, Filter } from "lucide-react";
+import { Calendar, CheckCircle2, Filter } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,18 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
-
-const formatCourseType = (type) => {
-  // Special cases
-  if (type === 'GE ELECTIVE') return 'GE Elective';
-  if (type === 'REQUIRED_NON_ACADEMIC') return 'Required Non-Academic';
-  
-  // Handle other course types
-  return type
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-};
+import { getCourseTypeColor, getCourseTypeName } from "@/lib/utils";
 
 const formatOrdinal = (n) => {
   const s = ["th", "st", "nd", "rd"];
@@ -40,46 +29,36 @@ const formatOrdinal = (n) => {
 const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, className }) => {
   const [selectedType, setSelectedType] = useState(null);
 
-  // Calculate total units for academic and non-academic courses
-  const academicUnits = courses
-    .filter(course => course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
-
-  const nonAcademicUnits = courses
-    .filter(course => !course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
-
-  // Calculate planned and completed counts
-  const plannedCourses = courses.filter(course => !course.is_completed);
-  const completedCourses = courses.filter(course => course.is_completed);
-
-  const plannedAcademicUnits = plannedCourses
-    .filter(course => course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
-
-  const plannedNonAcademicUnits = plannedCourses
-    .filter(course => !course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
-
-  const completedAcademicUnits = completedCourses
-    .filter(course => course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
-
-  const completedNonAcademicUnits = completedCourses
-    .filter(course => !course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
+  // Calculate total units for all course types
+  const courseTypeStats = {};
+  courses.forEach(course => {
+    const type = course.course_type;
+    if (!courseTypeStats[type]) {
+      courseTypeStats[type] = {
+        planned: 0,
+        completed: 0,
+        units: 0
+      };
+    }
+    if (course.is_completed) {
+      courseTypeStats[type].completed++;
+    } else {
+      courseTypeStats[type].planned++;
+    }
+    courseTypeStats[type].units += Number(course.units || 0);
+  });
 
   // Get unique course types from the semester's courses
   const courseTypes = [...new Set(courses.map(course => course.course_type))].sort();
 
   // Filter courses based on selected type
   const filteredPlannedCourses = selectedType 
-    ? plannedCourses.filter(course => course.course_type === selectedType)
-    : plannedCourses;
+    ? courses.filter(course => !course.is_completed && course.course_type === selectedType)
+    : courses.filter(course => !course.is_completed);
 
   const filteredCompletedCourses = selectedType 
-    ? completedCourses.filter(course => course.course_type === selectedType)
-    : completedCourses;
+    ? courses.filter(course => course.is_completed && course.course_type === selectedType)
+    : courses.filter(course => course.is_completed);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -101,19 +80,25 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                     className="h-8 px-2 text-gray-500 hover:text-blue-600"
                   >
                     <Filter className="w-4 h-4 mr-1" />
-                    {selectedType ? formatCourseType(selectedType) : "All Types"}
+                    {selectedType ? getCourseTypeName(selectedType) : "All Types"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setSelectedType(null)}>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem 
+                    onClick={() => setSelectedType(null)}
+                    className="flex items-center gap-2"
+                  >
+                    <div className="w-1 h-4 rounded bg-gray-300" />
                     All Types
                   </DropdownMenuItem>
                   {courseTypes.map(type => (
                     <DropdownMenuItem 
                       key={type} 
                       onClick={() => setSelectedType(type)}
+                      className="flex items-center gap-2"
                     >
-                      {formatCourseType(type)}
+                      <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
+                      {getCourseTypeName(type)}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
@@ -126,8 +111,11 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
             {/* Planned Courses Section */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700">
-                  Planned Courses
+                <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  Planned
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                    {filteredPlannedCourses.length} {filteredPlannedCourses.length === 1 ? 'course' : 'courses'}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -154,8 +142,11 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
             {/* Completed Courses Section */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700">
-                  Completed Courses
+                <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  Completed
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                    {filteredCompletedCourses.length} {filteredCompletedCourses.length === 1 ? 'course' : 'courses'}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -171,9 +162,9 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 text-gray-500">
-                    <CircleDashed className="h-8 w-8 mb-2" />
-                    <p className="text-sm font-medium">No completed courses</p>
-                    <p className="text-sm">Courses are still in progress</p>
+                    <CheckCircle2 className="h-8 w-8 mb-2" />
+                    <p className="text-sm font-medium">No courses completed</p>
+                    <p className="text-sm">Mark courses as completed when done</p>
                   </div>
                 )}
               </CardContent>
@@ -187,29 +178,35 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <table className="w-full border-collapse">
+                <table className="w-full border-collapse text-sm">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 text-sm font-medium text-gray-500">Type</th>
-                      <th className="text-center py-2 text-sm font-medium text-gray-500">Planned</th>
-                      <th className="text-center py-2 text-sm font-medium text-gray-500">Completed</th>
+                      <th className="text-left py-2 font-medium text-gray-500">Type</th>
+                      <th className="text-center py-2 font-medium text-gray-500">Planned</th>
+                      <th className="text-center py-2 font-medium text-gray-500">Completed</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b border-gray-100">
-                      <td className="py-2 text-sm text-gray-700">Academic</td>
-                      <td className="py-2 text-sm text-center text-gray-700">{plannedAcademicUnits}</td>
-                      <td className="py-2 text-sm text-center text-gray-700">{completedAcademicUnits}</td>
-                    </tr>
-                    <tr className="border-b border-gray-100">
-                      <td className="py-2 text-sm text-gray-700">Non-Academic</td>
-                      <td className="py-2 text-sm text-center text-gray-700">{plannedNonAcademicUnits}</td>
-                      <td className="py-2 text-sm text-center text-gray-700">{completedNonAcademicUnits}</td>
-                    </tr>
-                    <tr className="font-bold">
-                      <td className="py-2 text-sm text-gray-700">Total</td>
-                      <td className="py-2 text-sm text-center text-gray-700">{plannedAcademicUnits + plannedNonAcademicUnits}</td>
-                      <td className="py-2 text-sm text-center text-gray-700">{completedAcademicUnits + completedNonAcademicUnits}</td>
+                    {courseTypes.map(type => (
+                      <tr key={type} className="border-b border-gray-100">
+                        <td className="py-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
+                            {getCourseTypeName(type)}
+                          </div>
+                        </td>
+                        <td className="text-center py-2">{courseTypeStats[type].planned}</td>
+                        <td className="text-center py-2">{courseTypeStats[type].completed}</td>
+                      </tr>
+                    ))}
+                    <tr className="font-medium">
+                      <td className="py-2">Total</td>
+                      <td className="text-center py-2">
+                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.planned, 0)}
+                      </td>
+                      <td className="text-center py-2">
+                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.completed, 0)}
+                      </td>
                     </tr>
                   </tbody>
                 </table>

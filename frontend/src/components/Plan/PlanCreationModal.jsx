@@ -547,14 +547,16 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
 const PlanCreationModal = ({ 
   open, 
   onOpenChange, 
-  onPlanCreated 
+  onPlanCreated,
+  isEditMode = false,
+  existingPlan = null
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [coursesByType, setCoursesByType] = useState({});
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [planData, setPlanData] = useState({});
+  const [planData, setPlanData] = useState(existingPlan || {});
   const [curriculumStructure, setCurriculumStructure] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCombinedCourseDialog, setShowCombinedCourseDialog] = useState(false);
@@ -564,6 +566,13 @@ const PlanCreationModal = ({
   const [courseSelectionType, setCourseSelectionType] = useState("HIST 1/KAS 1");
   const [coursesToSelect, setCoursesToSelect] = useState([]);
   
+  // Update planData when existingPlan changes
+  useEffect(() => {
+    if (existingPlan) {
+      setPlanData(existingPlan);
+    }
+  }, [existingPlan]);
+
   // Fetch courses and curriculum structure on mount
   useEffect(() => {
     const fetchData = async () => {
@@ -1237,11 +1246,13 @@ const PlanCreationModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[95vh]">
+      <DialogContent className="max-w-6xl h-[95vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>Create Your Plan of Coursework</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Your Plan of Coursework" : "Create Your Plan of Coursework"}</DialogTitle>
           <DialogDescription>
-            Select and organize your courses to create your academic plan.
+            {isEditMode 
+              ? "Modify and reorganize your courses in your academic plan."
+              : "Select and organize your courses to create your academic plan."}
           </DialogDescription>
         </DialogHeader>
         {error ? (
@@ -1279,7 +1290,7 @@ const PlanCreationModal = ({
               </Dialog>
             )}
 
-            <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden items-start">
+            <div className="flex gap-6 flex-1 min-h-0 overflow-hidden pb-4">
               {/* Left side - Overview */}
               <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
                 <ScrollArea className="h-full w-full">
@@ -1395,7 +1406,7 @@ const PlanCreationModal = ({
                 </div>
 
                 {/* Navigation buttons */}
-                <div className="flex justify-between mt-4 pt-4 border-t">
+                <div className="flex justify-between mt-4 pt-4 border-t flex-shrink-0">
                   <Button
                     variant="outline"
                     onClick={handleBack}
@@ -1404,23 +1415,12 @@ const PlanCreationModal = ({
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Back
                   </Button>
-                  
                   <Button
                     onClick={currentStep === availableSteps.length - 1 ? handleCreatePlan : handleNext}
-                    className={currentStep === availableSteps.length - 1 ? 
-                      "bg-blue-600 hover:bg-blue-700 text-white" : ""}
+                    disabled={!canProceedToNextStep()}
                   >
-                    {currentStep === availableSteps.length - 1 ? (
-                      <>
-                        <FileCheck className="w-4 h-4 mr-2" /> 
-                        Create Plan
-                      </>
-                    ) : (
-                      <>
-                        Next
-                        <ChevronRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
+                    {currentStep === availableSteps.length - 1 ? "Create Plan" : "Next"}
+                    <ChevronRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </div>

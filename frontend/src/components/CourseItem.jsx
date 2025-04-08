@@ -15,7 +15,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   
   // Bail out if no course provided
   if (!course) {
-    console.error("No course provided to CourseItem");
     return null;
   }
 
@@ -48,7 +47,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   
   // Get color based on course type using the utility function
   const getCourseColor = () => {
-    console.log('Course type:', course.course_type, 'Normalized type:', normalizedType);
     return getCourseTypeColor(normalizedType);
   };
   

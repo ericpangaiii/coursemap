@@ -1,9 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSemesterName, getCourseTypeColor, sortCourses } from "@/lib/utils";
+import { getSemesterName, getCourseTypeColor, sortCourses, getNormalizedCourseType } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Expand } from "lucide-react";
+import { List } from "lucide-react";
 import { useState } from "react";
 import SemesterDetailsModal from "./SemesterDetailsModal";
+import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Filter } from "lucide-react";
 
 const CompactSemesterCard = ({ semester, courses, year }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +39,7 @@ const CompactSemesterCard = ({ semester, courses, year }) => {
               className="h-6 px-2 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100"
               onClick={() => setIsModalOpen(true)}
             >
-              <Expand className="h-3.5 w-3.5" />
+              View Details
             </Button>
           </div>
         </CardHeader>
@@ -50,7 +52,7 @@ const CompactSemesterCard = ({ semester, courses, year }) => {
                     key={course.course_id}
                     className="text-xs px-2 py-1.5 rounded bg-gray-50 flex items-center justify-between relative overflow-hidden"
                   >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${getCourseTypeColor(course.course_type)}`} />
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${getCourseTypeColor(getNormalizedCourseType(course.course_type))}`} />
                     <span className="font-medium ml-1.5">{course.course_code}</span>
                     <span className="text-gray-500">{course.units}</span>
                   </div>
