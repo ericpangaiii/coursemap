@@ -98,7 +98,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
               <div className={`w-1 h-4 rounded ${typeColor}`}></div>
-              <CardTitle className="text-base font-medium">{typeName}</CardTitle>
+              <CardTitle className="text-sm font-medium">{typeName}</CardTitle>
             </div>
             <div className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800">
               {stats.percentage}%

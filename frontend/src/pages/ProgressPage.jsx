@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ReloadIcon } from "@radix-ui/react-icons";
 import PageHeader from "@/components/PageHeader";
 import { curriculumsAPI } from "@/lib/api";
 import CourseTypeCard from "@/components/Progress/CourseTypeCard";
-import { AlertCircle } from "lucide-react";
-import { getCourseTypeName, getCourseTypeColor } from "@/lib/utils";
+import { getCourseTypeName } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/loading";
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
 
 const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
@@ -608,7 +604,7 @@ const ProgressPage = () => {
                 <CardTitle>Course Requirements</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {courseTypes.length > 0 ? (
                     courseTypes.map(type => (
                       <CourseTypeCard

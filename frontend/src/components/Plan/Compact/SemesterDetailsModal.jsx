@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import CourseItem from "@/components/CourseItem";
-import { Calendar, CheckCircle2, Filter } from "lucide-react";
+import { Calendar, CheckCircle2, Filter, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,19 +92,22 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                       onClick={() => setSelectedType(null)}
                       className="flex items-center gap-2"
                     >
-                      <div className="w-1 h-4 rounded bg-gray-300" />
+                      <div className={`w-1 h-4 rounded ${!selectedType ? 'bg-gray-900' : 'bg-gray-200'}`} />
                       All Types
                     </DropdownMenuItem>
-                    {courseTypes.map(type => (
-                      <DropdownMenuItem 
-                        key={type} 
-                        onClick={() => setSelectedType(type)}
-                        className="flex items-center gap-2"
-                      >
-                        <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
-                        {getCourseTypeName(type)}
-                      </DropdownMenuItem>
-                    ))}
+                    {courseTypes.map(type => {
+                      const isSelected = selectedType === type;
+                      return (
+                        <DropdownMenuItem 
+                          key={type} 
+                          onClick={() => setSelectedType(type)}
+                          className="flex items-center gap-2"
+                        >
+                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                          {getCourseTypeName(type)}
+                        </DropdownMenuItem>
+                      );
+                    })}
                   </DropdownMenuContent>
                 </DropdownMenu>
 
@@ -171,7 +174,7 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 text-gray-500">
-                    <Calendar className="h-8 w-8 mb-2" />
+                    <FileText className="h-8 w-8 mb-2" />
                     <p className="text-sm font-medium">No courses found</p>
                     <p className="text-sm">Try adjusting your filters</p>
                   </div>

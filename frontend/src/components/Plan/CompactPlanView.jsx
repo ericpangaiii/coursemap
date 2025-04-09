@@ -26,7 +26,7 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange }) => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle>Plan of Coursework</CardTitle>
           <div className="flex gap-2">
@@ -55,23 +55,16 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange }) => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button 
-              size="sm" 
-              onClick={handlePlanButtonClick}
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
-            >
-              {hasCourses ? (
-                <>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Plan
-                </>
-              ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Plan
-                </>
-              )}
-            </Button>
+            {!hasCourses && (
+              <Button 
+                size="sm" 
+                onClick={handlePlanButtonClick}
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Plan
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -87,7 +80,11 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange }) => {
             ))}
           </div>
         ) : (
-          <div className="text-xs text-gray-400 text-center py-4">No courses planned yet</div>
+          <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+            <FileText className="h-12 w-12 mb-3" />
+            <p className="text-sm font-medium">No courses planned yet</p>
+            <p className="text-sm">Click "Create Plan" to get started</p>
+          </div>
         )}
       </CardContent>
       <PlanCreationModal 

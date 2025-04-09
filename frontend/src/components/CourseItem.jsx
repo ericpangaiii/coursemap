@@ -1,4 +1,4 @@
-import { Info, CheckCircle2, Clock } from "lucide-react";
+import { Info } from "lucide-react";
 import { useState } from "react";
 import {
   Tooltip,
@@ -9,9 +9,31 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getCourseTypeColor } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester" }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [grade, setGrade] = useState(course.grade || "");
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+  
+  // UP Grading System
+  const gradeOptions = [
+    { value: "", label: "Not yet taken" },
+    { value: "1.00", label: "1.00" },
+    { value: "1.25", label: "1.25" },
+    { value: "1.50", label: "1.50" },
+    { value: "1.75", label: "1.75" },
+    { value: "2.00", label: "2.00" },
+    { value: "2.25", label: "2.25" },
+    { value: "2.50", label: "2.50" },
+    { value: "2.75", label: "2.75" },
+    { value: "3.00", label: "3.00" },
+    { value: "4.00", label: "4.00" },
+    { value: "5.00", label: "5.00" },
+    { value: "INC", label: "INC" },
+    { value: "DRP", label: "DRP" }
+  ];
   
   // Bail out if no course provided
   if (!course) {
@@ -102,69 +124,54 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   let prescribedText = "";
   
   // Process prescribed semester information from course data
-  if ((prescribedYear === 0 || prescribedYear === '0') && 
-      (prescribedSemester === 0 || prescribedSemester === '0')) {
-    // Don't set any default text, leave empty if there's no information
-    prescribedText = "";
-  } else {
-    const yearText = (prescribedYear === 0 || prescribedYear === '0') 
-                  ? "" 
-                  : formatYear(prescribedYear);
+  if (prescribedYear || prescribedSemester) {
+    const yearText = formatYear(prescribedYear);
     const semText = formatSemester(prescribedSemester);
     
     if (yearText && semText) {
-      prescribedText = `${yearText} ${semText}`;
+      prescribedText = `Prescribed: ${yearText} ${semText}`;
     } else if (yearText) {
-      prescribedText = yearText;
+      prescribedText = `Prescribed: ${yearText}`;
     } else if (semText) {
-      prescribedText = semText;
+      prescribedText = `Prescribed: ${semText}`;
     }
   }
-
-  // Clean up the course description, handle "No Available DATA" case
-  const getCourseDescription = () => {
-    // Check if there's no description or it contains the "No Available DATA" text
-    if (!course.description || course.description.trim() === "No Available DATA" || course.description.trim() === "No available data") {
-      return "No description available for this course.";
-    }
-    return course.description;
-  };
-
-  const courseDescription = getCourseDescription();
   
-  // For combined courses like HK 12/13, create a special tooltip content
+  // Get course description with fallback
+  const courseDescription = course.description || "No description available.";
+  
+  // Function to get tooltip content for combined courses
   const getCombinedCourseTooltipContent = () => {
-    if (!isCombinedCourse || !course.combined_courses) return null;
+    if (!course.combined_courses) return null;
     
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div>
-          <h5 className="font-medium text-sm text-gray-600">Course Options</h5>
-          <p className="text-sm text-gray-700">
-            Take one of these courses to fulfill this requirement:
-          </p>
-          <ul className="mt-2 space-y-1 text-sm text-gray-700">
-            {course.combined_courses.map((c, index) => (
-              <li key={index} className="flex items-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-2"></div>
-                <span className="font-medium">{c.course_code}</span>
-                <span className="mx-1">-</span>
-                <span>{c.title}</span>
-                {c.course_code === "HK 13" && (
-                  <span className="ml-1 text-xs text-blue-600 italic font-medium">(for varsity)</span>
-                )}
-              </li>
-            ))}
-          </ul>
+          <h5 className="font-medium text-sm text-gray-700 mb-1.5">Description</h5>
+          <p className="text-sm text-gray-700 leading-relaxed">{courseDescription}</p>
         </div>
         
-        {prescribedText && (
+        <div>
+          <h5 className="font-medium text-sm text-gray-700 mb-1.5">Components</h5>
+          <div className="space-y-2">
+            {course.combined_courses.map((component, index) => (
+              <div key={index} className="text-sm text-gray-700">
+                <p className="font-medium">{component.course_code}</p>
+                <p className="text-gray-600">{component.title}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {formattedSemOffered.length > 0 && (
           <div>
-            <h5 className="font-medium text-sm text-gray-600">Prescribed</h5>
-            <div className="flex flex-wrap gap-1 mt-1">
-              <Badge variant="outline" className="text-xs bg-white">
-                {prescribedText}
-              </Badge>
+            <h5 className="font-medium text-sm text-gray-700 mb-1.5">Semesters Offered</h5>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {formattedSemOffered.map((sem, index) => (
+                <Badge key={index} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
+                  {sem}
+                </Badge>
+              ))}
             </div>
           </div>
         )}
@@ -172,23 +179,76 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     );
   };
   
+  const handleGradeChange = (newGrade) => {
+    setGrade(newGrade);
+  };
+
+  const getGradeBadgeColor = (grade) => {
+    if (!grade) return "bg-white text-gray-500 border-gray-200";
+    
+    const numericGrade = parseFloat(grade);
+    if (isNaN(numericGrade)) {
+      // Handle non-numeric grades
+      switch (grade) {
+        case "INC":
+          return "bg-yellow-100 text-yellow-700 border-yellow-200";
+        case "DRP":
+          return "bg-red-100 text-red-700 border-red-200";
+        default:
+          return "bg-white text-gray-500 border-gray-200";
+      }
+    }
+
+    // Handle numeric grades
+    if (numericGrade === 1.00) return "bg-green-100 text-green-700 border-green-200";
+    if (numericGrade <= 1.25) return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    if (numericGrade <= 1.50) return "bg-teal-100 text-teal-700 border-teal-200";
+    if (numericGrade <= 1.75) return "bg-cyan-100 text-cyan-700 border-cyan-200";
+    if (numericGrade <= 2.00) return "bg-blue-100 text-blue-700 border-blue-200";
+    if (numericGrade <= 2.25) return "bg-indigo-100 text-indigo-700 border-indigo-200";
+    if (numericGrade <= 2.75) return "bg-violet-100 text-violet-700 border-violet-200";
+    if (numericGrade <= 3.00) return "bg-purple-100 text-purple-700 border-purple-200";
+    if (numericGrade <= 4.00) return "bg-orange-100 text-orange-700 border-orange-200";
+    return "bg-red-100 text-red-700 border-red-200"; // 5.00
+  };
+
   return (
     <div className="p-3 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-between relative overflow-hidden">
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
-      {course.status === 'completed' && (
-        <div className="absolute right-3 top-3 flex items-center gap-1">
-          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-          {course.grade && (
-            <span className="text-xs text-gray-500">({course.grade})</span>
-          )}
-        </div>
-      )}
+      
       <div className="flex-1 min-w-0 pl-2">
         <div className="flex items-center flex-wrap gap-y-1">
           <h4 className="font-medium text-gray-900 mr-2">{courseCode}</h4>
-          <Badge variant="outline" className="ml-1 bg-white">
-            {courseUnits} units
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className="bg-white">
+              {courseUnits} units
+            </Badge>
+            <div className="flex items-center">
+              <DropdownMenu open={isSelectOpen} onOpenChange={setIsSelectOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Badge 
+                    variant="outline" 
+                    className={`cursor-pointer hover:opacity-80 ${getGradeBadgeColor(grade)}`}
+                  >
+                    {grade || "Not yet taken"}
+                  </Badge>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-[100px]">
+                  <ScrollArea className="h-[140px]">
+                    {gradeOptions.map((option) => (
+                      <DropdownMenuItem 
+                        key={option.value} 
+                        className="text-xs py-1.5"
+                        onClick={() => handleGradeChange(option.value)}
+                      >
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </ScrollArea>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
         </div>
         <p className="text-sm text-gray-700 truncate">{courseTitle}</p>
         
@@ -235,41 +295,10 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                     </div>
                   )}
                   
-                  {(prescribedText || course.prescribed_note) && (
+                  {prescribedText && (
                     <div>
-                      <h5 className="font-medium text-sm text-gray-700 mb-1.5">Prescribed Semester</h5>
-                      {course.prescribed_note ? (
-                        <div className="mt-1.5">
-                          <div className="flex flex-wrap gap-1.5 mt-1.5">
-                            {Array.isArray(course.prescribed_note) 
-                              ? course.prescribed_note.map((semester, idx) => {
-                                  const trimmedSemester = semester.trim();
-                                  return (
-                                    <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
-                                      {trimmedSemester}
-                                    </Badge>
-                                  );
-                                })
-                              : typeof course.prescribed_note === 'string'
-                                ? course.prescribed_note.split(',').map((semester, idx) => {
-                                    const trimmedSemester = semester.trim();
-                                    return (
-                                      <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
-                                        {trimmedSemester}
-                                      </Badge>
-                                    );
-                                  })
-                                : null
-                            }
-                          </div>
-                        </div>
-                      ) : prescribedText ? (
-                        <div className="flex flex-wrap gap-1.5 mt-1.5">
-                          <Badge variant="outline" className="text-xs bg-white text-gray-900">
-                            {prescribedText}
-                          </Badge>
-                        </div>
-                      ) : null}
+                      <h5 className="font-medium text-sm text-gray-700 mb-1.5">Prescribed Schedule</h5>
+                      <p className="text-sm text-gray-700">{prescribedText}</p>
                     </div>
                   )}
                 </div>
@@ -278,6 +307,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
           </Tooltip>
         </TooltipProvider>
       </div>
+
       {inPlanCreation && (
         <div className="flex flex-col gap-2">
           <Select
