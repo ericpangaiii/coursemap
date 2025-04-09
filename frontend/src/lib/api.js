@@ -371,6 +371,7 @@ export const usersAPI = {
   }
 };
 
+// Course API calls
 export const coursesAPI = {
   // Get courses by their IDs
   getCoursesByIds: async (courseIds) => {
@@ -383,15 +384,28 @@ export const coursesAPI = {
         credentials: 'include',
         body: JSON.stringify({ courseIds }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch courses');
-      }
-      
       return await response.json();
     } catch (error) {
-      console.error('Error fetching courses by IDs:', error);
-      return [];
+      console.error('Failed to fetch courses:', error);
+      return { success: false, error: 'Failed to fetch courses' };
     }
-  }
+  },
+
+  // Update course
+  updateCourse: async (courseId, updates) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courses/${courseId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to update course:', error);
+      return { success: false, error: 'Failed to update course' };
+    }
+  },
 }; 

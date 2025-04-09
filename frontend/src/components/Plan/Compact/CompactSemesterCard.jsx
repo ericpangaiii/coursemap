@@ -1,29 +1,54 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getSemesterName, getCourseTypeColor, sortCourses, getNormalizedCourseType } from "@/lib/utils";
+import { getSemesterName, getCourseTypeColor, sortCourses, getNormalizedCourseType, getGradeBadgeColor, computeSemesterGWA } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { List } from "lucide-react";
-import { useState } from "react";
+import { Check } from "lucide-react";
+import { useState, useEffect } from "react";
 import SemesterDetailsModal from "./SemesterDetailsModal";
 import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Filter } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
-const CompactSemesterCard = ({ semester, courses, year }) => {
+const CompactSemesterCard = ({ semester, courses, year, onUpdate }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [coursesState, setCourses] = useState(courses);
+  
+  // Update local state when courses prop changes
+  useEffect(() => {
+    setCourses(courses);
+  }, [courses]);
   
   // Determine if this is a midyear semester (semester 3)
   const isMidyear = semester === 3;
 
-  // Calculate total units for academic and non-academic courses
-  const academicUnits = courses
+  // Calculate total units for academic courses
+  const academicUnits = coursesState
     .filter(course => course.is_academic)
     .reduce((sum, course) => sum + Number(course.units || 0), 0);
 
-  const nonAcademicUnits = courses
-    .filter(course => !course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
-
   // Sort the courses
-  const sortedCourses = sortCourses(courses);
+  const sortedCourses = sortCourses(coursesState);
+
+  // Calculate GWA
+  const semesterGWA = computeSemesterGWA(coursesState);
+
+  const handleUpdate = (updatedCourses) => {
+    // Update local state with the new organized courses for this semester
+    if (updatedCourses[year] && updatedCourses[year][semester]) {
+      // Preserve the is_academic property from the original courses
+      const updatedCoursesWithAcademic = updatedCourses[year][semester].map(updatedCourse => {
+        const originalCourse = coursesState.find(c => c.course_id === updatedCourse.course_id);
+        return {
+          ...updatedCourse,
+          is_academic: originalCourse ? originalCourse.is_academic : updatedCourse.is_academic
+        };
+      });
+      setCourses(updatedCoursesWithAcademic);
+    }
+    // Notify parent component
+    if (onUpdate) {
+      onUpdate(updatedCourses);
+    }
+  };
 
   return (
     <>
@@ -45,16 +70,36 @@ const CompactSemesterCard = ({ semester, courses, year }) => {
         </CardHeader>
         <CardContent className={`px-2 pt-2 pb-0 flex-1 flex flex-col ${isMidyear ? 'max-h-[100px]' : 'max-h-[300px]'}`}>
           <div className="flex-1 overflow-y-auto">
-            {courses.length > 0 ? (
+            {coursesState.length > 0 ? (
               <div className="space-y-1.5">
                 {sortedCourses.map((course) => (
                   <div
                     key={course.course_id}
                     className="text-xs px-2 py-1.5 rounded bg-gray-50 flex items-center justify-between relative overflow-hidden"
                   >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${getCourseTypeColor(getNormalizedCourseType(course.course_type))}`} />
-                    <span className="font-medium ml-1.5">{course.course_code}</span>
-                    <span className="text-gray-500">{course.units}</span>
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${!course.is_academic ? 'bg-blue-300' : getCourseTypeColor(getNormalizedCourseType(course.course_type))}`} />
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-medium ml-1.5">{course.course_code}</span>
+                      <div className="flex items-center gap-1">
+                        {course.grade && !['5', 'INC', 'DRP'].includes(course.grade) && (
+                          <Check className="h-3 w-3 text-green-500" />
+                        )}
+                        {course.grade && (
+                          <Badge 
+                            variant="outline" 
+                            className={`text-[10px] h-5 ${getGradeBadgeColor(course.grade)}`}
+                          >
+                            {course.grade}
+                          </Badge>
+                        )}
+                        <Badge 
+                          variant="outline" 
+                          className={`text-[10px] h-5 ${!course.is_academic ? 'text-gray-500' : ''}`}
+                        >
+                          {course.units} units
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -62,9 +107,18 @@ const CompactSemesterCard = ({ semester, courses, year }) => {
               <div className="text-xs text-gray-400 text-center py-1">Empty</div>
             )}
           </div>
-          {courses.length > 0 && (
-            <div className="mt-1 pt-1 border-t flex justify-end space-x-3 text-[10px] text-gray-500">
-              <div>{`${academicUnits} / ${nonAcademicUnits} units`}</div>
+          {coursesState.length > 0 && (
+            <div className="mt-1 pt-1 border-t flex justify-end space-x-3 text-[10px]">
+              <div className="flex items-center gap-2 pr-2">
+                {semesterGWA !== null && (
+                  <Badge variant="outline" className="h-5 text-[10px] bg-blue-50 text-blue-600 font-semibold">
+                    GWA: {semesterGWA.toFixed(2)}
+                  </Badge>
+                )}
+                <Badge variant="outline" className="h-5 text-[10px] bg-gray-50 text-gray-600 font-semibold">
+                  {academicUnits} units
+                </Badge>
+              </div>
             </div>
           )}
         </CardContent>
@@ -75,6 +129,7 @@ const CompactSemesterCard = ({ semester, courses, year }) => {
         courses={sortedCourses}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onUpdate={handleUpdate}
         className="sm:max-w-2xl"
       />
     </>

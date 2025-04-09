@@ -6,7 +6,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import CourseItem from "@/components/CourseItem";
-import { Calendar, CheckCircle2, Filter, FileText } from "lucide-react";
+import { Calendar, CheckCircle2, Filter, FileText, Award } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,8 +17,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
-import { getCourseTypeColor, getCourseTypeName } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { getCourseTypeColor, getCourseTypeName, computeSemesterGWA, getScholarshipEligibility } from "@/lib/utils";
+import { plansAPI } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
 
 const formatOrdinal = (n) => {
   const s = ["th", "st", "nd", "rd"];
@@ -26,34 +28,89 @@ const formatOrdinal = (n) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, className }) => {
+const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onUpdate }) => {
   const [selectedType, setSelectedType] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
+  const [coursesState, setCourses] = useState(courses);
+
+  // Update local state when courses prop changes
+  useEffect(() => {
+    setCourses(courses);
+  }, [courses]);
+
+  const handleGradeChange = async () => {
+    // Refresh the plan data
+    const updatedPlan = await plansAPI.getCurrentPlan();
+    if (updatedPlan) {
+      // Reorganize courses after plan update
+      const organized = {};
+      if (updatedPlan?.courses) {
+        // Create a map to track unique courses by plan_courses.id
+        const uniqueCourses = new Map();
+        
+        updatedPlan.courses.forEach(course => {
+          // If we haven't seen this plan_courses.id before, add it to our map
+          if (!uniqueCourses.has(course.id)) {
+            uniqueCourses.set(course.id, course);
+          }
+        });
+        
+        // Convert the map values back to an array and organize them
+        Array.from(uniqueCourses.values()).forEach(course => {
+          const year = course.year;
+          const sem = course.sem;
+          
+          if (!organized[year]) {
+            organized[year] = {};
+          }
+          
+          if (!organized[year][sem]) {
+            organized[year][sem] = [];
+          }
+          
+          // Preserve the original course type from the current state
+          const existingCourse = coursesState.find(c => c.id === course.id);
+          if (existingCourse) {
+            course.course_type = existingCourse.course_type;
+          }
+          
+          organized[year][sem].push(course);
+        });
+      }
+      
+      // Update the parent component's organizedCourses through the prop
+      if (onUpdate) {
+        onUpdate(organized);
+      }
+      
+      // Update the local courses state with the new organized courses for this semester
+      if (organized[year] && organized[year][semester]) {
+        setCourses(organized[year][semester]);
+      }
+    }
+  };
 
   // Calculate total units for all course types
   const courseTypeStats = {};
-  courses.forEach(course => {
+  coursesState.forEach(course => {
     const type = course.course_type;
     if (!courseTypeStats[type]) {
       courseTypeStats[type] = {
-        planned: 0,
-        completed: 0,
-        units: 0
+        total: 0,
+        completed: 0
       };
     }
+    courseTypeStats[type].total += Number(course.units || 0);
     if (course.is_completed) {
-      courseTypeStats[type].completed++;
-    } else {
-      courseTypeStats[type].planned++;
+      courseTypeStats[type].completed += Number(course.units || 0);
     }
-    courseTypeStats[type].units += Number(course.units || 0);
   });
 
   // Get unique course types from the semester's courses
-  const courseTypes = [...new Set(courses.map(course => course.course_type))].sort();
+  const courseTypes = [...new Set(coursesState.map(course => course.course_type))].sort();
 
-  // Filter courses based on selected type and status
-  const filteredCourses = courses.filter(course => {
+  // Filter courses based on selected filters
+  const filteredCourses = coursesState.filter((course) => {
     const typeMatch = !selectedType || course.course_type === selectedType;
     const statusMatch = !selectedStatus || 
       (selectedStatus === 'completed' && course.is_completed) ||
@@ -61,9 +118,12 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
     return typeMatch && statusMatch;
   });
 
+  // Calculate GWA
+  const semesterGWA = computeSemesterGWA(coursesState);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={cn("sm:max-w-2xl", className)}>
+      <DialogContent className={cn("sm:max-w-2xl")}>
         <DialogHeader>
           <div>
             <DialogTitle className="text-lg font-medium">
@@ -71,9 +131,11 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
             </DialogTitle>
             <div className="flex justify-between items-center mt-1">
               <DialogDescription className="pb-1">
-                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                  {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                    {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+                  </span>
+                </div>
               </DialogDescription>
               <div className="flex items-center gap-4">
                 <DropdownMenu>
@@ -169,6 +231,8 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                         key={course.course_id}
                         course={course}
                         type={course.course_type}
+                        enableGradeSelection={true}
+                        onGradeChange={handleGradeChange}
                       />
                     ))}
                   </div>
@@ -207,14 +271,14 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                             {getCourseTypeName(type)}
                           </div>
                         </td>
-                        <td className="text-center py-2">{courseTypeStats[type].planned}</td>
+                        <td className="text-center py-2">{courseTypeStats[type].total}</td>
                         <td className="text-center py-2">{courseTypeStats[type].completed}</td>
                       </tr>
                     ))}
                     <tr className="font-medium">
                       <td className="py-2">Total</td>
                       <td className="text-center py-2">
-                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.planned, 0)}
+                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.total, 0)}
                       </td>
                       <td className="text-center py-2">
                         {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.completed, 0)}
@@ -222,6 +286,20 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                     </tr>
                   </tbody>
                 </table>
+                {semesterGWA !== null && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="text-sm font-medium text-gray-500">Semester GWA</div>
+                      <Badge variant="outline" className="h-8 text-base bg-blue-50 text-blue-600 font-semibold">
+                        {semesterGWA.toFixed(2)}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-xs text-gray-400">
+                        <Award className="h-3 w-3" />
+                        {getScholarshipEligibility(semesterGWA)}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

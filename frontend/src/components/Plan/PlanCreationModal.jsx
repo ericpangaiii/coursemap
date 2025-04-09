@@ -1115,7 +1115,7 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
       });
       
       // 2. Add generic course type placeholders for GE, electives, and majors
-      // These don't represent specific courses but indicate that a course of this type should be taken
+      // These don't represent specific courses but indicate that a course of this type should be completed
       const typesToAddGeneric = ['ge_elective', 'elective', 'major'];
       
       typesToAddGeneric.forEach(type => {

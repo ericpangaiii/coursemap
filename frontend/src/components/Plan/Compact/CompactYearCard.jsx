@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompactSemesterCard from "./CompactSemesterCard";
 import { getOrdinalYear } from "@/lib/utils";
 
-const CompactYearCard = ({ year, semesters }) => {
+const CompactYearCard = ({ year, semesters, onUpdate }) => {
   // Filter out semesters with no courses
   const nonEmptySemesters = Object.entries(semesters)
     .filter(([, courses]) => courses && courses.length > 0)
@@ -26,6 +26,7 @@ const CompactYearCard = ({ year, semesters }) => {
             semester={parseInt(sem)}
             courses={courses}
             year={year}
+            onUpdate={onUpdate}
           />
         ))}
       </CardContent>

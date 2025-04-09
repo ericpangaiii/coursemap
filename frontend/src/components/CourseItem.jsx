@@ -11,15 +11,16 @@ import { getCourseTypeColor } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { coursesAPI } from '@/lib/api';
 
-const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester" }) => {
+const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester", enableGradeSelection = false, onGradeChange }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [grade, setGrade] = useState(course.grade || "");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   
   // UP Grading System
   const gradeOptions = [
-    { value: "", label: "Not yet taken" },
+    { value: "", label: "Not yet completed" },
     { value: "1.00", label: "1.00" },
     { value: "1.25", label: "1.25" },
     { value: "1.50", label: "1.50" },
@@ -129,11 +130,11 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     const semText = formatSemester(prescribedSemester);
     
     if (yearText && semText) {
-      prescribedText = `Prescribed: ${yearText} ${semText}`;
+      prescribedText = `${yearText} ${semText}`;
     } else if (yearText) {
-      prescribedText = `Prescribed: ${yearText}`;
+      prescribedText = `${yearText}`;
     } else if (semText) {
-      prescribedText = `Prescribed: ${semText}`;
+      prescribedText = `${semText}`;
     }
   }
   
@@ -179,8 +180,23 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     );
   };
   
-  const handleGradeChange = (newGrade) => {
-    setGrade(newGrade);
+  const handleGradeChange = async (newGrade) => {
+    try {
+      // Update both grade and status
+      const status = newGrade && newGrade !== "" && !['INC', 'DRP'].includes(newGrade) ? 'completed' : 'planned';
+      const response = await coursesAPI.updateCourse(course.course_id, { 
+        grade: newGrade,
+        status: status
+      });
+      if (response.success) {
+        setGrade(newGrade);
+        onGradeChange?.(course.course_id, newGrade);
+      } else {
+        console.error('Failed to update grade:', response.error);
+      }
+    } catch (error) {
+      console.error('Failed to update grade:', error);
+    }
   };
 
   const getGradeBadgeColor = (grade) => {
@@ -223,31 +239,33 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             <Badge variant="outline" className="bg-white">
               {courseUnits} units
             </Badge>
-            <div className="flex items-center">
-              <DropdownMenu open={isSelectOpen} onOpenChange={setIsSelectOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Badge 
-                    variant="outline" 
-                    className={`cursor-pointer hover:opacity-80 ${getGradeBadgeColor(grade)}`}
-                  >
-                    {grade || "Not yet taken"}
-                  </Badge>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[100px]">
-                  <ScrollArea className="h-[140px]">
-                    {gradeOptions.map((option) => (
-                      <DropdownMenuItem 
-                        key={option.value} 
-                        className="text-xs py-1.5"
-                        onClick={() => handleGradeChange(option.value)}
-                      >
-                        {option.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </ScrollArea>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            {enableGradeSelection && (
+              <div className="flex items-center">
+                <DropdownMenu open={isSelectOpen} onOpenChange={setIsSelectOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <Badge 
+                      variant="outline" 
+                      className={`cursor-pointer hover:opacity-80 ${getGradeBadgeColor(grade)}`}
+                    >
+                      {grade || "Not yet completed"}
+                    </Badge>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[100px]">
+                    <ScrollArea className="h-[140px]">
+                      {gradeOptions.map((option) => (
+                        <DropdownMenuItem 
+                          key={option.value} 
+                          className="text-xs py-1.5"
+                          onClick={() => handleGradeChange(option.value)}
+                        >
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </ScrollArea>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
           </div>
         </div>
         <p className="text-sm text-gray-700 truncate">{courseTitle}</p>

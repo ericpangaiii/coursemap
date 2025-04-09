@@ -518,3 +518,69 @@ export function getOrdinalYear(year) {
   const suffix = year <= 3 ? suffixes[year] : suffixes[0];
   return `${year}${suffix} Year`;
 }
+
+export const getGradeBadgeColor = (grade) => {
+  if (!grade) return "bg-white text-gray-500 border-gray-200";
+  
+  const numericGrade = parseFloat(grade);
+  if (isNaN(numericGrade)) {
+    // Handle non-numeric grades
+    switch (grade) {
+      case "INC":
+        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "DRP":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-white text-gray-500 border-gray-200";
+    }
+  }
+
+  // Handle numeric grades
+  if (numericGrade === 1.00) return "bg-green-100 text-green-700 border-green-200";
+  if (numericGrade <= 1.25) return "bg-emerald-100 text-emerald-700 border-emerald-200";
+  if (numericGrade <= 1.50) return "bg-teal-100 text-teal-700 border-teal-200";
+  if (numericGrade <= 1.75) return "bg-cyan-100 text-cyan-700 border-cyan-200";
+  if (numericGrade <= 2.00) return "bg-blue-100 text-blue-700 border-blue-200";
+  if (numericGrade <= 2.25) return "bg-indigo-100 text-indigo-700 border-indigo-200";
+  if (numericGrade <= 2.75) return "bg-violet-100 text-violet-700 border-violet-200";
+  if (numericGrade <= 3.00) return "bg-purple-100 text-purple-700 border-purple-200";
+  if (numericGrade <= 4.00) return "bg-pink-100 text-pink-700 border-pink-200";
+  return "bg-red-100 text-red-700 border-red-200";
+};
+
+export const computeSemesterGWA = (courses) => {
+  // Filter out non-academic courses and courses without grades
+  const academicCourses = courses.filter(course => 
+    course.is_academic && 
+    course.grade && 
+    !['5', 'INC', 'DRP'].includes(course.grade)
+  );
+
+  if (academicCourses.length === 0) return null;
+
+  // Calculate total units and weighted sum
+  const { totalUnits, weightedSum } = academicCourses.reduce((acc, course) => {
+    const units = Number(course.units || 0);
+    const grade = Number(course.grade);
+    return {
+      totalUnits: acc.totalUnits + units,
+      weightedSum: acc.weightedSum + (units * grade)
+    };
+  }, { totalUnits: 0, weightedSum: 0 });
+
+  // Calculate GWA and round to 2 decimal places
+  const gwa = weightedSum / totalUnits;
+  return Number(gwa.toFixed(2));
+};
+
+/**
+ * Get scholarship eligibility based on GWA
+ * @param {number} gwa - The GWA value
+ * @returns {string} - Scholarship eligibility text
+ */
+export const getScholarshipEligibility = (gwa) => {
+  if (gwa <= 1.45) return "University Scholar";
+  if (gwa <= 1.75) return "College Scholar";
+  if (gwa <= 2.00) return "Honor Roll";
+  return "Not eligible for scholarship";
+};
