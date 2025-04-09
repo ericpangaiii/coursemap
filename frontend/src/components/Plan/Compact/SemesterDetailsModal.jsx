@@ -28,6 +28,7 @@ const formatOrdinal = (n) => {
 
 const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, className }) => {
   const [selectedType, setSelectedType] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(null);
 
   // Calculate total units for all course types
   const courseTypeStats = {};
@@ -51,14 +52,14 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
   // Get unique course types from the semester's courses
   const courseTypes = [...new Set(courses.map(course => course.course_type))].sort();
 
-  // Filter courses based on selected type
-  const filteredPlannedCourses = selectedType 
-    ? courses.filter(course => !course.is_completed && course.course_type === selectedType)
-    : courses.filter(course => !course.is_completed);
-
-  const filteredCompletedCourses = selectedType 
-    ? courses.filter(course => course.is_completed && course.course_type === selectedType)
-    : courses.filter(course => course.is_completed);
+  // Filter courses based on selected type and status
+  const filteredCourses = courses.filter(course => {
+    const typeMatch = !selectedType || course.course_type === selectedType;
+    const statusMatch = !selectedStatus || 
+      (selectedStatus === 'completed' && course.is_completed) ||
+      (selectedStatus === 'planned' && !course.is_completed);
+    return typeMatch && statusMatch;
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -70,58 +71,97 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
             </DialogTitle>
             <div className="flex justify-between items-center mt-1">
               <DialogDescription className="pb-1">
-                View courses for this semester
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                  {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+                </span>
               </DialogDescription>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-8 px-2 text-gray-500 hover:text-blue-600"
-                  >
-                    <Filter className="w-4 h-4 mr-1" />
-                    {selectedType ? getCourseTypeName(selectedType) : "All Types"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem 
-                    onClick={() => setSelectedType(null)}
-                    className="flex items-center gap-2"
-                  >
-                    <div className="w-1 h-4 rounded bg-gray-300" />
-                    All Types
-                  </DropdownMenuItem>
-                  {courseTypes.map(type => (
+              <div className="flex items-center gap-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    >
+                      <Filter className="w-4 h-4 mr-1" />
+                      {selectedType ? getCourseTypeName(selectedType) : "All Types"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem 
-                      key={type} 
-                      onClick={() => setSelectedType(type)}
+                      onClick={() => setSelectedType(null)}
                       className="flex items-center gap-2"
                     >
-                      <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
-                      {getCourseTypeName(type)}
+                      <div className="w-1 h-4 rounded bg-gray-300" />
+                      All Types
                     </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    {courseTypes.map(type => (
+                      <DropdownMenuItem 
+                        key={type} 
+                        onClick={() => setSelectedType(type)}
+                        className="flex items-center gap-2"
+                      >
+                        <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
+                        {getCourseTypeName(type)}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    >
+                      <Filter className="w-4 h-4 mr-1" />
+                      {selectedStatus 
+                        ? (selectedStatus === 'planned' ? 'Planned' : 'Completed')
+                        : "All Statuses"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={() => setSelectedStatus(null)}
+                      className="flex items-center gap-2"
+                    >
+                      <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                      All Statuses
+                    </DropdownMenuItem>
+                    {['planned', 'completed'].map((status) => {
+                      const isSelected = selectedStatus === status;
+                      const label = status === 'planned' ? 'Planned' : 'Completed';
+                      return (
+                        <DropdownMenuItem 
+                          key={status}
+                          onClick={() => setSelectedStatus(status)}
+                          className="flex items-center gap-2"
+                        >
+                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                          {label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh]">
           <div className="space-y-4">
-            {/* Planned Courses Section */}
+            {/* Courses Section */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  Planned
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                    {filteredPlannedCourses.length} {filteredPlannedCourses.length === 1 ? 'course' : 'courses'}
-                  </span>
+                <CardTitle className="text-sm font-medium text-gray-700">
+                  Courses
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {filteredPlannedCourses.length > 0 ? (
+                {filteredCourses.length > 0 ? (
                   <div className="space-y-2">
-                    {filteredPlannedCourses.map((course) => (
+                    {filteredCourses.map((course) => (
                       <CourseItem 
                         key={course.course_id}
                         course={course}
@@ -132,39 +172,8 @@ const SemesterDetailsModal = ({ semester, year, courses, isOpen, onClose, classN
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 text-gray-500">
                     <Calendar className="h-8 w-8 mb-2" />
-                    <p className="text-sm font-medium">No courses planned</p>
-                    <p className="text-sm">Add courses to this semester</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Completed Courses Section */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                  Completed
-                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                    {filteredCompletedCourses.length} {filteredCompletedCourses.length === 1 ? 'course' : 'courses'}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {filteredCompletedCourses.length > 0 ? (
-                  <div className="space-y-2">
-                    {filteredCompletedCourses.map((course) => (
-                      <CourseItem 
-                        key={course.course_id}
-                        course={course}
-                        type={course.course_type}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-gray-500">
-                    <CheckCircle2 className="h-8 w-8 mb-2" />
-                    <p className="text-sm font-medium">No courses completed</p>
-                    <p className="text-sm">Mark courses as completed when done</p>
+                    <p className="text-sm font-medium">No courses found</p>
+                    <p className="text-sm">Try adjusting your filters</p>
                   </div>
                 )}
               </CardContent>

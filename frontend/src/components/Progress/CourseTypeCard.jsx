@@ -57,7 +57,6 @@ const CourseTypeCard = ({ type, courses, stats }) => {
         course.course_code.toLowerCase().includes(query) || 
         course.title.toLowerCase().includes(query)
       );
-      console.log(`Search filter applied (${searchQuery}): ${filtered.length} courses remaining`);
     }
     
     // Apply semester filter
@@ -76,32 +75,17 @@ const CourseTypeCard = ({ type, courses, stats }) => {
           pc.sem === selectedSemester
         );
         
-        const matches = isExclusive || planSemester;
-        console.log(`Course ${course.course_code} semester check:`, {
-          sem_offered: course.sem_offered,
-          selectedSemester,
-          isExclusive,
-          planSemester,
-          matches
-        });
-        return matches;
+        return isExclusive || planSemester;
       });
-      console.log(`Semester filter applied (${selectedSemester}): ${filtered.length} courses remaining`);
     }
     
     // Apply status filter
     if (selectedStatus) {
-      filtered = filtered.map(course => {
-        // Find corresponding plan course to get status
-        const planCourse = planCourses.find(pc => pc.course_id === course.course_id);
-        return {
-          ...course,
-          status: planCourse?.status || 'planned'
-        };
-      }).filter(course => course.status === selectedStatus);
-      console.log(`Status filter applied (${selectedStatus}): ${filtered.length} courses remaining`);
+      filtered = filtered.filter(course => {
+        const planCourse = planCourses.find(pc => String(pc.course_id) === course.course_id);
+        return planCourse?.status === selectedStatus;
+      });
     }
-    
     return filtered;
   };
 
@@ -185,139 +169,139 @@ const CourseTypeCard = ({ type, courses, stats }) => {
       {/* View All Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-2xl">
-                    <DialogHeader>
+          <DialogHeader>
             <div>
               <DialogTitle className="text-lg font-medium">
                 {typeName}
               </DialogTitle>
             </div>
           </DialogHeader>
-          
-          {/* Search and Filters */}
-          <div className="space-y-3">
-            {/* Search bar */}
-            <div className="relative">
-              <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-500" />
-              <Input
-                type="text"
-                placeholder="Search by course code or title..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 text-sm"
-              />
-            </div>
 
-            {/* Filter buttons and course count */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {/* Semester filter dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
-                    >
-                      <Filter className="w-4 h-4 mr-1" />
-                      {selectedSemester 
-                        ? (selectedSemester === '1' ? '1st Sem Only' : 
-                           selectedSemester === '2' ? '2nd Sem Only' : 'Mid Year Only')
-                        : "All Semesters"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedSemester(null)}
-                      className="flex items-center gap-2"
-                    >
-                      <div className={`w-1 h-4 rounded ${!selectedSemester ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      All Semesters
-                    </DropdownMenuItem>
-                    {['1', '2', 'M'].map((sem) => {
-                      const isSelected = selectedSemester === sem;
-                      const label = sem === '1' ? '1st Sem Only' : sem === '2' ? '2nd Sem Only' : 'Mid Year Only';
-                      return (
-                        <DropdownMenuItem 
-                          key={sem}
-                          onClick={() => setSelectedSemester(sem)}
-                          className="flex items-center gap-2"
-                        >
-                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                          {label}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Status filter dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
-                    >
-                      <Filter className="w-4 h-4 mr-1" />
-                      {selectedStatus 
-                        ? (selectedStatus === 'planned' ? 'Planned' : 'Completed')
-                        : "All Statuses"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedStatus(null)}
-                      className="flex items-center gap-2"
-                    >
-                      <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      All Statuses
-                    </DropdownMenuItem>
-                    {['planned', 'completed'].map((status) => {
-                      const isSelected = selectedStatus === status;
-                      const label = status === 'planned' ? 'Planned' : 'Completed';
-                      return (
-                        <DropdownMenuItem 
-                          key={status}
-                          onClick={() => setSelectedStatus(status)}
-                          className="flex items-center gap-2"
-                        >
-                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                          {label}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
-              </div>
-            </div>
+          {/* Search bar outside Card */}
+          <div className="relative">
+            <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-500" />
+            <Input
+              type="text"
+              placeholder="Search by course code or title..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 pl-9 text-sm"
+            />
           </div>
 
-          <ScrollArea className="max-h-[60vh]">
-                      <div className="space-y-2 px-1">
-              {filteredCourses.length > 0 ? (
-                filteredCourses.map((course, index) => (
-                            <CourseItem 
-                    key={index}
-                    course={course}
-                    type={type}
-                    showStatus={true}
-                            />
-                          ))
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
-                            <SearchX className="h-12 w-12 mb-3" />
-                            <p className="text-sm font-medium">No courses found</p>
-                            <p className="text-sm">Try adjusting your search query</p>
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </DialogContent>
-                </Dialog>
-          </>
+          {/* Filter controls outside Card */}
+          <div className="flex items-center justify-between">
+            <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+              {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+            </div>
+            <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                  >
+                    <Filter className="w-4 h-4 mr-1" />
+                    {selectedSemester 
+                      ? (selectedSemester === '1' ? '1st Sem Only' : 
+                         selectedSemester === '2' ? '2nd Sem Only' : 'Mid Year Only')
+                      : "All Semesters"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem 
+                    onClick={() => setSelectedSemester(null)}
+                    className="flex items-center gap-2"
+                  >
+                    <div className={`w-1 h-4 rounded ${!selectedSemester ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                    All Semesters
+                  </DropdownMenuItem>
+                  {['1', '2', 'M'].map((sem) => {
+                    const isSelected = selectedSemester === sem;
+                    const label = sem === '1' ? '1st Sem Only' : sem === '2' ? '2nd Sem Only' : 'Mid Year Only';
+                    return (
+                      <DropdownMenuItem 
+                        key={sem}
+                        onClick={() => setSelectedSemester(sem)}
+                        className="flex items-center gap-2"
+                      >
+                        <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                        {label}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                  >
+                    <Filter className="w-4 h-4 mr-1" />
+                    {selectedStatus 
+                      ? (selectedStatus === 'planned' ? 'Planned' : 'Completed')
+                      : "All Statuses"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuItem 
+                    onClick={() => setSelectedStatus(null)}
+                    className="flex items-center gap-2"
+                  >
+                    <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                    All Statuses
+                  </DropdownMenuItem>
+                  {['planned', 'completed'].map((status) => {
+                    const isSelected = selectedStatus === status;
+                    const label = status === 'planned' ? 'Planned' : 'Completed';
+                    return (
+                      <DropdownMenuItem 
+                        key={status}
+                        onClick={() => setSelectedStatus(status)}
+                        className="flex items-center gap-2"
+                      >
+                        <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                        {label}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          
+          <ScrollArea className="max-h-[70vh]">
+            <Card className="p-6">
+              <div className="mb-4">
+                <h3 className="text-sm font-medium text-gray-700">Courses</h3>
+              </div>
+              <div className="space-y-2">
+                {filteredCourses.length > 0 ? (
+                  filteredCourses.map((course, index) => (
+                    <CourseItem 
+                      key={index}
+                      course={course}
+                      type={type}
+                      showStatus={true}
+                    />
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                    <SearchX className="h-12 w-12 mb-3" />
+                    <p className="text-sm font-medium">No courses found</p>
+                    <p className="text-sm">Try adjusting your search query</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

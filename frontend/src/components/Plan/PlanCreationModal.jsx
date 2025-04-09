@@ -5,28 +5,1062 @@ import { Button } from "@/components/ui/button";
 import { 
   ChevronLeft, 
   ChevronRight, 
+  X, 
   Trash2, 
   Info, 
+  SearchX, 
   Check, 
+  ChevronDown, 
   AlertTriangle, 
-  FileCheck
+  FileCheck,
+  ArrowUpDown
 } from "lucide-react";
 import { curriculumsAPI } from "@/lib/api";
+import CourseItem from "@/components/CourseItem";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getCourseTypeColor } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { plansAPI } from "@/lib/api";
-import { CourseSelectionDialog } from "./CourseSelectionDialog";
-import { LoadingSpinner } from "@/components/ui/loading";
 
-// Import step components
-import GEElectivesStep from "./Steps/GEElectivesStep";
-import ElectivesStep from "./Steps/ElectivesStep";
-import MajorsStep from "./Steps/MajorsStep";
-import RequiredAcademicStep from "./Steps/RequiredAcademicStep";
-import RequiredNonAcademicStep from "./Steps/RequiredNonAcademicStep";
-import SummaryStep from "./Steps/SummaryStep";
+// Step components
+const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
+  const selectedCount = Object.values(planData)
+    .flatMap(yearData => Object.values(yearData))
+    .flatMap(semData => semData)
+    .filter(c => c.course_type === 'ge_elective' || c.course_type === 'ge' || c.course_type === 'ge elective')
+    .length;
+
+  const isMaxReached = selectedCount >= stats.total;
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 mb-4">
+        <div className="flex items-center">
+          <h3 className="text-lg font-semibold">GE Electives</h3>
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+            {selectedCount}/{stats.total}
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          Choose {stats.total} from {stats.available} available options
+        </p>
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-3 pr-4 p-1 pt-0">
+            {courses.length > 0 ? (
+              courses.map((course, index) => {
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
+                
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
+                return (
+                  <div
+                    key={`${course.course_id}-${index}`}
+                    className="w-[450px]"
+                  >
+                    <button
+                      onClick={() => {
+                        if (!isDisabled) {
+                          if (isSelected) {
+                            onCourseSelect(null);
+                          } else {
+                            onCourseSelect(course);
+                          }
+                        }
+                      }}
+                      className={`w-full text-left relative rounded-lg overflow-hidden
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
+                    >
+                      <CourseItemWithPlacement 
+                        course={course}
+                        type="ge_elective"
+                        planData={planData}
+                      />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
+                      )}
+                      {isInPlan && (
+                        <div className="absolute inset-0 flex items-center justify-end pr-4">
+                          <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                            Already in plan
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                <SearchX className="h-12 w-12 mb-3" />
+                <p className="text-sm font-medium">No courses found</p>
+                <p className="text-sm">Try adjusting your search query</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+};
+
+const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
+  const selectedCount = Object.values(planData)
+    .flatMap(yearData => Object.values(yearData))
+    .flatMap(semData => semData)
+    .filter(c => c.course_type === 'elective')
+    .length;
+
+  const isMaxReached = selectedCount >= stats.total;
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 mb-4">
+        <div className="flex items-center">
+          <h3 className="text-lg font-semibold">Electives</h3>
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+            {selectedCount}/{stats.total}
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          Choose {stats.total} from {stats.available} available options
+        </p>
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-3 pr-4 p-1 pt-0">
+            {courses.length > 0 ? (
+              courses.map((course, index) => {
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
+                
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
+                return (
+                  <div
+                    key={`${course.course_id}-${index}`}
+                    className="w-[450px]"
+                  >
+                    <button
+                      onClick={() => {
+                        if (!isDisabled) {
+                          if (isSelected) {
+                            onCourseSelect(null);
+                          } else {
+                            onCourseSelect(course);
+                          }
+                        }
+                      }}
+                      className={`w-full text-left relative rounded-lg overflow-hidden
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
+                    >
+                      <CourseItemWithPlacement 
+                        course={course}
+                        type="elective"
+                        planData={planData}
+                      />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
+                      )}
+                      {isInPlan && (
+                        <div className="absolute inset-0 flex items-center justify-end pr-4">
+                          <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                            Already in plan
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                <SearchX className="h-12 w-12 mb-3" />
+                <p className="text-sm font-medium">No courses found</p>
+                <p className="text-sm">Try adjusting your search query</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+};
+
+const MajorsStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
+  const selectedCount = Object.values(planData)
+    .flatMap(yearData => Object.values(yearData))
+    .flatMap(semData => semData)
+    .filter(c => c.course_type === 'major')
+    .length;
+
+  const isMaxReached = selectedCount >= stats.total;
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 mb-4">
+        <div className="flex items-center">
+          <h3 className="text-lg font-semibold">Major Courses</h3>
+          <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+            {selectedCount}/{stats.total}
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          {stats.total} required major courses
+        </p>
+        {/* Completion message moved to PlanOverview */}
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-3 pr-4 p-1 pt-0">
+            {courses.length > 0 ? (
+              courses.map((course, index) => {
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
+                
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
+                return (
+                  <div
+                    key={`${course.course_id}-${index}`}
+                    className="w-[450px]"
+                  >
+                    <button
+                      onClick={() => {
+                        if (!isDisabled) {
+                          if (isSelected) {
+                            onCourseSelect(null);
+                          } else {
+                            onCourseSelect(course);
+                          }
+                        }
+                      }}
+                      className={`w-full text-left relative rounded-lg overflow-hidden
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
+                    >
+                      <CourseItemWithPlacement 
+                        course={course}
+                        type="major"
+                        planData={planData}
+                      />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
+                      )}
+                      {isInPlan && (
+                        <div className="absolute inset-0 flex items-center justify-end pr-4">
+                          <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                            Already in plan
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                <SearchX className="h-12 w-12 mb-3" />
+                <p className="text-sm font-medium">No courses found</p>
+                <p className="text-sm">Try adjusting your search query</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+};
+
+const RequiredAcademicStep = ({ 
+  courses = [], 
+  onCourseSelect, 
+  selectedCourse, 
+  planData, 
+  stats, 
+  courseIdsInPlan,
+  setPlanData,
+  setPendingHKCourses 
+}) => {
+  const selectedCount = Object.values(planData)
+    .flatMap(yearData => Object.values(yearData))
+    .flatMap(semData => semData)
+    .filter(c => c.course_type === 'required_academic' || 
+      (c.course_type === 'required' && c.is_academic))
+    .length;
+
+  const isMaxReached = selectedCount >= stats.total;
+  const courseType = 'required_academic';
+
+  // Function to automatically assign all courses
+  const handleAssignAll = () => {
+    console.log("Starting handleAssignAll for", courseType, "with", courses.length, "courses");
+    
+    // Separate HIST 1/KAS 1 courses and regular courses
+    const regularCourses = [];
+    const histKasCourses = [];
+    
+    courses.forEach(course => {
+      if (course.course_code === "HIST 1/KAS 1") {
+        const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+        if (!courseIdsInPlan.has(course.course_id)) {
+          histKasCourses.push(course);
+        }
+      } else {
+        let isInPlan = courseIdsInPlan.has(course.course_id) || 
+          (course.combined_courses && 
+           course.combined_courses.some(c => courseIdsInPlan.has(c.curriculum_course_id)));
+        
+        if (!isInPlan) {
+          regularCourses.push(course);
+        }
+      }
+    });
+    
+    console.log("Found", regularCourses.length, "regular courses and", histKasCourses.length, "HIST 1/KAS 1 courses to assign");
+    
+    // Set all HIST 1/KAS 1 courses as pending
+    setPendingHKCourses(histKasCourses);
+    
+    // Start with regular courses
+    setPlanData(prevPlanData => {
+      const newPlanData = {...prevPlanData};
+      let assignedCount = 0;
+      
+      for (const course of regularCourses) {
+        // Get year and semester from the course's prescribed data
+        const year = course.prescribed_year || course.year;
+        const semesterNum = course.prescribed_semester || course.semester || course.sem;
+        
+        console.log(`Attempting to assign ${course.course_code} to Year ${year}, Semester ${semesterNum}`);
+        
+        if (!year || !semesterNum) {
+          console.log(`Skipping ${course.course_code} - missing year or semester info`);
+          continue; // Skip if no placement info
+        }
+        
+        // Convert semester number to name
+        const semName = semesterNum === "1" ? "1st Sem" : 
+                      semesterNum === "2" ? "2nd Sem" : 
+                      semesterNum === "3" ? "Mid Year" : `Semester ${semesterNum}`;
+        
+        // Initialize the arrays if needed
+        if (!newPlanData[year]) newPlanData[year] = {};
+        if (!newPlanData[year][semName]) newPlanData[year][semName] = [];
+        
+        // Check if already exists
+        const exists = newPlanData[year][semName].some(c => c.course_id === course.course_id);
+        if (!exists) {
+          // Add with proper type
+          console.log(`Adding ${course.course_code} to Year ${year}, ${semName}`);
+          newPlanData[year][semName].push({
+            ...course,
+            course_type: courseType
+          });
+          assignedCount++;
+        } else {
+          console.log(`${course.course_code} already exists in Year ${year}, ${semName}`);
+        }
+      }
+      
+      // Sort the courses in all semesters after all have been added
+      for (const year in newPlanData) {
+        for (const sem in newPlanData[year]) {
+          newPlanData[year][sem].sort((a, b) => {
+            // Academic before non-academic
+            if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
+            if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
+            
+            // Sort by course code
+            const aCode = a.course_code.replace(/\s+/g, '');
+            const bCode = b.course_code.replace(/\s+/g, '');
+            
+            return aCode.localeCompare(bCode);
+          });
+        }
+      }
+      
+      console.log(`Successfully assigned ${assignedCount} regular courses of type ${courseType}`);
+      
+      // Trigger the first HIST 1/KAS 1 course selection if any exist
+      if (histKasCourses.length > 0) {
+        console.log("Starting HIST 1/KAS 1 course selections");
+        onCourseSelect(histKasCourses[0]);
+      }
+      
+      return newPlanData;
+    });
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <h3 className="text-lg font-semibold">Required Academic</h3>
+            <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+              {selectedCount}/{stats.total}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAssignAll}
+            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+            disabled={isMaxReached}
+          >
+            <Check className="w-4 h-4 mr-1" />
+            Auto Assign
+          </Button>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          {stats.total} required academic courses
+        </p>
+        {/* Completion message moved to PlanOverview */}
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-3 pr-4 p-1 pt-0">
+            {courses.length > 0 ? (
+              courses.map((course, index) => {
+                // Regular course check
+                const isInPlan = courseIdsInPlan.has(course.course_id) || 
+                  (course.combined_courses && 
+                   course.combined_courses.some(c => courseIdsInPlan.has(c.course_id)));
+                
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
+                
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
+                return (
+                  <div
+                    key={`${course.course_id}-${index}`}
+                    className="w-[450px]"
+                  >
+                    <button
+                      onClick={() => {
+                        if (!isDisabled) {
+                          if (isSelected) {
+                            onCourseSelect(null);
+                          } else {
+                            onCourseSelect(course);
+                          }
+                        }
+                      }}
+                      className={`w-full text-left relative rounded-lg overflow-hidden
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
+                    >
+                      <CourseItemWithPlacement 
+                        course={course}
+                        type="required_academic"
+                        planData={planData}
+                      />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
+                      )}
+                      {isInPlan && (
+                        <div className="absolute inset-0 flex items-center justify-end pr-4">
+                          <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                            Already in plan
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                <SearchX className="h-12 w-12 mb-3" />
+                <p className="text-sm font-medium">No courses found</p>
+                <p className="text-sm">Try adjusting your search query</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+};
+
+const RequiredNonAcademicStep = ({ 
+  courses = [], 
+  onCourseSelect, 
+  selectedCourse, 
+  planData, 
+  stats, 
+  courseIdsInPlan, 
+  setPlanData,
+  setPendingHKCourses 
+}) => {
+  const selectedCount = Object.values(planData)
+    .flatMap(yearData => Object.values(yearData))
+    .flatMap(semData => semData)
+    .filter(c => c.course_type === 'required_non_academic' || 
+      (c.course_type === 'required' && !c.is_academic))
+    .length;
+
+  const isMaxReached = selectedCount >= stats.total;
+  const courseType = 'required_non_academic'; // Define courseType locally
+
+  // Function to automatically assign all courses
+  const handleAssignAll = () => {
+    console.log("Starting handleAssignAll for", courseType, "with", courses.length, "courses");
+    
+    // Separate HK 12/13 courses and regular courses
+    const regularCourses = [];
+    const hk1213Courses = [];
+    
+    courses.forEach(course => {
+      if (course.course_code === "HK 12/13") {
+        const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+        // Use courseIdsInPlan directly from props
+        if (!courseIdsInPlan.hk1213Courses.has(key)) {
+          hk1213Courses.push(course);
+        }
+      } else {
+        let isInPlan = courseIdsInPlan.has(course.course_id) || 
+          (course.combined_courses && 
+           course.combined_courses.some(c => courseIdsInPlan.has(c.curriculum_course_id)));
+        
+        if (!isInPlan) {
+          regularCourses.push(course);
+        }
+      }
+    });
+    
+    console.log("Found", regularCourses.length, "regular courses and", hk1213Courses.length, "HK 12/13 courses to assign");
+    
+    // Set all HK 12/13 courses as pending
+    setPendingHKCourses(hk1213Courses);
+    
+    // Start with regular courses
+    setPlanData(prevPlanData => {
+      const newPlanData = {...prevPlanData};
+      let assignedCount = 0;
+      
+      for (const course of regularCourses) {
+        // Get year and semester from the course's prescribed data
+        const year = course.prescribed_year || course.year;
+        const semesterNum = course.prescribed_semester || course.semester || course.sem;
+        
+        console.log(`Attempting to assign ${course.course_code} to Year ${year}, Semester ${semesterNum}`);
+        
+        if (!year || !semesterNum) {
+          console.log(`Skipping ${course.course_code} - missing year or semester info`);
+          continue; // Skip if no placement info
+        }
+        
+        // Convert semester number to name
+        const semName = semesterNum === "1" ? "1st Sem" : 
+                      semesterNum === "2" ? "2nd Sem" : 
+                      semesterNum === "3" ? "Mid Year" : `Semester ${semesterNum}`;
+        
+        // Initialize the arrays if needed
+        if (!newPlanData[year]) newPlanData[year] = {};
+        if (!newPlanData[year][semName]) newPlanData[year][semName] = [];
+        
+        // Check if already exists
+        const exists = newPlanData[year][semName].some(c => c.course_id === course.course_id);
+        if (!exists) {
+          // Add with proper type
+          console.log(`Adding ${course.course_code} to Year ${year}, ${semName}`);
+          newPlanData[year][semName].push({
+            ...course,
+            course_type: courseType
+          });
+          assignedCount++;
+        } else {
+          console.log(`${course.course_code} already exists in Year ${year}, ${semName}`);
+        }
+      }
+      
+      // Sort the courses in all semesters after all have been added
+      for (const year in newPlanData) {
+        for (const sem in newPlanData[year]) {
+          newPlanData[year][sem].sort((a, b) => {
+            // Academic before non-academic
+            if (a.course_type === 'required_non_academic' && b.course_type !== 'required_non_academic') return 1;
+            if (a.course_type !== 'required_non_academic' && b.course_type === 'required_non_academic') return -1;
+            
+            // Sort by course code
+            const aCode = a.course_code.replace(/\s+/g, '');
+            const bCode = b.course_code.replace(/\s+/g, '');
+            
+            return aCode.localeCompare(bCode);
+          });
+        }
+      }
+      
+      console.log(`Successfully assigned ${assignedCount} regular courses of type ${courseType}`);
+      
+      // Trigger the first HK 12/13 course selection if any exist
+      if (hk1213Courses.length > 0) {
+        console.log("Starting HK 12/13 course selections");
+        onCourseSelect(hk1213Courses[0]);
+      }
+      
+      return newPlanData;
+    });
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <h3 className="text-lg font-semibold">Required Non-Academic</h3>
+            <div className={`ml-2 px-2 py-1 ${isMaxReached ? 'bg-green-100 text-green-800' : 'bg-gray-100'} rounded-md text-sm font-medium`}>
+              {selectedCount}/{stats.total}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAssignAll}
+            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+            disabled={isMaxReached}
+          >
+            <Check className="w-4 h-4 mr-1" />
+            Auto Assign
+          </Button>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          {stats.total} required non-academic courses
+        </p>
+        {/* Completion message moved to PlanOverview */}
+      </div>
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="space-y-3 pr-4 p-1 pt-0">
+            {courses.length > 0 ? (
+              courses.map((course, index) => {
+                // Special handling for HK 12/13 courses
+                let isInPlan = false;
+                if (course.course_code === "HK 12/13") {
+                  // Check if either of the combined courses exists in the plan using curriculum_course_id
+                  isInPlan = course.combined_courses && course.combined_courses.some(c => 
+                    courseIdsInPlan.has(c.curriculum_course_id)
+                  );
+                } else {
+                  // For regular courses
+                  isInPlan = courseIdsInPlan.has(course.course_id) || 
+                    (course.combined_courses && 
+                     course.combined_courses.some(c => courseIdsInPlan.has(c.curriculum_course_id)));
+                }
+
+                // Enhanced selection check
+                const isSelected = selectedCourse && selectedCourse.course_id === course.course_id;
+                
+                const isDisabled = isInPlan || (isMaxReached && !isSelected);
+                
+                return (
+                  <div
+                    key={`${course.course_id}-${index}`}
+                    className="w-[450px]"
+                  >
+                    <button
+                      onClick={() => {
+                        if (!isDisabled) {
+                          if (isSelected) {
+                            onCourseSelect(null);
+                          } else {
+                            onCourseSelect(course);
+                          }
+                        }
+                      }}
+                      className={`w-full text-left relative rounded-lg overflow-hidden
+                        ${isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      disabled={isDisabled}
+                    >
+                      <CourseItemWithPlacement 
+                        course={course}
+                        type="required_non_academic"
+                        planData={planData}
+                      />
+                      {isSelected && !isInPlan && (
+                        <div className="absolute top-1 right-1 bg-blue-500 text-white p-1 rounded-full">
+                          <div className="h-3 w-3 flex items-center justify-center">
+                            <Check className="h-2.5 w-2.5" />
+                          </div>
+                        </div>
+                      )}
+                      {isInPlan && (
+                        <div className="absolute inset-0 flex items-center justify-end pr-4">
+                          <span className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+                            Already in plan
+                          </span>
+                        </div>
+                      )}
+                    </button>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                <SearchX className="h-12 w-12 mb-3" />
+                <p className="text-sm font-medium">No courses found</p>
+                <p className="text-sm">Try adjusting your search query</p>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    </div>
+  );
+};
+
+// Move generateWarnings function outside of SummaryStep component
+const generateWarnings = (planData) => {
+  const warnings = [];
+  
+  // Check for overload and underload in academic units (exclude required_non_academic)
+  Object.entries(planData).forEach(([year, yearData]) => {
+    Object.entries(yearData).forEach(([sem, courses]) => {
+      const academicUnits = courses.reduce((total, course) => {
+        // Only count academic courses' units
+        if (course.course_type !== 'required_non_academic') {
+          return total + (parseInt(course.units) || 0);
+        }
+        return total;
+      }, 0);
+      
+      const yearText = year === "1" ? "1st Year" : year === "2" ? "2nd Year" : year === "3" ? "3rd Year" : `${year}th Year`;
+      
+      // Check for overload/underload based on semester
+      if (sem === "Mid Year") {
+        // For midyear, min is 0 and max is 6 units
+        if (academicUnits > 6 && academicUnits > 0) {
+          warnings.push({
+            text: `${yearText}, ${sem}: Overload`,
+            details: `${academicUnits} units (max 6)`
+          });
+        }
+      } else {
+        // For regular semesters
+        if (academicUnits > 18) {
+          warnings.push({
+            text: `${yearText}, ${sem}: Overload`,
+            details: `${academicUnits} units (max 18)`
+          });
+        } else if (academicUnits < 15 && academicUnits > 0) {
+          warnings.push({
+            text: `${yearText}, ${sem}: Underload`,
+            details: `${academicUnits} units (min 15)`
+          });
+        }
+      }
+    });
+  });
+  
+  return warnings;
+};
+
+// Update the SummaryStep component to use the moved function
+const SummaryStep = ({ planData }) => {
+  const [warningsExpanded, setWarningsExpanded] = useState(false);
+  const [viewMode, setViewMode] = useState("by-type"); // "by-type" or "by-semester"
+  
+  const warnings = generateWarnings(planData);
+  
+  const calculateTypeStats = () => {
+    const stats = {
+      ge_elective: { count: 0, units: 0 },
+      elective: { count: 0, units: 0 },
+      major: { count: 0, units: 0 },
+      required_academic: { count: 0, units: 0 },
+      required_non_academic: { count: 0, units: 0 }
+    };
+
+    Object.values(planData).forEach(yearData => {
+      Object.values(yearData).forEach(semData => {
+        semData.forEach(course => {
+          const type = course.course_type;
+          if (stats[type]) {
+            stats[type].count++;
+            stats[type].units += parseInt(course.units || 0, 10);
+          }
+        });
+      });
+    });
+
+    return stats;
+  };
+
+  const stats = calculateTypeStats();
+  
+  // Calculate total courses by year and semester
+  const semesterBreakdown = {};
+  Object.entries(planData).forEach(([year, yearData]) => {
+    semesterBreakdown[year] = {};
+    Object.entries(yearData).forEach(([sem, courses]) => {
+      const academicUnits = courses.reduce((total, course) => {
+        if (course.course_type !== 'required_non_academic') {
+          return total + (parseInt(course.units) || 0);
+        }
+        return total;
+      }, 0);
+      
+      const nonAcademicUnits = courses.reduce((total, course) => {
+        if (course.course_type === 'required_non_academic') {
+          return total + (parseInt(course.units) || 0);
+        }
+        return total;
+      }, 0);
+      
+      semesterBreakdown[year][sem] = {
+        academicCourses: courses.filter(c => c.course_type !== 'required_non_academic').length,
+        academicUnits,
+        nonAcademicCourses: courses.filter(c => c.course_type === 'required_non_academic').length,
+        nonAcademicUnits,
+        totalCourses: courses.length,
+        totalUnits: academicUnits + nonAcademicUnits
+      };
+    });
+  });
+  
+  // Calculate total counts (including non-academic)
+  const totalUnits = Object.values(stats).reduce((sum, { units }) => sum + units, 0);
+  const totalCourses = Object.values(stats).reduce((sum, { count }) => sum + count, 0);
+
+  // Count non-academic units separately
+  const nonAcademicUnits = stats.required_non_academic.units;
+  const nonAcademicCount = stats.required_non_academic.count;
+
+  const typeLabels = {
+    ge_elective: "GE Electives",
+    elective: "Electives",
+    major: "Major Courses",
+    required_academic: "Required Academic",
+    required_non_academic: "Required Non-Academic"
+  };
+
+  // Filter out types with no courses
+  const activeTypeEntries = Object.entries(stats)
+    .filter(([type, { count }]) => type !== 'required_non_academic' && count > 0);
+  
+  // Calculate total for semester view
+  let semTotalCourses = 0;
+  let semTotalUnits = 0;
+  Object.values(semesterBreakdown).forEach(yearData => {
+    Object.values(yearData).forEach(data => {
+      semTotalCourses += data.totalCourses;
+      semTotalUnits += data.totalUnits;
+    });
+  });
+
+  return (
+    <div className="h-full flex flex-col">
+      <div className="flex-shrink-0 mb-6">
+        <h3 className="text-lg font-semibold">Plan Summary</h3>
+        <p className="text-sm text-gray-500 mt-1">
+          Review your course selections before finalizing your plan.
+        </p>
+      </div>
+      
+      {/* Simple button toggle instead of dropdown */}
+      <div className="flex justify-end mb-2">
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-gray-500 hover:text-blue-600"
+          onClick={() => setViewMode(viewMode === "by-type" ? "by-semester" : "by-type")}
+        >
+          <ArrowUpDown className="w-4 h-4 mr-1" />
+          {viewMode === "by-type" ? "View By Semester" : "View By Course Type"}
+        </Button>
+      </div>
+      
+      {/* Summary Table Card - By Course Type */}
+      {viewMode === "by-type" && (
+        <Card className="p-4 mb-6 border border-gray-200">
+          <ScrollArea className="h-[280px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[300px]">Course Type</TableHead>
+                  <TableHead className="text-center w-[100px]">Courses</TableHead>
+                  <TableHead className="text-center w-[100px]">Units</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody className="text-sm">
+                {/* Academic courses - only show types that have courses */}
+                {activeTypeEntries.map(([type, { count, units }]) => (
+                  <TableRow key={type}>
+                    <TableCell className="w-[300px]">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
+                        {typeLabels[type]}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center w-[100px]">{count}</TableCell>
+                    <TableCell className="text-center w-[100px]">{units}</TableCell>
+                  </TableRow>
+                ))}
+                
+                {/* Required Non-Academic row */}
+                {nonAcademicCount > 0 && (
+                  <TableRow>
+                    <TableCell className="w-[300px]">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-1 h-4 rounded ${getCourseTypeColor('required_non_academic')}`} />
+                        {typeLabels['required_non_academic']}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center w-[100px]">{nonAcademicCount}</TableCell>
+                    <TableCell className="text-center w-[100px]">{nonAcademicUnits}</TableCell>
+                  </TableRow>
+                )}
+                
+                {/* Total Units (with everything) */}
+                <TableRow className="border-t-2 font-medium">
+                  <TableCell className="w-[300px] font-bold">Total</TableCell>
+                  <TableCell className="text-center w-[100px] font-bold">{totalCourses}</TableCell>
+                  <TableCell className="text-center w-[100px] font-bold">{totalUnits}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </Card>
+      )}
+      
+      {/* Semester breakdown for a more detailed view */}
+      {viewMode === "by-semester" && (
+        <Card className="p-4 mb-6 border border-gray-200">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Year</TableHead>
+                <TableHead>Semester</TableHead>
+                <TableHead className="text-center">Courses</TableHead>
+                <TableHead className="text-center">Units</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody className="text-sm">
+              {/* Group semesters by year */}
+              {Object.keys(semesterBreakdown).sort().map(year => {
+                const yearText = year === "1" ? "1st Year" : year === "2" ? "2nd Year" : year === "3" ? "3rd Year" : `${year}th Year`;
+                
+                // Sort semesters in proper order: 1st Sem, 2nd Sem, Mid Year
+                const semOrder = { "1st Sem": 1, "2nd Sem": 2, "Mid Year": 3 };
+                const sortedSems = Object.keys(semesterBreakdown[year]).sort((a, b) => semOrder[a] - semOrder[b]);
+                
+                return sortedSems.map((sem, idx) => {
+                  const data = semesterBreakdown[year][sem];
+                  
+                  return (
+                    <TableRow key={`${year}-${sem}`}>
+                      {idx === 0 ? (
+                        <TableCell rowSpan={sortedSems.length}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-1 h-4 rounded ${year === "1" ? "bg-blue-300" : 
+                                                    year === "2" ? "bg-green-300" : 
+                                                    year === "3" ? "bg-purple-300" : 
+                                                    "bg-orange-300"}`} />
+                            {yearText}
+                          </div>
+                        </TableCell>
+                      ) : null}
+                      <TableCell>{sem}</TableCell>
+                      <TableCell className="text-center">{data.totalCourses}</TableCell>
+                      <TableCell className="text-center">{data.totalUnits}</TableCell>
+                    </TableRow>
+                  );
+                });
+              })}
+              
+              {/* Total row */}
+              <TableRow className="border-t-2">
+                <TableCell colSpan={2} className="font-bold">Total</TableCell>
+                <TableCell className="text-center font-bold">{semTotalCourses}</TableCell>
+                <TableCell className="text-center font-bold">{semTotalUnits}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Card>
+      )}
+      
+      {/* Warnings panel */}
+      <Card className="border border-gray-200">
+        <div 
+          className="flex items-center justify-between p-3 cursor-pointer border-b border-gray-100"
+          onClick={() => setWarningsExpanded(!warningsExpanded)}
+        >
+          <div className="flex items-center gap-2">
+            {warnings.length > 0 ? (
+              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+            ) : (
+              <Check className="h-4 w-4 text-green-500" />
+            )}
+            <h3 className="text-sm font-medium">Warnings</h3>
+            {warnings.length > 0 && (
+              <div className="bg-yellow-100 text-yellow-700 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium">
+                {warnings.length}
+              </div>
+            )}
+          </div>
+          <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${warningsExpanded ? 'rotate-180' : 'rotate-0'}`} />
+        </div>
+        
+        {warningsExpanded && (
+          <div className="p-3">
+            {warnings.length > 0 ? (
+              <div className="space-y-2">
+                {warnings.map((warning, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs text-gray-700">
+                    <p className="font-medium">{warning.text}</p>
+                    <p className="text-gray-500">{warning.details}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-green-700">No issues detected with your current plan.</p>
+            )}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+};
 
 // Overview component that shows the current plan state
 const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCourse, onClear, coursesByType, getPrescribedSemestersForType, isReviewStep }) => {
@@ -547,37 +1581,25 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
 const PlanCreationModal = ({ 
   open, 
   onOpenChange, 
-  onPlanCreated,
-  isEditMode = false,
-  existingPlan = null
+  onPlanCreated 
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [coursesByType, setCoursesByType] = useState({});
   const [selectedCourse, setSelectedCourse] = useState(null);
-  const [planData, setPlanData] = useState(existingPlan || {});
+  const [planData, setPlanData] = useState({});
   const [curriculumStructure, setCurriculumStructure] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCombinedCourseDialog, setShowCombinedCourseDialog] = useState(false);
   const [combinedCourseOptions, setCombinedCourseOptions] = useState(null);
   const [pendingHKCourses, setPendingHKCourses] = useState([]);
-  const [courseSelectionOpen, setCourseSelectionOpen] = useState(false);
-  const [courseSelectionType, setCourseSelectionType] = useState("HIST 1/KAS 1");
-  const [coursesToSelect, setCoursesToSelect] = useState([]);
   
-  // Update planData when existingPlan changes
-  useEffect(() => {
-    if (existingPlan) {
-      setPlanData(existingPlan);
-    }
-  }, [existingPlan]);
-
   // Fetch courses and curriculum structure on mount
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
+        try {
+          setLoading(true);
         const [coursesData, structureData] = await Promise.all([
           curriculumsAPI.getCurrentCurriculumCourses(),
           curriculumsAPI.getCurrentCurriculumStructure()
@@ -749,19 +1771,16 @@ const PlanCreationModal = ({
         
         setCoursesByType(grouped);
         setCurriculumStructure(structureData);
-      } catch (err) {
+        } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load curriculum data");
-      } finally {
-        setLoading(false);
+        } finally {
+          setLoading(false);
       }
     };
 
     if (open) {
       fetchData();
-    } else {
-      // Reset loading state when modal is closed
-      setLoading(false);
     }
   }, [open]);
   
@@ -943,28 +1962,28 @@ const PlanCreationModal = ({
             console.log('Adding course:', {
               course_code: course.course_code,
               course_id: course.course_id,
-              original_course_id: course.original_course_id,
               year: parseInt(year),
               semester: semNum,
               type: course.course_type,
-              isHKCourse: course.course_code === "HK 12" || course.course_code === "HK 13",
-              isHistKasCourse: course.course_code === "HIST 1" || course.course_code === "KAS 1"
+              isHKCourse: course.course_code === "HK 12/13",
+              selectedComponentId: course._selectedComponentId
             });
             
             try {
-              // For HK 12/13 or HIST 1/KAS 1 courses, use the original_course_id
-              if ((course.course_code === "HK 12" || course.course_code === "HK 13" || 
-                   course.course_code === "HIST 1" || course.course_code === "KAS 1") && 
-                  course.original_course_id) {
-                console.log('Adding alternative course with original ID:', course.original_course_id);
-                await plansAPI.addCourseToPlan(
-                  currentPlan.id,
-                  course.original_course_id,
-                  parseInt(year),
-                  semNum,
-                  'planned'
-                );
-                console.log('Successfully added alternative course');
+              // For HK 12/13 courses, use the selected component's curriculum_course_id
+              if (course.course_code === "HK 12/13") {
+                const courseId = course._selectedComponentId;
+                if (courseId) {
+                  console.log('Adding HK component with ID:', courseId);
+                  await plansAPI.addCourseToPlan(
+                    currentPlan.id,
+                    courseId,
+                    parseInt(year),
+                    semNum,
+                    'planned'
+                  );
+                  console.log('Successfully added HK component');
+                }
               } else {
                 // For regular courses
                 console.log('Adding regular course with ID:', course.course_id);
@@ -1002,45 +2021,68 @@ const PlanCreationModal = ({
       console.error('Error creating plan:', error);
     }
   };
-  
+
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const handleCourseSelect = useCallback((course) => {
-    // If this is a combined course (HIST 1/KAS 1 or HK 12/13)
-    if (course.combined_courses) {
-      // Open the course selection dialog
-      setCoursesToSelect(course.combined_courses);
-      setCourseSelectionType(course.course_code);
-      setCourseSelectionOpen(true);
-    } else {
-      // Handle regular course selection
-      setSelectedCourse(course);
+  const handleCourseSelect = (course) => {
+    // Check if this is a combined course
+    if (course?.combined_courses?.length > 0) {
+      // For HK 12/13 courses, we need to check if this specific instance is already in the plan
+      if (course.course_code === "HK 12/13") {
+        const key = `${course.course_id}-${course.prescribed_year}-${course.prescribed_semester}`;
+        const courseIds = courseIdsInPlan();
+        if (courseIds.hk1213Courses.has(key)) {
+          return; // Don't show the dialog if this instance is already in the plan
+        }
+      }
+      setCombinedCourseOptions({
+        course,
+        options: course.combined_courses
+      });
+      setShowCombinedCourseDialog(true);
+      return;
     }
-  }, []);
-
-  const handleCourseVariantSelect = useCallback((selectedVariant) => {
-    // Close the dialog
-    setCourseSelectionOpen(false);
     
-    // Add the selected course variant
-    setSelectedCourse({
-      ...selectedVariant,
-      original_course_id: selectedVariant.course_id,
-      course_type: currentStepType
+    // Normal course selection behavior
+    setSelectedCourse(course);
+  };
+
+  const handleCombinedCourseSelect = (selectedOption) => {
+    console.log('Selected HK Component:', {
+      selectedOption,
+      linkedToCombinedCourse: combinedCourseOptions?.course ? {
+        course_id: combinedCourseOptions.course.course_id,
+        prescribed_year: combinedCourseOptions.course.prescribed_year,
+        prescribed_semester: combinedCourseOptions.course.prescribed_semester
+      } : null
     });
-  }, [currentStepType]);
+
+    // Create a new course object based on the selected option
+    const selectedCourse = {
+      ...combinedCourseOptions.course,
+      course_id: selectedOption.curriculum_course_id,
+      original_course_id: selectedOption.course_id,
+      course_code: selectedOption.course_code,
+      title: selectedOption.title,
+      units: selectedOption.units,
+      description: selectedOption.description,
+      prescribed_year: combinedCourseOptions.course.prescribed_year,
+      prescribed_semester: combinedCourseOptions.course.prescribed_semester,
+      combined_courses: combinedCourseOptions.course.combined_courses,
+      _isCombinedComponent: true,
+      _selectedComponentId: selectedOption.curriculum_course_id
+    };
+    
+    setSelectedCourse(selectedCourse);
+    setShowCombinedCourseDialog(false);
+};
 
   const handleSemesterClick = (year, semester) => {
     if (!selectedCourse) return;
-    
-    // Check if there are pending HK courses to process
-    if (pendingHKCourses.length > 0) {
-      console.log('Processing pending HK courses:', pendingHKCourses.length);
-    }
     
     // Update plan data
     setPlanData(prev => {
@@ -1131,7 +2173,7 @@ const PlanCreationModal = ({
         return remaining;
       });
     }, 100);
-  };
+};
 
   const handleRemoveCourse = (year, semester, courseIndex, targetCourse) => {
     // When in curriculum view, we need the actual course object that was passed from the PlanOverview
@@ -1236,26 +2278,21 @@ const PlanCreationModal = ({
     };
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-4">
-        <div className="text-sm text-gray-500">Loading...</div>
-      </div>
-    );
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl h-[95vh] flex flex-col">
+      <DialogContent className="max-w-6xl h-[95vh]">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? "Edit Your Plan of Coursework" : "Create Your Plan of Coursework"}</DialogTitle>
+          <DialogTitle>Create Your Plan of Coursework</DialogTitle>
           <DialogDescription>
-            {isEditMode 
-              ? "Modify and reorganize your courses in your academic plan."
-              : "Select and organize your courses to create your academic plan."}
+            Select and organize your courses to create your academic plan.
           </DialogDescription>
         </DialogHeader>
-        {error ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-full gap-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
+            <p className="text-gray-500 text-sm">Loading courses...</p>
+          </div>
+        ) : error ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-red-500">{error}</p>
           </div>
@@ -1275,7 +2312,7 @@ const PlanCreationModal = ({
                     {combinedCourseOptions.options.map((option) => (
                       <button
                         key={option.course_id}
-                        onClick={() => handleCourseVariantSelect(option)}
+                        onClick={() => handleCombinedCourseSelect(option)}
                         className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                       >
                         <div>
@@ -1290,7 +2327,7 @@ const PlanCreationModal = ({
               </Dialog>
             )}
 
-            <div className="flex gap-6 flex-1 min-h-0 overflow-hidden pb-4">
+            <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden items-start">
               {/* Left side - Overview */}
               <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
                 <ScrollArea className="h-full w-full">
@@ -1385,19 +2422,19 @@ const PlanCreationModal = ({
                           const courseIds = courseIdsInPlan();
                           
                           return currentStepType ? (
-                          <CurrentStepComponent 
-                            courses={filterCourses(currentStepCourses)}
-                            onCourseSelect={handleCourseSelect}
-                            selectedCourse={selectedCourse}
-                            planData={planData}
-                            stats={getStatsForType(currentStepType)}
+                            <CurrentStepComponent 
+                              courses={filterCourses(currentStepCourses)}
+                              onCourseSelect={handleCourseSelect}
+                              selectedCourse={selectedCourse}
+                              planData={planData}
+                              stats={getStatsForType(currentStepType)}
                               courseIdsInPlan={courseIds}
-                            onSemesterClick={handleSemesterClick}
-                            setPlanData={setPlanData}
+                              onSemesterClick={handleSemesterClick}
+                              setPlanData={setPlanData}
                               setPendingHKCourses={setPendingHKCourses}
-                          />
-                        ) : (
-                          <SummaryStep planData={planData} />
+                            />
+                          ) : (
+                            <SummaryStep planData={planData} />
                           );
                         })()}
                       </div>
@@ -1406,7 +2443,7 @@ const PlanCreationModal = ({
                 </div>
 
                 {/* Navigation buttons */}
-                <div className="flex justify-between mt-4 pt-4 border-t flex-shrink-0">
+                <div className="flex justify-between mt-4 pt-4 border-t">
                   <Button
                     variant="outline"
                     onClick={handleBack}
@@ -1415,12 +2452,23 @@ const PlanCreationModal = ({
                     <ChevronLeft className="w-4 h-4 mr-2" />
                     Back
                   </Button>
+                  
                   <Button
                     onClick={currentStep === availableSteps.length - 1 ? handleCreatePlan : handleNext}
-                    disabled={!canProceedToNextStep()}
+                    className={currentStep === availableSteps.length - 1 ? 
+                      "bg-blue-600 hover:bg-blue-700 text-white" : ""}
                   >
-                    {currentStep === availableSteps.length - 1 ? "Create Plan" : "Next"}
-                    <ChevronRight className="w-4 h-4 ml-2" />
+                    {currentStep === availableSteps.length - 1 ? (
+                      <>
+                        <FileCheck className="w-4 h-4 mr-2" /> 
+                        Create Plan
+                      </>
+                    ) : (
+                      <>
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1428,15 +2476,67 @@ const PlanCreationModal = ({
           </>
         )}
       </DialogContent>
-      
-      <CourseSelectionDialog
-        open={courseSelectionOpen}
-        onOpenChange={setCourseSelectionOpen}
-        courses={coursesToSelect}
-        onSelect={handleCourseVariantSelect}
-        type={courseSelectionType}
-      />
     </Dialog>
+  );
+};
+
+// Update the course items to show placement info
+const CourseItemWithPlacement = ({ course, type, planData }) => {
+  // Find where this course is placed in the plan
+  let placement = null;
+  
+  Object.entries(planData).forEach(([year, yearData]) => {
+    Object.entries(yearData).forEach(([sem, courses]) => {
+      courses.forEach(c => {
+        if (course.course_code === "HK 12/13") {
+          // For HK 12/13 courses, check if any of its components are in the plan using curriculum_course_id
+          const courseComponents = course.combined_courses || [];
+          const isComponentInPlan = courseComponents.some(component => {
+            // Check if this component's curriculum_course_id matches any course in the plan
+            return c.curriculum_course_id === component.curriculum_course_id ||
+                   c._selectedComponentId === component.curriculum_course_id;
+          });
+          if (isComponentInPlan) {
+            placement = { year, sem };
+          }
+        } else if (course.combined_courses) {
+          // For other combined courses
+          const isComponentInPlan = course.combined_courses.some(component => 
+            c.curriculum_course_id === component.curriculum_course_id
+          );
+          if (isComponentInPlan) {
+            placement = { year, sem };
+          }
+        } else {
+          // For regular courses
+          if (c.curriculum_course_id === course.curriculum_course_id || 
+              c.course_id === course.course_id) {
+            placement = { year, sem };
+          }
+        }
+      });
+    });
+  });
+
+  const getYearText = (year) => {
+    switch (year) {
+      case "1": return "1st Year";
+      case "2": return "2nd Year";
+      case "3": return "3rd Year";
+      case "4": return "4th Year";
+      default: return `${year}th Year`;
+    }
+  };
+
+  return (
+    <div className="relative">
+      <CourseItem course={course} type={type} />
+      {placement && (
+        <div className="absolute top-2 right-2 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs">
+          {getYearText(placement.year)} {placement.sem}
+        </div>
+      )}
+    </div>
   );
 };
 
