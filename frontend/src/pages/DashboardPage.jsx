@@ -7,13 +7,7 @@ import PageHeader from "@/components/PageHeader";
 import { programsAPI, curriculumsAPI, plansAPI, coursesAPI } from "@/lib/api";
 import CompactPlanView from "@/components/Plan/CompactPlanView";
 import { LoadingSpinner } from "@/components/ui/loading";
-
-const getGreeting = () => {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-};
+import { computeCumulativeGWA } from "@/lib/utils";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -22,6 +16,32 @@ const DashboardPage = () => {
   const [college, setCollege] = useState("Not assigned");
   const [loading, setLoading] = useState(true);
   const [organizedCourses, setOrganizedCourses] = useState({});
+  const [currentCWA, setCurrentCWA] = useState(null);
+
+  // Add this function to handle grade updates
+  const handleGradeChange = (courseId, newGrade) => {
+    setOrganizedCourses(prevCourses => {
+      const updatedCourses = { ...prevCourses };
+      
+      // Find and update the course with the new grade
+      Object.keys(updatedCourses).forEach(year => {
+        Object.keys(updatedCourses[year]).forEach(sem => {
+          updatedCourses[year][sem] = updatedCourses[year][sem].map(course => {
+            if (course.course_id === courseId) {
+              return { ...course, grade: newGrade };
+            }
+            return course;
+          });
+        });
+      });
+      
+      // Update CWA immediately
+      const newCWA = computeCumulativeGWA(updatedCourses);
+      setCurrentCWA(newCWA);
+      
+      return updatedCourses;
+    });
+  };
 
   useEffect(() => {
     // Set default loading state
@@ -106,6 +126,8 @@ const DashboardPage = () => {
           });
         }
         setOrganizedCourses(organized);
+        // Calculate initial CWA
+        setCurrentCWA(computeCumulativeGWA(organized));
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -115,6 +137,40 @@ const DashboardPage = () => {
 
     fetchData();
   }, [user?.program_id, user?.curriculum_id]);
+
+  // Calculate total required courses
+  const calculateTotalRequired = () => {
+    if (!organizedCourses) return 0;
+    
+    let total = 0;
+    Object.values(organizedCourses).forEach(year => {
+      Object.values(year).forEach(semester => {
+        total += semester.length;
+      });
+    });
+    return total;
+  };
+
+  const totalRequired = calculateTotalRequired();
+
+  // Calculate completed courses
+  const calculateCompletedCourses = () => {
+    if (!organizedCourses) return 0;
+    
+    let completed = 0;
+    Object.values(organizedCourses).forEach(year => {
+      Object.values(year).forEach(semester => {
+        semester.forEach(course => {
+          if (course.grade && !['5', 'INC', 'DRP'].includes(course.grade)) {
+            completed++;
+          }
+        });
+      });
+    });
+    return completed;
+  };
+
+  const completedCourses = calculateCompletedCourses();
 
   if (loading) {
     return <LoadingSpinner fullPage />;
@@ -126,13 +182,10 @@ const DashboardPage = () => {
       
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Information Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-          <Card className="md:col-span-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Card className="md:col-span-1">
             <CardHeader>
               <CardTitle>Welcome, {user?.name || 'Student'}!</CardTitle>
-              <CardDescription>
-                {getGreeting()}, here's your academic overview.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -160,29 +213,32 @@ const DashboardPage = () => {
             </CardContent>
           </Card>
           
-          <Card className="md:col-span-2">
+          <Card className="md:col-span-1">
             <CardHeader className="pb-2">
-              <div className="flex justify-between items-center">
-                <CardTitle>Overall Degree Progress</CardTitle>
-                <div className="px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">
-                  0%
-                </div>
-              </div>
-              <CardDescription>
-                {curriculumName}
-              </CardDescription>
+              <CardTitle>Overall Degree Progress</CardTitle>
             </CardHeader>
             <CardContent>
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Course Completion</span>
-                  <span className="text-sm font-medium text-gray-700">0 of 0 courses</span>
+              <div className="flex gap-4 pt-4">
+                {/* Progress Card - 60% width */}
+                <div className="w-[70%] p-4 border rounded-lg shadow-md">
+                  <div className="text-xs text-gray-500 mb-4">Course Completion</div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-700">{completedCourses} of {totalRequired} courses</span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div 
+                      className="h-3 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
+                      style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                  <div 
-                    className="h-3 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
-                    style={{ width: "0%" }}
-                  ></div>
+
+                {/* CWA Card - 40% width */}
+                <div className="w-[30%] p-4 border rounded-lg shadow-md">
+                  <div className="text-xs text-gray-500 mb-4">Running CWA</div>
+                  <div className="text-2xl font-bold text-gray-700">
+                    {currentCWA?.toFixed(2) || 'N/A'}
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -190,7 +246,10 @@ const DashboardPage = () => {
         </div>
 
         {/* Plan of Coursework */}
-        <CompactPlanView organizedCourses={organizedCourses} />
+        <CompactPlanView 
+          organizedCourses={organizedCourses} 
+          onGradeChange={handleGradeChange}
+        />
       </div>
     </div>
   );

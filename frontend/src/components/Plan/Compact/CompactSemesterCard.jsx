@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu
 import { Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const CompactSemesterCard = ({ semester, courses, year, onUpdate }) => {
+const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coursesState, setCourses] = useState(courses);
   
@@ -31,22 +31,16 @@ const CompactSemesterCard = ({ semester, courses, year, onUpdate }) => {
   // Calculate GWA
   const semesterGWA = computeSemesterGWA(coursesState);
 
-  const handleUpdate = (updatedCourses) => {
-    // Update local state with the new organized courses for this semester
-    if (updatedCourses[year] && updatedCourses[year][semester]) {
-      // Preserve the is_academic property from the original courses
-      const updatedCoursesWithAcademic = updatedCourses[year][semester].map(updatedCourse => {
-        const originalCourse = coursesState.find(c => c.course_id === updatedCourse.course_id);
-        return {
-          ...updatedCourse,
-          is_academic: originalCourse ? originalCourse.is_academic : updatedCourse.is_academic
-        };
-      });
-      setCourses(updatedCoursesWithAcademic);
-    }
-    // Notify parent component
-    if (onUpdate) {
-      onUpdate(updatedCourses);
+  const handleGradeChange = (courseId, newGrade) => {
+    // Update the grade in the local state
+    const updatedCourses = coursesState.map(course => 
+      course.course_id === courseId ? { ...course, grade: newGrade } : course
+    );
+    setCourses(updatedCourses);
+    
+    // Pass the grade change up to the parent
+    if (onGradeChange) {
+      onGradeChange(courseId, newGrade);
     }
   };
 
@@ -123,14 +117,13 @@ const CompactSemesterCard = ({ semester, courses, year, onUpdate }) => {
           )}
         </CardContent>
       </Card>
-      <SemesterDetailsModal 
-        semester={semester}
-        year={year}
-        courses={sortedCourses}
+      <SemesterDetailsModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onUpdate={handleUpdate}
-        className="sm:max-w-2xl"
+        year={year}
+        semester={semester}
+        courses={coursesState}
+        onGradeChange={handleGradeChange}
       />
     </>
   );

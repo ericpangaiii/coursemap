@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LoadingSpinner } from "@/components/ui/loading";
 
-const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange }) => {
+const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeChange }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   // Check if plan has courses
@@ -76,6 +76,7 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange }) => {
                 key={year}
                 year={parseInt(year)}
                 semesters={semesters}
+                onGradeChange={onGradeChange}
               />
             ))}
           </div>

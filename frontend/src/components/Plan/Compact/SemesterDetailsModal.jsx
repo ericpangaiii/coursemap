@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { getCourseTypeColor, getCourseTypeName, computeSemesterGWA, getScholarshipEligibility } from "@/lib/utils";
-import { plansAPI } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 
 const formatOrdinal = (n) => {
@@ -28,7 +27,7 @@ const formatOrdinal = (n) => {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onUpdate }) => {
+const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGradeChange }) => {
   const [selectedType, setSelectedType] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [coursesState, setCourses] = useState(courses);
@@ -38,55 +37,16 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onUpda
     setCourses(courses);
   }, [courses]);
 
-  const handleGradeChange = async () => {
-    // Refresh the plan data
-    const updatedPlan = await plansAPI.getCurrentPlan();
-    if (updatedPlan) {
-      // Reorganize courses after plan update
-      const organized = {};
-      if (updatedPlan?.courses) {
-        // Create a map to track unique courses by plan_courses.id
-        const uniqueCourses = new Map();
-        
-        updatedPlan.courses.forEach(course => {
-          // If we haven't seen this plan_courses.id before, add it to our map
-          if (!uniqueCourses.has(course.id)) {
-            uniqueCourses.set(course.id, course);
-          }
-        });
-        
-        // Convert the map values back to an array and organize them
-        Array.from(uniqueCourses.values()).forEach(course => {
-          const year = course.year;
-          const sem = course.sem;
-          
-          if (!organized[year]) {
-            organized[year] = {};
-          }
-          
-          if (!organized[year][sem]) {
-            organized[year][sem] = [];
-          }
-          
-          // Preserve the original course type from the current state
-          const existingCourse = coursesState.find(c => c.id === course.id);
-          if (existingCourse) {
-            course.course_type = existingCourse.course_type;
-          }
-          
-          organized[year][sem].push(course);
-        });
-      }
-      
-      // Update the parent component's organizedCourses through the prop
-      if (onUpdate) {
-        onUpdate(organized);
-      }
-      
-      // Update the local courses state with the new organized courses for this semester
-      if (organized[year] && organized[year][semester]) {
-        setCourses(organized[year][semester]);
-      }
+  const handleGradeChange = async (courseId, newGrade) => {
+    // Update the grade in the local state
+    const updatedCourses = coursesState.map(course => 
+      course.course_id === courseId ? { ...course, grade: newGrade } : course
+    );
+    setCourses(updatedCourses);
+    
+    // Pass the grade change up to the parent
+    if (onGradeChange) {
+      onGradeChange(courseId, newGrade);
     }
   };
 
@@ -97,12 +57,17 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onUpda
     if (!courseTypeStats[type]) {
       courseTypeStats[type] = {
         total: 0,
-        completed: 0
+        completed: 0,
+        planned: 0
       };
     }
-    courseTypeStats[type].total += Number(course.units || 0);
-    if (course.is_completed) {
-      courseTypeStats[type].completed += Number(course.units || 0);
+    const units = Number(course.units || 0);
+    courseTypeStats[type].total += units;
+    // Course is completed if it has a grade that is not 5, INC, or DRP
+    if (course.grade && !['5', 'INC', 'DRP'].includes(course.grade)) {
+      courseTypeStats[type].completed += units;
+    } else {
+      courseTypeStats[type].planned += units;
     }
   });
 
@@ -113,8 +78,8 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onUpda
   const filteredCourses = coursesState.filter((course) => {
     const typeMatch = !selectedType || course.course_type === selectedType;
     const statusMatch = !selectedStatus || 
-      (selectedStatus === 'completed' && course.is_completed) ||
-      (selectedStatus === 'planned' && !course.is_completed);
+      (selectedStatus === 'completed' && course.grade && !['5', 'INC', 'DRP'].includes(course.grade)) ||
+      (selectedStatus === 'planned' && (!course.grade || ['5', 'INC', 'DRP'].includes(course.grade)));
     return typeMatch && statusMatch;
   });
 
@@ -271,14 +236,14 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onUpda
                             {getCourseTypeName(type)}
                           </div>
                         </td>
-                        <td className="text-center py-2">{courseTypeStats[type].total}</td>
+                        <td className="text-center py-2">{courseTypeStats[type].planned}</td>
                         <td className="text-center py-2">{courseTypeStats[type].completed}</td>
                       </tr>
                     ))}
                     <tr className="font-medium">
                       <td className="py-2">Total</td>
                       <td className="text-center py-2">
-                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.total, 0)}
+                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.planned, 0)}
                       </td>
                       <td className="text-center py-2">
                         {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.completed, 0)}

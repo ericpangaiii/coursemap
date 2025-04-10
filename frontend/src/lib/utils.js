@@ -579,8 +579,46 @@ export const computeSemesterGWA = (courses) => {
  * @returns {string} - Scholarship eligibility text
  */
 export const getScholarshipEligibility = (gwa) => {
-  if (gwa <= 1.45) return "University Scholar";
-  if (gwa <= 1.75) return "College Scholar";
-  if (gwa <= 2.00) return "Honor Roll";
-  return "Not eligible for scholarship";
+  if (!gwa) return 'N/A';
+  if (gwa >= 1.75) return 'Eligible for Full Scholarship';
+  if (gwa >= 2.00) return 'Eligible for Partial Scholarship';
+  return 'Not Eligible for Scholarship';
+};
+
+export const getLatinHonors = (gwa) => {
+  if (!gwa) return 'N/A';
+  if (gwa >= 1.20) return 'Summa Cum Laude';
+  if (gwa >= 1.45) return 'Magna Cum Laude';
+  if (gwa >= 1.75) return 'Cum Laude';
+  return 'No Latin Honors';
+};
+
+export const computeCumulativeGWA = (organizedCourses) => {
+  // Flatten all courses from all semesters
+  const allCourses = Object.values(organizedCourses).flatMap(yearData => 
+    Object.values(yearData).flatMap(semesterCourses => semesterCourses)
+  );
+
+  // Filter out non-academic courses and courses without grades
+  const academicCourses = allCourses.filter(course => 
+    course.is_academic && 
+    course.grade && 
+    !['5', 'INC', 'DRP'].includes(course.grade)
+  );
+
+  if (academicCourses.length === 0) return null;
+
+  // Calculate total units and weighted sum
+  const { totalUnits, weightedSum } = academicCourses.reduce((acc, course) => {
+    const units = Number(course.units || 0);
+    const grade = Number(course.grade);
+    return {
+      totalUnits: acc.totalUnits + units,
+      weightedSum: acc.weightedSum + (units * grade)
+    };
+  }, { totalUnits: 0, weightedSum: 0 });
+
+  // Calculate GWA and format to always show 2 decimal places
+  const gwa = weightedSum / totalUnits;
+  return Number(gwa.toFixed(2));
 };

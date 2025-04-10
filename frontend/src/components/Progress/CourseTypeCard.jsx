@@ -100,7 +100,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
               <div className={`w-1 h-4 rounded ${typeColor}`}></div>
               <CardTitle className="text-sm font-medium">{typeName}</CardTitle>
             </div>
-            <div className="px-3 py-1 rounded text-sm font-medium bg-gray-100 text-gray-800">
+            <div className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800">
               {stats.percentage}%
             </div>
           </div>
@@ -137,7 +137,12 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                     <div className="flex-1 min-w-0 ml-1.5">
                       <div className="flex items-center justify-between">
                         <p className="font-medium truncate">{course.course_code}</p>
-                        <p className="text-gray-500">{course.units}</p>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-[10px] h-5 ${!course.is_academic ? 'text-gray-500' : ''}`}
+                        >
+                          {course.units} units
+                        </Badge>
                       </div>
                     </div>
                   </div>

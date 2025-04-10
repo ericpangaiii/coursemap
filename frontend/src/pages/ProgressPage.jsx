@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
-import { curriculumsAPI } from "@/lib/api";
+import { curriculumsAPI, plansAPI } from "@/lib/api";
 import CourseTypeCard from "@/components/Progress/CourseTypeCard";
 import { getCourseTypeName } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/loading";
@@ -10,11 +10,12 @@ const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
   const [curriculumData, setCurriculumData] = useState(null);
   const [curriculumCourses, setCurriculumCourses] = useState([]);
+  const [planData, setPlanData] = useState(null);
   const [error, setError] = useState(null);
   
-  // Fetch curriculum data on component mount
+  // Fetch curriculum and plan data on component mount
   useEffect(() => {
-    const fetchCurriculumData = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
         // Get curriculum structure for the current user
@@ -31,16 +32,20 @@ const ProgressPage = () => {
         // Get curriculum courses
         const coursesData = await curriculumsAPI.getCurrentCurriculumCourses();
         setCurriculumCourses(coursesData);
+
+        // Get plan data
+        const plan = await plansAPI.getCurrentPlan();
+        setPlanData(plan);
         
       } catch (err) {
-        console.error("Error fetching curriculum data:", err);
-        setError("Failed to load curriculum data. Please try again later.");
+        console.error("Error fetching data:", err);
+        setError("Failed to load data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
     
-    fetchCurriculumData();
+    fetchData();
   }, []);
   
   // Function to get prescribed semesters for each course type from curriculum structure
@@ -391,9 +396,19 @@ const ProgressPage = () => {
       // Use the actual count of courses
       const total = courses.length;
       
-      // Placeholder for completed courses (will be implemented later)
-      const completed = 0;
-      const percentage = 0;
+      // Calculate completed courses from plan data
+      const completed = planData?.courses?.filter(course => {
+        const courseType = course.course_type?.toLowerCase();
+        const isAcademic = course.is_academic;
+        
+        if (type === "required_academic") {
+          return courseType === "required" && isAcademic && course.grade && !['5', 'INC', 'DRP'].includes(course.grade);
+        } else {
+          return courseType === "required" && !isAcademic && course.grade && !['5', 'INC', 'DRP'].includes(course.grade);
+        }
+      }).length || 0;
+      
+      const percentage = Math.round((completed / total) * 100) || 0;
       
       return {
         total,
@@ -408,9 +423,13 @@ const ProgressPage = () => {
     // Use the count from curriculum data, but fall back to actual course count
     const total = curriculumData.totals[countField] || courses.length;
     
-    // Placeholder for completed courses (will be implemented later)
-    const completed = 0;
-    const percentage = 0;
+    // Calculate completed courses from plan data
+    const completed = planData?.courses?.filter(course => {
+      const courseType = course.course_type?.toLowerCase();
+      return courseType === type && course.grade && !['5', 'INC', 'DRP'].includes(course.grade);
+    }).length || 0;
+    
+    const percentage = Math.round((completed / total) * 100) || 0;
     
     // Get the prescribed semesters for this type based on curriculum structure
     const prescribedSemesters = getPrescribedSemestersForType(type);
@@ -481,8 +500,16 @@ const ProgressPage = () => {
 
   const totalRequired = calculateTotalRequired();
 
-  // Calculate overall stats
-  const completedCourses = 0; // Placeholder
+  // Calculate completed courses from plan data
+  const calculateCompletedCourses = () => {
+    if (!planData?.courses) return 0;
+    
+    return planData.courses.filter(course => 
+      course.grade && !['5', 'INC', 'DRP'].includes(course.grade)
+    ).length;
+  };
+
+  const completedCourses = calculateCompletedCourses();
   const remainingCourses = totalRequired - completedCourses;
   const completionPercentage = Math.round((completedCourses / totalRequired) * 100) || 0;
   
@@ -519,20 +546,20 @@ const ProgressPage = () => {
                       </div>
                     </div>
                     <CardDescription>
-                      {curriculumData?.curriculum?.name || "Your academic journey"}
+                      {curriculumData?.curriculum?.name}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-2">
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium">Course Completion</span>
-                          <span className="text-sm font-medium text-gray-700">0 of 0 courses</span>
+                          <span className="text-xs font-medium">Course Completion</span>
+                          <span className="text-xs font-medium text-gray-700">{completedCourses} of {totalRequired} courses</span>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                        <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                           <div 
-                            className="h-2.5 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
-                            style={{ width: "0%" }}
+                            className="h-3 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
+                            style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
                           ></div>
                         </div>
                       </div>
