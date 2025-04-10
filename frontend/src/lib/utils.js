@@ -580,17 +580,18 @@ export const computeSemesterGWA = (courses) => {
  */
 export const getScholarshipEligibility = (gwa) => {
   if (!gwa) return 'N/A';
-  if (gwa >= 1.75) return 'Eligible for Full Scholarship';
-  if (gwa >= 2.00) return 'Eligible for Partial Scholarship';
-  return 'Not Eligible for Scholarship';
+  if (gwa <= 1.45) return 'University Scholar';
+  if (gwa <= 1.75) return 'College Scholar';
+  if (gwa <= 2.00) return 'Honor Roll';
+  return 'Not Eligible for Honors';
 };
 
 export const getLatinHonors = (gwa) => {
   if (!gwa) return 'N/A';
-  if (gwa >= 1.20) return 'Summa Cum Laude';
-  if (gwa >= 1.45) return 'Magna Cum Laude';
-  if (gwa >= 1.75) return 'Cum Laude';
-  return 'No Latin Honors';
+  if (gwa <= 1.20) return 'Summa Cum Laude';
+  if (gwa <= 1.45) return 'Magna Cum Laude';
+  if (gwa <= 1.75) return 'Cum Laude';
+  return 'Not Eligible for Latin Honors';
 };
 
 export const computeCumulativeGWA = (organizedCourses) => {

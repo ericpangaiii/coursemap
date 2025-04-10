@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
-import { curriculumsAPI, plansAPI } from "@/lib/api";
+import { curriculumsAPI, plansAPI, coursesAPI } from "@/lib/api";
 import CourseTypeCard from "@/components/Progress/CourseTypeCard";
 import { getCourseTypeName } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/loading";
@@ -35,6 +35,40 @@ const ProgressPage = () => {
 
         // Get plan data
         const plan = await plansAPI.getCurrentPlan();
+        
+        // If we have plan courses, fetch their details
+        if (plan?.courses) {
+          // Get all course IDs to fetch descriptions
+          const courseIds = plan.courses.map(course => course.course_id);
+          
+          // Fetch course details including descriptions
+          const courseDetailsResponse = await coursesAPI.getCoursesByIds(courseIds);
+          
+          // Create a map of course_id to course details
+          const courseDetailsMap = {};
+          if (courseDetailsResponse.success && courseDetailsResponse.data) {
+            courseDetailsResponse.data.forEach(course => {
+              courseDetailsMap[course.course_id] = course;
+            });
+          }
+          
+          // Merge course details with plan course data
+          plan.courses = plan.courses.map(course => ({
+            ...course,
+            description: courseDetailsMap[course.course_id]?.description || course.description,
+            title: courseDetailsMap[course.course_id]?.title || course.title,
+            units: courseDetailsMap[course.course_id]?.units || course.units,
+            is_academic: courseDetailsMap[course.course_id]?.is_academic,
+            course_type: course.course_type === 'REQUIRED' 
+              ? courseDetailsMap[course.course_id]?.is_academic 
+                ? 'REQUIRED_ACADEMIC' 
+                : 'REQUIRED_NON_ACADEMIC'
+              : course.course_type,
+            status: course.status,
+            grade: course.grade
+          }));
+        }
+
         setPlanData(plan);
         
       } catch (err) {
@@ -379,7 +413,6 @@ const ProgressPage = () => {
   // Calculate stats for each course type
   const getStatsForType = (type) => {
     if (!curriculumData || !curriculumData.totals) {
-      // If no curriculum data, just return the count of courses
       return { 
         total: (coursesByType[type] || []).length,
         completed: 0,
@@ -398,13 +431,16 @@ const ProgressPage = () => {
       
       // Calculate completed courses from plan data
       const completed = planData?.courses?.filter(course => {
-        const courseType = course.course_type?.toLowerCase();
-        const isAcademic = course.is_academic;
-        
         if (type === "required_academic") {
-          return courseType === "required" && isAcademic && course.grade && !['5', 'INC', 'DRP'].includes(course.grade);
+          return course.course_type === "REQUIRED_ACADEMIC" && 
+                 course.is_academic && 
+                 course.grade && 
+                 !['5', 'INC', 'DRP', ''].includes(course.grade);
         } else {
-          return courseType === "required" && !isAcademic && course.grade && !['5', 'INC', 'DRP'].includes(course.grade);
+          return course.course_type === "REQUIRED_NON_ACADEMIC" && 
+                 !course.is_academic && 
+                 course.grade && 
+                 !['5', 'INC', 'DRP', ''].includes(course.grade);
         }
       }).length || 0;
       
@@ -425,8 +461,9 @@ const ProgressPage = () => {
     
     // Calculate completed courses from plan data
     const completed = planData?.courses?.filter(course => {
-      const courseType = course.course_type?.toLowerCase();
-      return courseType === type && course.grade && !['5', 'INC', 'DRP'].includes(course.grade);
+      return course.course_type === type && 
+             course.grade && 
+             !['5', 'INC', 'DRP', ''].includes(course.grade);
     }).length || 0;
     
     const percentage = Math.round((completed / total) * 100) || 0;
@@ -524,7 +561,7 @@ const ProgressPage = () => {
         description="Track your progress towards completing your degree requirements."
       />
       
-      <div className="container mx-auto p-4 w-full">
+      <div className="container mx-auto w-full">
         {error ? (
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
@@ -541,9 +578,6 @@ const ProgressPage = () => {
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle>Overall Degree Progress</CardTitle>
-                      <div className="px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">
-                        {totalRequired > 0 ? `${completionPercentage}%` : "N/A"}
-                      </div>
                     </div>
                     <CardDescription>
                       {curriculumData?.curriculum?.name}
@@ -602,7 +636,7 @@ const ProgressPage = () => {
                               
                               return (
                                 <div key={type} className="border rounded-md p-3 flex flex-col gap-1">
-                                  <h3 className="text-xs font-medium text-gray-500 truncate">{typeName}</h3>
+                                  <div className="text-xs text-gray-500 mb-1">{typeName}</div>
                                   <p className="text-lg font-bold truncate">{stats.completed}/{stats.total}</p>
                                 </div>
                               );

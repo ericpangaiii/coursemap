@@ -100,9 +100,6 @@ const CourseTypeCard = ({ type, courses, stats }) => {
               <div className={`w-1 h-4 rounded ${typeColor}`}></div>
               <CardTitle className="text-sm font-medium">{typeName}</CardTitle>
             </div>
-            <div className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-800">
-              {stats.percentage}%
-            </div>
           </div>
         </CardHeader>
         <CardContent>

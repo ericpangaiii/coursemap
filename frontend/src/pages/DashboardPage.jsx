@@ -180,7 +180,7 @@ const DashboardPage = () => {
     <div className="w-full max-w-full">
       <PageHeader title="Dashboard" />
       
-      <div className="container mx-auto p-4 max-w-7xl">
+      <div className="container mx-auto max-w-7xl">
         {/* Information Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card className="md:col-span-1">

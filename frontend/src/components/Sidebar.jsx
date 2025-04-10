@@ -3,9 +3,6 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
-import { programsAPI } from "@/lib/api";
-import { ReloadIcon } from "@radix-ui/react-icons";
 import { 
   Sidebar as ShadcnSidebar, 
   SidebarContent,
@@ -20,28 +17,7 @@ const Sidebar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [programTitle, setProgramTitle] = useState("");
   const { state } = useSidebar();
-  const [loading, setLoading] = useState(false);
-  
-  useEffect(() => {
-    // Fetch program details if user has a program_id
-    if (user?.program_id) {
-      setLoading(true);
-      programsAPI.getProgramById(user.program_id)
-        .then(data => {
-          if (data && data.title) {
-            setProgramTitle(data.title);
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching program details:", error);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    }
-  }, [user?.program_id]);
   
   // Navigation items with icons
   const navItems = [
@@ -89,15 +65,6 @@ const Sidebar = () => {
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name || "Guest"}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email || ""}</p>
               </div>
-            </div>
-            <div className="text-xs text-gray-600 mt-2">
-              {loading ? (
-                <div className="text-xs text-gray-500">
-                  Loading...
-                </div>
-              ) : (
-                <div>{programTitle || "No program selected"}</div>
-              )}
             </div>
           </>
         )}
