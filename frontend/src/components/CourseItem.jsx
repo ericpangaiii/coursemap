@@ -17,6 +17,11 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   const [showTooltip, setShowTooltip] = useState(false);
   const [grade, setGrade] = useState(course.grade || "");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false);
+  const [selectedGrade, setSelectedGrade] = useState(course.grade || '');
+  const [isHovered, setIsHovered] = useState(false);
+  const [isGradeHovered, setIsGradeHovered] = useState(false);
+  const [isGradeDialogHovered, setIsGradeDialogHovered] = useState(false);
   
   // UP Grading System
   const gradeOptions = [
@@ -200,7 +205,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   };
 
   const getGradeBadgeColor = (grade) => {
-    if (!grade) return "bg-white text-gray-500 border-gray-200";
+    if (!grade) return "bg-white text-gray-500 border-gray-200 border-dashed hover:bg-gray-50 hover:border-gray-300 hover:text-gray-600 transition-colors";
     
     const numericGrade = parseFloat(grade);
     if (isNaN(numericGrade)) {
@@ -211,7 +216,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
         case "DRP":
           return "bg-red-100 text-red-700 border-red-200";
         default:
-          return "bg-white text-gray-500 border-gray-200";
+          return "bg-white text-gray-500 border-gray-200 border-dashed hover:bg-gray-50 hover:border-gray-300 hover:text-gray-600 transition-colors";
       }
     }
 
@@ -255,7 +260,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                       {gradeOptions.map((option) => (
                         <DropdownMenuItem 
                           key={option.value} 
-                          className="text-xs py-1.5"
+                          className={`text-xs py-1.5 ${!option.value ? 'text-[10px]' : ''}`}
                           onClick={() => handleGradeChange(option.value)}
                         >
                           {option.label}
@@ -268,7 +273,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             )}
           </div>
         </div>
-        <p className="text-sm text-gray-700 truncate">{courseTitle}</p>
+        <p className="text-xs text-gray-500 truncate">{course.title}</p>
         
         <TooltipProvider>
           <Tooltip open={showTooltip} onOpenChange={setShowTooltip}>

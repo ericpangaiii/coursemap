@@ -94,8 +94,8 @@ export const updateCourse = async (req, res) => {
       `;
 
       const queryParams = [updates.grade, planId, courseId];
-      // Set status to 'completed' if grade is valid, otherwise set to 'planned'
-      queryParams.push(shouldUpdateStatus ? 'completed' : 'planned');
+      // Set status to 'completed' if grade is valid, 'taken' if grade is 5.00, INC, or DRP, otherwise 'planned'
+      queryParams.push(shouldUpdateStatus ? 'completed' : (updates.grade && ['5.00', 'INC', 'DRP'].includes(updates.grade) ? 'taken' : 'planned'));
 
       const result = await client.query(updateQuery, queryParams);
       

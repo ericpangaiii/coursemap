@@ -2283,17 +2283,16 @@ const PlanCreationModal = ({
       <DialogContent className="max-w-6xl h-[95vh]">
         <DialogHeader>
           <DialogTitle>Create Your Plan of Coursework</DialogTitle>
-          <DialogDescription>
-            Select and organize your courses to create your academic plan.
-          </DialogDescription>
         </DialogHeader>
         {loading ? (
-          <div className="flex items-center justify-center h-full gap-2">
-            <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
-            <p className="text-gray-500 text-sm">Loading courses...</p>
+          <div className="flex-1 flex items-center justify-center min-h-[calc(95vh-4rem)]">
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
+              <p className="text-gray-500 text-sm">Loading courses...</p>
+            </div>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex-1 flex items-center justify-center min-h-[calc(95vh-4rem)]">
             <p className="text-red-500">{error}</p>
           </div>
         ) : (
@@ -2327,7 +2326,7 @@ const PlanCreationModal = ({
               </Dialog>
             )}
 
-            <div className="flex gap-6 h-[calc(100%-4rem)] overflow-hidden items-start">
+            <div className="flex gap-6 overflow-hidden items-start">
               {/* Left side - Overview */}
               <div className="flex-1 h-full flex flex-col min-w-0 overflow-hidden">
                 <ScrollArea className="h-full w-full">

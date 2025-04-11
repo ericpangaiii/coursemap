@@ -83,7 +83,16 @@ const CourseTypeCard = ({ type, courses, stats }) => {
     if (selectedStatus) {
       filtered = filtered.filter(course => {
         const planCourse = planCourses.find(pc => String(pc.course_id) === course.course_id);
-        return planCourse?.status === selectedStatus;
+        if (!planCourse) return false;
+        
+        if (selectedStatus === 'completed') {
+          return planCourse.grade && !['5.00', 'INC', 'DRP'].includes(planCourse.grade);
+        } else if (selectedStatus === 'taken') {
+          return planCourse.grade && ['5.00', 'INC', 'DRP'].includes(planCourse.grade);
+        } else if (selectedStatus === 'planned') {
+          return !planCourse.grade;
+        }
+        return false;
       });
     }
     return filtered;
@@ -170,9 +179,9 @@ const CourseTypeCard = ({ type, courses, stats }) => {
 
       {/* View All Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-2xl">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <div>
+            <div className="flex items-center justify-between">
               <DialogTitle className="text-lg font-medium">
                 {typeName}
               </DialogTitle>
@@ -245,7 +254,9 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   >
                     <Filter className="w-4 h-4 mr-1" />
                     {selectedStatus 
-                      ? (selectedStatus === 'planned' ? 'Planned' : 'Completed')
+                      ? (selectedStatus === 'planned' ? 'Planned' : 
+                         selectedStatus === 'completed' ? 'Completed' : 
+                         'Taken')
                       : "All Statuses"}
                   </Button>
                 </DropdownMenuTrigger>
@@ -257,9 +268,11 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                     <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
                     All Statuses
                   </DropdownMenuItem>
-                  {['planned', 'completed'].map((status) => {
+                  {['planned', 'completed', 'taken'].map((status) => {
                     const isSelected = selectedStatus === status;
-                    const label = status === 'planned' ? 'Planned' : 'Completed';
+                    const label = status === 'planned' ? 'Planned' : 
+                                status === 'completed' ? 'Completed' : 
+                                'Taken';
                     return (
                       <DropdownMenuItem 
                         key={status}
@@ -295,7 +308,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
                     <SearchX className="h-12 w-12 mb-3" />
                     <p className="text-sm font-medium">No courses found</p>
-                    <p className="text-sm">Try adjusting your search query</p>
+                    <p className="text-sm">Try adjusting your search query or filters</p>
                   </div>
                 )}
               </div>

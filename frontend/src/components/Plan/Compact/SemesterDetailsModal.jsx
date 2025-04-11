@@ -78,8 +78,9 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
   const filteredCourses = coursesState.filter((course) => {
     const typeMatch = !selectedType || course.course_type === selectedType;
     const statusMatch = !selectedStatus || 
-      (selectedStatus === 'completed' && course.grade && !['5', 'INC', 'DRP'].includes(course.grade)) ||
-      (selectedStatus === 'planned' && (!course.grade || ['5', 'INC', 'DRP'].includes(course.grade)));
+      (selectedStatus === 'completed' && course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) ||
+      (selectedStatus === 'taken' && course.grade && ['5.00', 'INC', 'DRP'].includes(course.grade)) ||
+      (selectedStatus === 'planned' && !course.grade);
     return typeMatch && statusMatch;
   });
 
@@ -88,7 +89,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className={cn("sm:max-w-2xl")}>
+      <DialogContent className={cn("sm:max-w-xl")}>
         <DialogHeader>
           <div>
             <DialogTitle className="text-lg font-medium">
@@ -147,11 +148,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                     >
                       <Filter className="w-4 h-4 mr-1" />
                       {selectedStatus 
-                        ? (selectedStatus === 'planned' ? 'Planned' : 'Completed')
+                        ? (selectedStatus === 'planned' ? 'Planned' : 
+                           selectedStatus === 'completed' ? 'Completed' : 
+                           'Taken')
                         : "All Statuses"}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuContent align="start" className="w-48">
                     <DropdownMenuItem 
                       onClick={() => setSelectedStatus(null)}
                       className="flex items-center gap-2"
@@ -159,9 +162,11 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                       <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
                       All Statuses
                     </DropdownMenuItem>
-                    {['planned', 'completed'].map((status) => {
+                    {['planned', 'completed', 'taken'].map((status) => {
                       const isSelected = selectedStatus === status;
-                      const label = status === 'planned' ? 'Planned' : 'Completed';
+                      const label = status === 'planned' ? 'Planned' : 
+                                  status === 'completed' ? 'Completed' : 
+                                  'Taken';
                       return (
                         <DropdownMenuItem 
                           key={status}
