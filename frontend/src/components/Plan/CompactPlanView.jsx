@@ -1,9 +1,6 @@
-import CompactYearCard from "./Compact/CompactYearCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { FileText, Edit, Plus, FileDown } from "lucide-react";
-import { useState } from "react";
 import PlanCreationModal from "@/components/Plan/PlanCreationModal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +8,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LoadingSpinner } from "@/components/ui/loading";
+import { FileDown, FileText, Plus } from "lucide-react";
+import { useState } from "react";
+import CompactYearCard from "./Compact/CompactYearCard";
 
 const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeChange }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

@@ -1598,8 +1598,8 @@ const PlanCreationModal = ({
   // Fetch courses and curriculum structure on mount
   useEffect(() => {
     const fetchData = async () => {
-        try {
-          setLoading(true);
+      try {
+        setLoading(true);
         const [coursesData, structureData] = await Promise.all([
           curriculumsAPI.getCurrentCurriculumCourses(),
           curriculumsAPI.getCurrentCurriculumStructure()
@@ -1771,11 +1771,11 @@ const PlanCreationModal = ({
         
         setCoursesByType(grouped);
         setCurriculumStructure(structureData);
-        } catch (err) {
+      } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load curriculum data");
-        } finally {
-          setLoading(false);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -1975,13 +1975,13 @@ const PlanCreationModal = ({
                 const courseId = course._selectedComponentId;
                 if (courseId) {
                   console.log('Adding HK component with ID:', courseId);
-                  await plansAPI.addCourseToPlan(
-                    currentPlan.id,
+                await plansAPI.addCourseToPlan(
+                  currentPlan.id,
                     courseId,
-                    parseInt(year),
-                    semNum,
-                    'planned'
-                  );
+                  parseInt(year),
+                  semNum,
+                  'planned'
+                );
                   console.log('Successfully added HK component');
                 }
               } else {
@@ -2021,7 +2021,7 @@ const PlanCreationModal = ({
       console.error('Error creating plan:', error);
     }
   };
-
+  
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -2173,7 +2173,7 @@ const PlanCreationModal = ({
         return remaining;
       });
     }, 100);
-};
+  };
 
   const handleRemoveCourse = (year, semester, courseIndex, targetCourse) => {
     // When in curriculum view, we need the actual course object that was passed from the PlanOverview
@@ -2421,19 +2421,19 @@ const PlanCreationModal = ({
                           const courseIds = courseIdsInPlan();
                           
                           return currentStepType ? (
-                            <CurrentStepComponent 
-                              courses={filterCourses(currentStepCourses)}
-                              onCourseSelect={handleCourseSelect}
-                              selectedCourse={selectedCourse}
-                              planData={planData}
-                              stats={getStatsForType(currentStepType)}
+                          <CurrentStepComponent 
+                            courses={filterCourses(currentStepCourses)}
+                            onCourseSelect={handleCourseSelect}
+                            selectedCourse={selectedCourse}
+                            planData={planData}
+                            stats={getStatsForType(currentStepType)}
                               courseIdsInPlan={courseIds}
-                              onSemesterClick={handleSemesterClick}
-                              setPlanData={setPlanData}
+                            onSemesterClick={handleSemesterClick}
+                            setPlanData={setPlanData}
                               setPendingHKCourses={setPendingHKCourses}
-                            />
-                          ) : (
-                            <SummaryStep planData={planData} />
+                          />
+                        ) : (
+                          <SummaryStep planData={planData} />
                           );
                         })()}
                       </div>

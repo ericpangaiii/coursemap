@@ -1,17 +1,17 @@
-import { Info } from "lucide-react";
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
-import { getCourseTypeColor } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { coursesAPI } from '@/lib/api';
+import { getCourseTypeColor } from "@/lib/utils";
+import { Info } from "lucide-react";
+import { useState } from "react";
 
 const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester", enableGradeSelection = false, onGradeChange }) => {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -294,23 +294,23 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             </TooltipTrigger>
             <TooltipContent 
               side="right" 
-              className="max-w-md p-5 bg-white border border-gray-200 shadow-lg rounded-lg"
+              className="max-w-md p-4 bg-white border border-gray-200 shadow-lg rounded-lg"
             >
               {isCombinedCourse ? (
                 getCombinedCourseTooltipContent()
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div>
-                    <h5 className="font-medium text-sm text-gray-700 mb-1.5">Description</h5>
-                    <p className="text-sm text-gray-700 leading-relaxed">{courseDescription}</p>
+                    <h5 className="font-medium text-xs text-gray-700 mb-1">Description</h5>
+                    <p className="text-xs text-gray-700 leading-relaxed">{courseDescription}</p>
                   </div>
                   
                   {formattedSemOffered.length > 0 && (
                     <div>
-                      <h5 className="font-medium text-sm text-gray-700 mb-1.5">Semesters Offered</h5>
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      <h5 className="font-medium text-xs text-gray-700 mb-1">Semesters Offered</h5>
+                      <div className="flex flex-wrap gap-1 mt-1">
                         {formattedSemOffered.map((sem, index) => (
-                          <Badge key={index} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
+                          <Badge key={index} variant="outline" className="text-[10px] bg-white text-gray-900 border-gray-200">
                             {sem}
                           </Badge>
                         ))}
@@ -320,8 +320,8 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                   
                   {prescribedText && (
                     <div>
-                      <h5 className="font-medium text-sm text-gray-700 mb-1.5">Prescribed Schedule</h5>
-                      <p className="text-sm text-gray-700">{prescribedText}</p>
+                      <h5 className="font-medium text-xs text-gray-700 mb-1">Prescribed Schedule</h5>
+                      <p className="text-xs text-gray-700">{prescribedText}</p>
                     </div>
                   )}
                 </div>

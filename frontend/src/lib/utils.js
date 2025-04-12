@@ -269,40 +269,50 @@ export const calculateSemesterUnits = (semesterCourses) => {
 /**
  * Check if a semester is overloaded
  * @param {number} semesterUnits - Total units in a semester
+ * @param {string} semester - Semester type ('1', '2', or 'Mid Year')
  * @returns {boolean} - Whether the semester is overloaded
  */
-export const isSemesterOverloaded = (semesterUnits) => {
-  return semesterUnits > 21; // Maximum allowed units per semester
+export const isSemesterOverloaded = (semesterUnits, semester) => {
+  if (semester === 'Mid Year') {
+    return semesterUnits > 6 && semesterUnits > 0;
+  }
+  return semesterUnits > 18;
 };
 
 /**
  * Check if a semester is underloaded
  * @param {number} semesterUnits - Total units in a semester
+ * @param {string} semester - Semester type ('1', '2', or 'Mid Year')
  * @returns {boolean} - Whether the semester is underloaded
  */
-export const isSemesterUnderloaded = (semesterUnits) => {
-  return semesterUnits < 12; // Minimum required units per semester
+export const isSemesterUnderloaded = (semesterUnits, semester) => {
+  if (semester === 'Mid Year') {
+    return false; // No underload check for mid year
+  }
+  return semesterUnits < 15 && semesterUnits > 0;
 };
 
 /**
  * Get semester warnings based on units
  * @param {number} semesterUnits - Total units in a semester
+ * @param {string} semester - Semester type ('1', '2', or 'Mid Year')
  * @returns {Array} - Array of warning objects
  */
-export const getSemesterWarnings = (semesterUnits) => {
+export const getSemesterWarnings = (semesterUnits, semester) => {
   const warnings = [];
   
-  if (isSemesterOverloaded(semesterUnits)) {
+  if (isSemesterOverloaded(semesterUnits, semester)) {
+    const maxUnits = semester === 'Mid Year' ? 6 : 18;
     warnings.push({
       type: 'overload',
-      message: `Overloaded: ${semesterUnits} units (Maximum: 21 units)`
+      message: `Overloaded: ${semesterUnits} units (Maximum: ${maxUnits} units)`
     });
   }
   
-  if (isSemesterUnderloaded(semesterUnits)) {
+  if (isSemesterUnderloaded(semesterUnits, semester)) {
     warnings.push({
       type: 'underload',
-      message: `Underloaded: ${semesterUnits} units (Minimum: 12 units)`
+      message: `Underloaded: ${semesterUnits} units (Minimum: 15 units)`
     });
   }
   
@@ -312,13 +322,14 @@ export const getSemesterWarnings = (semesterUnits) => {
 /**
  * Get semester status based on units
  * @param {number} semesterUnits - Total units in a semester
+ * @param {string} semester - Semester type ('1', '2', or 'Mid Year')
  * @returns {string} - Semester status ('overloaded', 'underloaded', or 'normal')
  */
-export const getSemesterStatus = (semesterUnits) => {
-  if (isSemesterOverloaded(semesterUnits)) {
+export const getSemesterStatus = (semesterUnits, semester) => {
+  if (isSemesterOverloaded(semesterUnits, semester)) {
     return 'overloaded';
   }
-  if (isSemesterUnderloaded(semesterUnits)) {
+  if (isSemesterUnderloaded(semesterUnits, semester)) {
     return 'underloaded';
   }
   return 'normal';
@@ -397,17 +408,18 @@ export const generatePlanWarnings = (planData) => {
     Object.entries(yearData).forEach(([sem, courses]) => {
       const semesterUnits = calculateSemesterUnits(courses);
       
-      if (semesterUnits > 21) {
+      if (isSemesterOverloaded(semesterUnits, sem)) {
+        const maxUnits = sem === 'Mid Year' ? 6 : 18;
         warnings.push({
           type: 'overload',
-          message: `Year ${year} ${sem}: Overloaded with ${semesterUnits} units (Maximum: 21 units)`
+          message: `Year ${year} ${sem}: Overloaded with ${semesterUnits} units (Maximum: ${maxUnits} units)`
         });
       }
       
-      if (semesterUnits < 12) {
+      if (isSemesterUnderloaded(semesterUnits, sem)) {
         warnings.push({
           type: 'underload',
-          message: `Year ${year} ${sem}: Underloaded with ${semesterUnits} units (Minimum: 12 units)`
+          message: `Year ${year} ${sem}: Underloaded with ${semesterUnits} units (Minimum: 15 units)`
         });
       }
     });

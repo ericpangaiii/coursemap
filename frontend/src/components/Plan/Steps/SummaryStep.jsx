@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowUpDown, AlertTriangle, Check, ChevronDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getCourseTypeColor } from "@/lib/utils";
+import { getCourseTypeColor, isSemesterOverloaded, isSemesterUnderloaded } from "@/lib/utils";
 
 // Move generateWarnings function outside of component
 const generateWarnings = (planData) => {
@@ -15,7 +15,7 @@ const generateWarnings = (planData) => {
     Object.entries(yearData).forEach(([sem, courses]) => {
       const academicUnits = courses.reduce((total, course) => {
         // Only count academic courses' units
-        if (course.course_type !== 'required_non_academic') {
+        if (course.is_academic && !course._isCurriculumCourse) {
           return total + (parseInt(course.units) || 0);
         }
         return total;
@@ -23,28 +23,17 @@ const generateWarnings = (planData) => {
       
       const yearText = year === "1" ? "1st Year" : year === "2" ? "2nd Year" : year === "3" ? "3rd Year" : `${year}th Year`;
       
-      // Check for overload/underload based on semester
-      if (sem === "Mid Year") {
-        // For midyear, min is 0 and max is 6 units
-        if (academicUnits > 6 && academicUnits > 0) {
-          warnings.push({
-            text: `${yearText}, ${sem}: Overload`,
-            details: `${academicUnits} units (max 6)`
-          });
-        }
-      } else {
-        // For regular semesters
-        if (academicUnits > 18) {
-          warnings.push({
-            text: `${yearText}, ${sem}: Overload`,
-            details: `${academicUnits} units (max 18)`
-          });
-        } else if (academicUnits < 15 && academicUnits > 0) {
-          warnings.push({
-            text: `${yearText}, ${sem}: Underload`,
-            details: `${academicUnits} units (min 15)`
-          });
-        }
+      if (isSemesterOverloaded(academicUnits, sem)) {
+        const maxUnits = sem === "Mid Year" ? 6 : 18;
+        warnings.push({
+          text: `${yearText}, ${sem}: Overload`,
+          details: `${academicUnits} units (max ${maxUnits})`
+        });
+      } else if (isSemesterUnderloaded(academicUnits, sem)) {
+        warnings.push({
+          text: `${yearText}, ${sem}: Underload`,
+          details: `${academicUnits} units (min 15)`
+        });
       }
     });
   });

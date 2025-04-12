@@ -1,21 +1,20 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "@/components/PageHeader";
-import { curriculumsAPI, plansAPI, coursesAPI } from "@/lib/api";
 import CourseTypeCard from "@/components/Progress/CourseTypeCard";
-import { getCourseTypeName } from "@/lib/utils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading";
+import { curriculumsAPI } from "@/lib/api";
+import { getCourseTypeName } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
   const [curriculumData, setCurriculumData] = useState(null);
   const [curriculumCourses, setCurriculumCourses] = useState([]);
-  const [planData, setPlanData] = useState(null);
   const [error, setError] = useState(null);
   
-  // Fetch curriculum and plan data on component mount
+  // Fetch curriculum data on component mount
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCurriculumData = async () => {
       setLoading(true);
       try {
         // Get curriculum structure for the current user
@@ -32,54 +31,16 @@ const ProgressPage = () => {
         // Get curriculum courses
         const coursesData = await curriculumsAPI.getCurrentCurriculumCourses();
         setCurriculumCourses(coursesData);
-
-        // Get plan data
-        const plan = await plansAPI.getCurrentPlan();
-        
-        // If we have plan courses, fetch their details
-        if (plan?.courses) {
-          // Get all course IDs to fetch descriptions
-          const courseIds = plan.courses.map(course => course.course_id);
-          
-          // Fetch course details including descriptions
-          const courseDetailsResponse = await coursesAPI.getCoursesByIds(courseIds);
-          
-          // Create a map of course_id to course details
-          const courseDetailsMap = {};
-          if (courseDetailsResponse.success && courseDetailsResponse.data) {
-            courseDetailsResponse.data.forEach(course => {
-              courseDetailsMap[course.course_id] = course;
-            });
-          }
-          
-          // Merge course details with plan course data
-          plan.courses = plan.courses.map(course => ({
-            ...course,
-            description: courseDetailsMap[course.course_id]?.description || course.description,
-            title: courseDetailsMap[course.course_id]?.title || course.title,
-            units: courseDetailsMap[course.course_id]?.units || course.units,
-            is_academic: courseDetailsMap[course.course_id]?.is_academic,
-            course_type: course.course_type === 'REQUIRED' 
-              ? courseDetailsMap[course.course_id]?.is_academic 
-                ? 'REQUIRED_ACADEMIC' 
-                : 'REQUIRED_NON_ACADEMIC'
-              : course.course_type,
-            status: course.status,
-            grade: course.grade
-          }));
-        }
-
-        setPlanData(plan);
         
       } catch (err) {
-        console.error("Error fetching data:", err);
-        setError("Failed to load data. Please try again later.");
+        console.error("Error fetching curriculum data:", err);
+        setError("Failed to load curriculum data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
     
-    fetchData();
+    fetchCurriculumData();
   }, []);
   
   // Function to get prescribed semesters for each course type from curriculum structure
@@ -413,6 +374,7 @@ const ProgressPage = () => {
   // Calculate stats for each course type
   const getStatsForType = (type) => {
     if (!curriculumData || !curriculumData.totals) {
+      // If no curriculum data, just return the count of courses
       return { 
         total: (coursesByType[type] || []).length,
         completed: 0,
@@ -429,22 +391,9 @@ const ProgressPage = () => {
       // Use the actual count of courses
       const total = courses.length;
       
-      // Calculate completed courses from plan data
-      const completed = planData?.courses?.filter(course => {
-        if (type === "required_academic") {
-          return course.course_type === "REQUIRED_ACADEMIC" && 
-                 course.is_academic && 
-                 course.grade && 
-                 !['5', 'INC', 'DRP', ''].includes(course.grade);
-        } else {
-          return course.course_type === "REQUIRED_NON_ACADEMIC" && 
-                 !course.is_academic && 
-                 course.grade && 
-                 !['5', 'INC', 'DRP', ''].includes(course.grade);
-        }
-      }).length || 0;
-      
-      const percentage = Math.round((completed / total) * 100) || 0;
+      // Placeholder for completed courses (will be implemented later)
+      const completed = 0;
+      const percentage = 0;
       
       return {
         total,
@@ -459,14 +408,9 @@ const ProgressPage = () => {
     // Use the count from curriculum data, but fall back to actual course count
     const total = curriculumData.totals[countField] || courses.length;
     
-    // Calculate completed courses from plan data
-    const completed = planData?.courses?.filter(course => {
-      return course.course_type === type && 
-             course.grade && 
-             !['5', 'INC', 'DRP', ''].includes(course.grade);
-    }).length || 0;
-    
-    const percentage = Math.round((completed / total) * 100) || 0;
+    // Placeholder for completed courses (will be implemented later)
+    const completed = 0;
+    const percentage = 0;
     
     // Get the prescribed semesters for this type based on curriculum structure
     const prescribedSemesters = getPrescribedSemestersForType(type);
@@ -537,16 +481,8 @@ const ProgressPage = () => {
 
   const totalRequired = calculateTotalRequired();
 
-  // Calculate completed courses from plan data
-  const calculateCompletedCourses = () => {
-    if (!planData?.courses) return 0;
-    
-    return planData.courses.filter(course => 
-      course.grade && !['5', 'INC', 'DRP'].includes(course.grade)
-    ).length;
-  };
-
-  const completedCourses = calculateCompletedCourses();
+  // Calculate overall stats
+  const completedCourses = 0; // Placeholder
   const remainingCourses = totalRequired - completedCourses;
   const completionPercentage = Math.round((completedCourses / totalRequired) * 100) || 0;
   
@@ -561,7 +497,7 @@ const ProgressPage = () => {
         description="Track your progress towards completing your degree requirements."
       />
       
-      <div className="container mx-auto w-full">
+      <div className="container mx-auto p-4 max-w-7xl">
         {error ? (
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
@@ -573,45 +509,48 @@ const ProgressPage = () => {
             {/* Overall progress and course requirements cards side by side */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Overall progress bar - 50% width */}
-              <div className="h-[250px]">
+              <div className="h-[240px]">
                 <Card className="h-full">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
                       <CardTitle>Overall Degree Progress</CardTitle>
+                      <div className="px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">
+                        {totalRequired > 0 ? `${completionPercentage}%` : "N/A"}
+                      </div>
                     </div>
                     <CardDescription>
-                      {curriculumData?.curriculum?.name}
+                      {curriculumData?.curriculum?.name || "Your academic journey"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-2">
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-xs font-medium">Course Completion</span>
-                          <span className="text-xs font-medium text-gray-700">{completedCourses} of {totalRequired} courses</span>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">Course Completion</span>
+                          <span className="text-sm font-medium text-gray-700">0 of 0 courses</span>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                           <div 
-                            className="h-3 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
-                            style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
+                            className="h-2 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
+                            style={{ width: "0%" }}
                           ></div>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
                           <h3 className="text-2xl font-bold text-blue-600">{completedCourses}</h3>
-                          <p className="text-sm text-blue-700 font-medium">Completed</p>
+                          <p className="text-xs text-blue-700 font-medium">Completed</p>
                         </div>
                         
-                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                        <div className="p-2 bg-amber-50 rounded-lg border border-amber-100">
                           <h3 className="text-2xl font-bold text-amber-600">{remainingCourses}</h3>
-                          <p className="text-sm text-amber-700 font-medium">Remaining</p>
+                          <p className="text-xs text-amber-700 font-medium">Remaining</p>
                         </div>
                         
-                        <div className="p-3 bg-green-50 rounded-lg border border-green-100">
+                        <div className="p-2 bg-green-50 rounded-lg border border-green-100">
                           <h3 className="text-2xl font-bold text-green-600">{completionPercentage}%</h3>
-                          <p className="text-sm text-green-700 font-medium">Overall</p>
+                          <p className="text-xs text-green-700 font-medium">Overall</p>
                         </div>
                       </div>
                     </div>
@@ -620,39 +559,50 @@ const ProgressPage = () => {
               </div>
 
               {/* Course type summary - 50% width */}
-              <div className="h-[250px]">
+              <div className="h-[240px]">
                 <Card className="h-full">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="pb-2">Course Requirements by Type</CardTitle>
+                  <CardHeader>
+                    <CardTitle>Course Requirements</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6 pt-0">
-                    <div className="flex flex-col">
-                      <div className="grid grid-cols-3 gap-3">
-                        {courseTypes.length > 0 ? (
-                          <>
-                            {courseTypes.map(type => {
+                  <CardContent className="h-[calc(100%-3.5rem)]">
+                    <div className="grid grid-cols-2 gap-3 h-full">
+                      {courseTypes.length > 0 ? (
+                        <>
+                          <div className="space-y-2">
+                            {courseTypes.slice(0, Math.ceil(courseTypes.length / 2)).map(type => {
                               const stats = getStatsForType(type);
                               const typeName = getCourseTypeName(type);
-                              
                               return (
-                                <div key={type} className="border rounded-md p-3 flex flex-col gap-1">
-                                  <div className="text-xs text-gray-500 mb-1">{typeName}</div>
-                                  <p className="text-lg font-bold truncate">{stats.completed}/{stats.total}</p>
+                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 rounded-md min-w-0">
+                                  <span className="text-xs font-medium text-gray-600 truncate">{typeName}</span>
+                                  <span className="text-sm font-semibold flex-shrink-0 ml-2">{stats.completed}/{stats.total}</span>
                                 </div>
                               );
                             })}
-                            <div className="border rounded-md p-3 bg-gray-50 flex flex-col gap-1">
-                              <h3 className="text-xs font-medium text-gray-500 truncate">Total</h3>
-                              <p className="text-lg font-bold truncate">{completedCourses}/{totalRequired}</p>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="col-span-3 p-4 text-center bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-sm text-gray-500">No course requirements found.</p>
-                            <p className="text-sm text-gray-400">Please contact your program administrator if you believe this is an error.</p>
                           </div>
-                        )}
-                      </div>
+                          <div className="space-y-2">
+                            {courseTypes.slice(Math.ceil(courseTypes.length / 2)).map(type => {
+                              const stats = getStatsForType(type);
+                              const typeName = getCourseTypeName(type);
+                              return (
+                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 rounded-md min-w-0">
+                                  <span className="text-xs font-medium text-gray-600 truncate">{typeName}</span>
+                                  <span className="text-sm font-semibold flex-shrink-0 ml-2">{stats.completed}/{stats.total}</span>
+                                </div>
+                              );
+                            })}
+                            <div className="flex items-center justify-between p-2 bg-blue-50 rounded-md border border-blue-100 min-w-0">
+                              <span className="text-xs font-medium text-blue-600 truncate">Total</span>
+                              <span className="text-sm font-semibold text-blue-600 flex-shrink-0 ml-2">{completedCourses}/{totalRequired}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="col-span-2 p-3 text-center bg-gray-50 rounded-lg border border-gray-200">
+                          <p className="text-xs text-gray-500">No course requirements found.</p>
+                          <p className="text-xs text-gray-400">Please contact your program administrator if you believe this is an error.</p>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -665,7 +615,7 @@ const ProgressPage = () => {
                 <CardTitle>Course Requirements</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {courseTypes.length > 0 ? (
                     courseTypes.map(type => (
                       <CourseTypeCard

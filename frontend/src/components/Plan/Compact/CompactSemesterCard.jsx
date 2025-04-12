@@ -75,7 +75,7 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
                     <div className="flex items-center justify-between w-full">
                       <span className="font-medium ml-1.5">{course.course_code}</span>
                       <div className="flex items-center gap-1">
-                        {course.grade && !['5', 'INC', 'DRP'].includes(course.grade) && (
+                        {course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade) && (
                           <Check className="h-3 w-3 text-green-500" />
                         )}
                         {course.grade && (

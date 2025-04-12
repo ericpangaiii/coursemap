@@ -1,25 +1,24 @@
+import CourseItem from "@/components/CourseItem";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import CourseItem from "@/components/CourseItem";
-import { Calendar, CheckCircle2, Filter, FileText, Award } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState, useEffect } from "react";
-import { getCourseTypeColor, getCourseTypeName, computeSemesterGWA, getScholarshipEligibility } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn, computeSemesterGWA, getCourseTypeName, getScholarshipEligibility, sortCourses, isSemesterOverloaded, isSemesterUnderloaded, getSemesterName } from "@/lib/utils";
+import { AlertTriangle, Award, BookOpen, Calendar, Check, ChevronDown, Filter, SearchX } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const formatOrdinal = (n) => {
   const s = ["th", "st", "nd", "rd"];
@@ -84,8 +83,67 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
     return typeMatch && statusMatch;
   });
 
+  // Sort the filtered courses
+  const sortedCourses = sortCourses(filteredCourses);
+
   // Calculate GWA
   const semesterGWA = computeSemesterGWA(coursesState);
+
+  // Generate warnings
+  const generateWarnings = () => {
+    const warnings = [];
+    
+    // Check for failing grades (5.00, INC, DRP)
+    const failingGrades = coursesState.filter(course => 
+      ['5.00', 'INC', 'DRP'].includes(course.grade)
+    );
+
+    failingGrades.forEach(course => {
+      if (course.grade === '5.00') {
+        warnings.push({
+          text: "Failed Course",
+          details: `${course.course_code} (must be retaken)`
+        });
+      } else if (course.grade === 'INC') {
+        warnings.push({
+          text: "Incomplete Grade",
+          details: `${course.course_code} (must be completed within 1 year)`
+        });
+      } else if (course.grade === 'DRP') {
+        warnings.push({
+          text: "Dropped Course",
+          details: `${course.course_code} (must be retaken)`
+        });
+      }
+    });
+    
+    // Calculate academic units (excluding required_non_academic)
+    const academicUnits = coursesState.reduce((total, course) => {
+      if (course.is_academic && !course._isCurriculumCourse) {
+        return total + (parseInt(course.units) || 0);
+      }
+      return total;
+    }, 0);
+    
+    // Check for overload/underload based on semester
+    const semesterType = semester === 3 ? 'Mid Year' : semester.toString();
+    if (isSemesterOverloaded(academicUnits, semesterType)) {
+      const maxUnits = semesterType === "Mid Year" ? 6 : 18;
+      warnings.push({
+        text: "Overload",
+        details: `${academicUnits} units (max ${maxUnits} allowed, must file overload permit)`
+      });
+    } else if (isSemesterUnderloaded(academicUnits, semesterType)) {
+      warnings.push({
+        text: "Underload",
+        details: `${academicUnits} units (min 15 required, file underload permit)`
+      });
+    }
+    
+    return warnings;
+  };
+
+  const warnings = generateWarnings();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -93,7 +151,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
         <DialogHeader>
           <div>
             <DialogTitle className="text-lg font-medium">
-              {formatOrdinal(year)} Year {formatOrdinal(semester)} Semester Details
+              {formatOrdinal(year)} Year {getSemesterName(semester)} Details
             </DialogTitle>
             <div className="flex justify-between items-center mt-1">
               <DialogDescription className="pb-1">
@@ -115,13 +173,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                       {selectedType ? getCourseTypeName(selectedType) : "All Types"}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuContent align="end" className="min-w-[8rem]">
                     <DropdownMenuItem 
                       onClick={() => setSelectedType(null)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 py-1.5"
                     >
-                      <div className={`w-1 h-4 rounded ${!selectedType ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      All Types
+                      <div className={`w-1 h-3 rounded ${!selectedType ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                      <span className="text-xs">All Types</span>
                     </DropdownMenuItem>
                     {courseTypes.map(type => {
                       const isSelected = selectedType === type;
@@ -129,10 +187,10 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                         <DropdownMenuItem 
                           key={type} 
                           onClick={() => setSelectedType(type)}
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 py-1.5"
                         >
-                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                          {getCourseTypeName(type)}
+                          <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                          <span className="text-xs">{getCourseTypeName(type)}</span>
                         </DropdownMenuItem>
                       );
                     })}
@@ -154,13 +212,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                         : "All Statuses"}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
+                  <DropdownMenuContent align="start" className="min-w-[7rem]">
                     <DropdownMenuItem 
                       onClick={() => setSelectedStatus(null)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 py-1.5"
                     >
-                      <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      All Statuses
+                      <div className={`w-1 h-3 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                      <span className="text-xs">All Statuses</span>
                     </DropdownMenuItem>
                     {['planned', 'completed', 'taken'].map((status) => {
                       const isSelected = selectedStatus === status;
@@ -171,10 +229,10 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                         <DropdownMenuItem 
                           key={status}
                           onClick={() => setSelectedStatus(status)}
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 py-1.5"
                         >
-                          <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                          {label}
+                          <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                          <span className="text-xs">{label}</span>
                         </DropdownMenuItem>
                       );
                     })}
@@ -189,14 +247,16 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
             {/* Courses Section */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700">
-                  Courses
-                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-sm font-medium text-gray-700">
+                    Courses
+                  </CardTitle>
+                </div>
               </CardHeader>
               <CardContent>
-                {filteredCourses.length > 0 ? (
+                {sortedCourses.length > 0 ? (
                   <div className="space-y-2">
-                    {filteredCourses.map((course) => (
+                    {sortedCourses.map((course) => (
                       <CourseItem 
                         key={course.course_id}
                         course={course}
@@ -208,7 +268,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6 text-gray-500">
-                    <FileText className="h-8 w-8 mb-2" />
+                    <SearchX className="h-8 w-8 mb-2" />
                     <p className="text-sm font-medium">No courses found</p>
                     <p className="text-sm">Try adjusting your filters</p>
                   </div>
@@ -216,59 +276,60 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
               </CardContent>
             </Card>
 
-            {/* Summary Card */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-gray-700">
-                  Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <table className="w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 font-medium text-gray-500">Type</th>
-                      <th className="text-center py-2 font-medium text-gray-500">Planned</th>
-                      <th className="text-center py-2 font-medium text-gray-500">Completed</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {courseTypes.map(type => (
-                      <tr key={type} className="border-b border-gray-100">
-                        <td className="py-2">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-1 h-4 rounded ${getCourseTypeColor(type)}`} />
-                            {getCourseTypeName(type)}
-                          </div>
-                        </td>
-                        <td className="text-center py-2">{courseTypeStats[type].planned}</td>
-                        <td className="text-center py-2">{courseTypeStats[type].completed}</td>
-                      </tr>
-                    ))}
-                    <tr className="font-medium">
-                      <td className="py-2">Total</td>
-                      <td className="text-center py-2">
-                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.planned, 0)}
-                      </td>
-                      <td className="text-center py-2">
-                        {Object.values(courseTypeStats).reduce((sum, stat) => sum + stat.completed, 0)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                {semesterGWA !== null && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="text-sm font-medium text-gray-500">Semester GWA</div>
-                      <Badge variant="outline" className="h-8 text-base bg-blue-50 text-blue-600 font-semibold">
-                        {semesterGWA.toFixed(2)}
-                      </Badge>
-                      <div className="flex items-center gap-1 text-xs text-gray-400">
-                        <Award className="h-3 w-3" />
-                        {getScholarshipEligibility(semesterGWA)}
-                      </div>
+            {/* Semester GWA Card */}
+            {semesterGWA !== null && (
+              <Card>
+                <CardHeader className="pb-1">
+                  <div className="flex items-center gap-2">
+                    <Award className="h-4 w-4 text-gray-500" />
+                    <CardTitle className="text-sm font-medium text-gray-700">
+                      Semester GWA
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <Badge variant="outline" className="h-7 text-base bg-blue-50 text-blue-600 font-semibold">
+                      {semesterGWA.toFixed(2)}
+                    </Badge>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <Award className="h-3 w-3" />
+                      {getScholarshipEligibility(semesterGWA)}
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Warnings Card */}
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                  <CardTitle className="text-sm font-medium text-gray-700">
+                    Warnings
+                  </CardTitle>
+                  <div className={`rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium ${
+                    warnings.length > 0 
+                      ? 'bg-yellow-100 text-yellow-700' 
+                      : 'bg-gray-100 text-gray-500'
+                  }`}>
+                    {warnings.length}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {warnings.length > 0 ? (
+                  <div className="space-y-2">
+                    {warnings.map((warning, idx) => (
+                      <div key={idx} className="flex items-center justify-between">
+                        <p className="text-xs font-medium text-gray-700">{warning.text}</p>
+                        <p className="text-xs text-gray-500">{warning.details}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500">No issues detected in this semester.</p>
                 )}
               </CardContent>
             </Card>

@@ -220,13 +220,13 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                       : "All Semesters"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuContent align="start" className="min-w-[8rem]">
                   <DropdownMenuItem 
                     onClick={() => setSelectedSemester(null)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 py-1.5"
                   >
-                    <div className={`w-1 h-4 rounded ${!selectedSemester ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                    All Semesters
+                    <div className={`w-1 h-3 rounded ${!selectedSemester ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                    <span className="text-xs">All Semesters</span>
                   </DropdownMenuItem>
                   {['1', '2', 'M'].map((sem) => {
                     const isSelected = selectedSemester === sem;
@@ -235,10 +235,10 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                       <DropdownMenuItem 
                         key={sem}
                         onClick={() => setSelectedSemester(sem)}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 py-1.5"
                       >
-                        <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                        {label}
+                        <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                        <span className="text-xs">{label}</span>
                       </DropdownMenuItem>
                     );
                   })}
@@ -260,13 +260,13 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                       : "All Statuses"}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuContent align="start" className="min-w-[7rem]">
                   <DropdownMenuItem 
                     onClick={() => setSelectedStatus(null)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 py-1.5"
                   >
-                    <div className={`w-1 h-4 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                    All Statuses
+                    <div className={`w-1 h-3 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                    <span className="text-xs">All Statuses</span>
                   </DropdownMenuItem>
                   {['planned', 'completed', 'taken'].map((status) => {
                     const isSelected = selectedStatus === status;
@@ -277,10 +277,10 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                       <DropdownMenuItem 
                         key={status}
                         onClick={() => setSelectedStatus(status)}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-2 py-1.5"
                       >
-                        <div className={`w-1 h-4 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                        {label}
+                        <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                        <span className="text-xs">{label}</span>
                       </DropdownMenuItem>
                     );
                   })}
