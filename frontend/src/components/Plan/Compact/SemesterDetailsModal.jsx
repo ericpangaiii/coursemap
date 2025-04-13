@@ -165,7 +165,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
               <DialogDescription className="pb-1">
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                    {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+                    {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
                   </span>
                 </div>
               </DialogDescription>

@@ -24,9 +24,13 @@ const PDFPreviewModal = ({
     { id: 'coursework', name: 'Plan of Coursework', color: 'bg-gray-300' }
   ];
 
+  const handleTypeClick = (typeId) => {
+    setSelectedType(selectedType === typeId ? null : typeId);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+      <DialogContent className="w-[90vw] max-w-[800px] h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>PDF Preview</DialogTitle>
           <DialogDescription>
@@ -35,16 +39,17 @@ const PDFPreviewModal = ({
         </DialogHeader>
         
         {/* Export Type Selection */}
-        <div className="flex gap-4 mb-4">
+        <div className="flex gap-2 mb-4">
           {exportTypes.map((type) => (
             <Button
               key={type.id}
               variant={selectedType === type.id ? "default" : "outline"}
-              className={`flex items-center gap-2 ${selectedType === type.id ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-              onClick={() => setSelectedType(type.id)}
+              size="sm"
+              className={`flex items-center gap-1.5 ${selectedType === type.id ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+              onClick={() => handleTypeClick(type.id)}
             >
-              <div className={`w-1 h-4 rounded ${type.color}`} />
-              {type.name}
+              <div className={`w-1 h-3 rounded ${type.color}`} />
+              <span className="text-sm">{type.name}</span>
             </Button>
           ))}
         </div>

@@ -161,4 +161,38 @@ export const updateCourse = async (req, res) => {
       error: 'Failed to update course' 
     });
   }
+};
+
+// Get all courses
+export const getAllCourses = async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        course_id,
+        title,
+        description,
+        course_code,
+        units,
+        type as course_type,
+        is_academic,
+        sem_offered,
+        acad_group,
+        status
+      FROM courses 
+      ORDER BY course_code ASC
+    `;
+
+    const result = await client.query(query);
+    
+    res.json({
+      success: true,
+      data: result.rows
+    });
+  } catch (error) {
+    console.error('Error fetching all courses:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch courses' 
+    });
+  }
 }; 

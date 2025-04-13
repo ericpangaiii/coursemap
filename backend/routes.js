@@ -3,7 +3,7 @@ import { getAllUsers, getUserById, createUser, updateUser } from './controllers/
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
 import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses } from './controllers/curriculum-controllers.js';
 import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan } from './controllers/plan-controllers.js';
-import { getCoursesByIds, updateCourse } from './controllers/course-controllers.js';
+import { getCoursesByIds, updateCourse, getAllCourses } from './controllers/course-controllers.js';
 
 const router = (app) => {
     app.get("/", (req, res) => {
@@ -40,6 +40,7 @@ const router = (app) => {
     app.delete("/api/plans/courses/:id", deletePlanCourse);
 
     // Course Routes
+    app.get("/api/courses", getAllCourses);
     app.post("/api/courses/batch", getCoursesByIds);
     app.put("/api/courses/:courseId", updateCourse);
 

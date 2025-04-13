@@ -1,28 +1,26 @@
-import { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  X, 
-  Trash2, 
-  Info, 
-  SearchX, 
-  Check, 
-  ChevronDown, 
-  AlertTriangle, 
-  FileCheck,
-  ArrowUpDown
-} from "lucide-react";
-import { curriculumsAPI } from "@/lib/api";
 import CourseItem from "@/components/CourseItem";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { getCourseTypeColor } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { plansAPI } from "@/lib/api";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { curriculumsAPI, plansAPI } from "@/lib/api";
+import { getCourseTypeColor } from "@/lib/utils";
+import {
+  AlertTriangle,
+  ArrowUpDown,
+  Check,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FileCheck,
+  Info,
+  SearchX,
+  Trash2
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 // Step components
 const GEElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData, stats, courseIdsInPlan }) => {
@@ -2288,7 +2286,6 @@ const PlanCreationModal = ({
           <div className="flex-1 flex items-center justify-center min-h-[calc(95vh-4rem)]">
             <div className="flex flex-col items-center justify-center gap-2">
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
-              <p className="text-gray-500 text-sm">Loading courses...</p>
             </div>
           </div>
         ) : error ? (

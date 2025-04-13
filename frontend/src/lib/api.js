@@ -373,6 +373,20 @@ export const usersAPI = {
 
 // Course API calls
 export const coursesAPI = {
+  // Get all courses
+  getAllCourses: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courses`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch all courses:', error);
+      return { success: false, error: 'Failed to fetch courses' };
+    }
+  },
+
   // Get courses by their IDs
   getCoursesByIds: async (courseIds) => {
     try {

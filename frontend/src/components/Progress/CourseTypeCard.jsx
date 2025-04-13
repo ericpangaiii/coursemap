@@ -203,7 +203,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
           {/* Filter controls outside Card */}
           <div className="flex items-center justify-between">
             <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-              {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'}
+              {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
             </div>
             <div className="flex items-center gap-4">
               <DropdownMenu>
