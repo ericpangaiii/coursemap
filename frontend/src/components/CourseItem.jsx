@@ -17,11 +17,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   const [showTooltip, setShowTooltip] = useState(false);
   const [grade, setGrade] = useState(course.grade || "");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
-  const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false);
-  const [selectedGrade, setSelectedGrade] = useState(course.grade || '');
-  const [isHovered, setIsHovered] = useState(false);
-  const [isGradeHovered, setIsGradeHovered] = useState(false);
-  const [isGradeDialogHovered, setIsGradeDialogHovered] = useState(false);
   
   // UP Grading System
   const gradeOptions = [
@@ -48,7 +43,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
 
   // Extract course info with fallbacks
   const courseCode = course.course_code || "Unknown Code";
-  const courseTitle = course.title || "Unnamed Course";
   const courseUnits = course.units || "N/A";
   const semOffered = course.sem_offered;
   const isCombinedCourse = courseCode === "HK 12/13" || !!course.combined_courses;

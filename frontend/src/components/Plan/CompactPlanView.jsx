@@ -1,4 +1,5 @@
 import PlanCreationModal from "@/components/Plan/PlanCreationModal";
+import PDFPreviewModal from "@/components/Plan/PDFPreviewModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -14,6 +15,7 @@ import CompactYearCard from "./Compact/CompactYearCard";
 
 const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeChange }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isPDFPreviewOpen, setIsPDFPreviewOpen] = useState(false);
   
   // Check if plan has courses
   const hasCourses = Object.values(organizedCourses).some(
@@ -24,37 +26,40 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeCh
     setIsCreateModalOpen(true);
   };
 
+  const handleExportClick = () => {
+    setIsPDFPreviewOpen(true);
+  };
+
+  const handleExport = (type) => {
+    // TODO: Implement actual PDF export logic
+    console.log(`Exporting ${type} as PDF`);
+    setIsPDFPreviewOpen(false);
+  };
+
+  const getPreviewContent = () => {
+    return (
+      <div className="space-y-4">
+        <div className="text-center text-gray-500">
+          <p className="text-sm">PDF Preview Content</p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <CardTitle>Plan of Coursework</CardTitle>
           <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  size="sm" 
-                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm"
-                >
-                  <FileDown className="h-4 w-4" />
-                  Export as PDF
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem className="flex items-center gap-2">
-                  <div className="w-1 h-4 rounded bg-yellow-500" />
-                  GE Elective POS
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2">
-                  <div className="w-1 h-4 rounded bg-purple-500" />
-                  Free Elective POS
-                </DropdownMenuItem>
-                <DropdownMenuItem className="flex items-center gap-2">
-                  <div className="w-1 h-4 rounded bg-gray-300" />
-                  Plan of Coursework
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              size="sm" 
+              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+              onClick={handleExportClick}
+            >
+              <FileDown className="h-4 w-4" />
+              Export as PDF
+            </Button>
             {!hasCourses && (
               <Button 
                 size="sm" 
@@ -118,6 +123,12 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeCh
         isEditMode={hasCourses}
         existingPlan={organizedCourses}
         loadingSpinner={<LoadingSpinner />}
+      />
+      <PDFPreviewModal
+        open={isPDFPreviewOpen}
+        onOpenChange={setIsPDFPreviewOpen}
+        onExport={handleExport}
+        content={getPreviewContent()}
       />
     </Card>
   );

@@ -3,7 +3,6 @@ import SignInPage from './pages/SignInPage';
 import DegreeSelectPage from './pages/DegreeSelectPage';
 import DashboardPage from './pages/DashboardPage';
 import ProgressPage from './pages/ProgressPage';
-import ProfilePage from './pages/ProfilePage';
 import CoursesPage from './pages/CoursesPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AppLayout from './components/AppLayout';
@@ -23,7 +22,6 @@ const App = () => {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
         </Route>
         <Route path="/sign-in" element={<SignInPage />} />

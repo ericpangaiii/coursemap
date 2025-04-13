@@ -105,9 +105,12 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
           details: `${course.course_code} (must be retaken)`
         });
       } else if (course.grade === 'INC') {
+        const nextYear = year + 1;
+        const nextYearOrdinal = formatOrdinal(nextYear);
+        const semesterName = semester === 3 ? 'Mid Year' : `${formatOrdinal(semester)}`;
         warnings.push({
           text: "Incomplete Grade",
-          details: `${course.course_code} (must be completed within 1 year)`
+          details: `${course.course_code} (must be completed before end of ${nextYearOrdinal} Year ${semesterName} Sem)`
         });
       } else if (course.grade === 'DRP') {
         warnings.push({
@@ -117,8 +120,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
       }
     });
     
-    // Calculate academic units (excluding required_non_academic)
+    // Calculate academic units (excluding required_non_academic and DRP courses)
     const academicUnits = coursesState.reduce((total, course) => {
+      // Skip if course is dropped (DRP) and not required non-academic
+      if (course.grade === 'DRP' && course.course_type !== 'required_non_academic') {
+        return total;
+      }
+      // Only count academic courses' units
       if (course.is_academic && !course._isCurriculumCourse) {
         return total + (parseInt(course.units) || 0);
       }
@@ -136,7 +144,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
     } else if (isSemesterUnderloaded(academicUnits, semesterType)) {
       warnings.push({
         text: "Underload",
-        details: `${academicUnits} units (min 15 required, file underload permit)`
+        details: `${academicUnits} units (min 15 required, must file underload permit)`
       });
     }
     

@@ -20,10 +20,18 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
   // Determine if this is a midyear semester (semester 3)
   const isMidyear = semester === 3;
 
-  // Calculate total units for academic courses
-  const academicUnits = coursesState
-    .filter(course => course.is_academic)
-    .reduce((sum, course) => sum + Number(course.units || 0), 0);
+  // Calculate academic units (excluding required_non_academic and DRP courses)
+  const academicUnits = courses.reduce((total, course) => {
+    // Skip if course is dropped (DRP) and not required non-academic
+    if (course.grade === 'DRP' && course.course_type !== 'required_non_academic') {
+      return total;
+    }
+    // Only count academic courses' units
+    if (course.is_academic && !course._isCurriculumCourse) {
+      return total + (parseInt(course.units) || 0);
+    }
+    return total;
+  }, 0);
 
   // Sort the courses
   const sortedCourses = sortCourses(coursesState);

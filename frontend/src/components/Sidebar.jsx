@@ -11,19 +11,39 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { BarChart2, BookOpen, Home, User, LogOut } from "lucide-react";
+import { BarChart2, BookOpen, Home, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { programsAPI } from "@/lib/api";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
+  const [programTitle, setProgramTitle] = useState("Not assigned");
+  
+  // Fetch program details
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        if (user?.program_id) {
+          const programData = await programsAPI.getProgramById(user.program_id);
+          if (programData && programData.title) {
+            setProgramTitle(programData.title);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching program details:", error);
+      }
+    };
+
+    fetchDetails();
+  }, [user?.program_id]);
   
   // Navigation items with icons
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: Home },
     { name: "Progress", path: "/progress", icon: BarChart2 },
-    { name: "Profile", path: "/profile", icon: User },
     { name: "Courses", path: "/courses", icon: BookOpen },
   ];
 
@@ -65,6 +85,9 @@ const Sidebar = () => {
                 <p className="text-sm font-medium text-gray-900 truncate">{user?.name || "Guest"}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email || ""}</p>
               </div>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">{programTitle}</p>
             </div>
           </>
         )}
