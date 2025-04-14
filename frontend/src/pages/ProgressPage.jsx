@@ -497,7 +497,7 @@ const ProgressPage = () => {
         description="Track your progress towards completing your degree requirements."
       />
       
-      <div className="container mx-auto p-4 max-w-7xl">
+      <div className="container mx-auto max-w-7xl">
         {error ? (
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">

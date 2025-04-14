@@ -25,6 +25,10 @@ export const getCoursesByIds = async (req, res) => {
         is_academic
       FROM courses 
       WHERE course_id IN (${placeholders})
+      AND career != 'GRD'
+      AND is_active = true
+      AND sem_offered NOT IN ('--', '"1s,2s"')
+      AND acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
     `;
 
     const result = await client.query(query, courseIds);
@@ -168,25 +172,81 @@ export const getAllCourses = async (req, res) => {
   try {
     const query = `
       SELECT 
-        course_id,
-        title,
-        description,
-        course_code,
-        units,
-        type as course_type,
-        is_academic,
-        sem_offered,
-        acad_group,
-        status
-      FROM courses 
-      ORDER BY course_code ASC
+        c.course_id,
+        c.course_code,
+        c.title,
+        c.description,
+        c.units,
+        c.sem_offered,
+        c.acad_group,
+        CASE 
+          WHEN cc.course_type = 'REQUIRED' AND c.is_academic = true THEN 'Required Academic'
+          WHEN cc.course_type = 'REQUIRED' AND c.is_academic = false THEN 'Required Non-Academic'
+          WHEN cc.course_type = 'ELECTIVE' AND c.title LIKE '(GE)%' THEN 'GE Elective'
+          WHEN cc.course_type = 'ELECTIVE' THEN 'Elective'
+          WHEN cc.course_type = 'CORE' THEN 'Core'
+          WHEN cc.course_type = 'MAJOR' THEN 'Major'
+          WHEN c.title LIKE '(GE)%' THEN 'GE Elective'
+          ELSE 'Elective'
+        END AS course_type
+      FROM 
+        courses c
+      LEFT JOIN 
+        curriculum_courses cc 
+        ON c.course_id = cc.course_id AND cc.curriculum_id = 67
+      WHERE 
+        c.career != 'GRD'
+        AND c.is_active = true
+        AND c.sem_offered NOT IN ('--', '"1s,2s"')
+        AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
+        AND c.units != '--'
+      ORDER BY 
+        c.course_code ASC
     `;
 
     const result = await client.query(query);
     
+    // Clean up the data before sending
+    const cleanedData = result.rows.map(course => {
+      // Clean semester offered values
+      let cleanedSemOffered = course.sem_offered;
+      if (cleanedSemOffered) {
+        cleanedSemOffered = cleanedSemOffered
+          .replace(/"/g, '') // Remove quotes
+          .replace(/\s+/g, '') // Remove spaces
+          .toUpperCase() // Convert to uppercase
+          .split(',') // Split into array
+          .filter(sem => ['1S', '2S', 'M'].includes(sem)) // Keep only valid values
+          .join(', '); // Join back with comma and space
+      }
+
+      // Clean units values
+      let cleanedUnits = course.units;
+      if (cleanedUnits) {
+        cleanedUnits = cleanedUnits
+          .replace(/\s+/g, '') // Remove spaces
+          .split(',') // Split into array
+          .filter(unit => unit !== '--') // Remove invalid values
+          .join(', '); // Join back with comma and space
+      }
+
+      // Clean description
+      let cleanedDescription = course.description;
+      if (cleanedDescription === 'No Available DATA') {
+        cleanedDescription = 'No description available.';
+      }
+
+      return {
+        ...course,
+        sem_offered: cleanedSemOffered,
+        units: cleanedUnits,
+        description: cleanedDescription
+      };
+    });
+    
     res.json({
       success: true,
-      data: result.rows
+      data: cleanedData
     });
   } catch (error) {
     console.error('Error fetching all courses:', error);
