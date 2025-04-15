@@ -17,7 +17,9 @@ const passport = configurePassport();
 
 // Configure CORS properly
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.PRODUCTION_FRONTEND_URL 
+    : process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
