@@ -68,14 +68,21 @@ export const googleLogin = (req, res, next) => {
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
-  // Verify frontend URLs are set
-  if (!process.env.FRONTEND_URL) {
-    console.error('Error: FRONTEND_URL must be set in .env');
-    return res.status(500).send('Server configuration error');
-  }
-
-  if (process.env.NODE_ENV === 'production' && !process.env.PRODUCTION_FRONTEND_URL) {
-    console.error('Warning: PRODUCTION_FRONTEND_URL not set for production');
+  // Verify environment variables are set
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.PRODUCTION_BACKEND_URL) {
+      console.error('Error: PRODUCTION_BACKEND_URL must be set in production');
+      return res.status(500).send('Server configuration error: PRODUCTION_BACKEND_URL not set');
+    }
+    if (!process.env.PRODUCTION_FRONTEND_URL) {
+      console.error('Error: PRODUCTION_FRONTEND_URL must be set in production');
+      return res.status(500).send('Server configuration error: PRODUCTION_FRONTEND_URL not set');
+    }
+  } else {
+    if (!process.env.FRONTEND_URL) {
+      console.error('Error: FRONTEND_URL must be set in development');
+      return res.status(500).send('Server configuration error: FRONTEND_URL not set');
+    }
   }
 
   passport.authenticate('google', (err, user, info) => {
