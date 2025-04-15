@@ -17,13 +17,13 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log('AuthContext: Checking auth status...');
-        const data = await authAPI.getAuthStatus();
-        console.log('AuthContext: Auth status response:', data);
+        // Check for user data in localStorage
+        const userData = localStorage.getItem('user');
         
-        if (data.authenticated) {
-          console.log('AuthContext: User authenticated:', data.user);
-          setUser(data.user);
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          console.log('AuthContext: User authenticated:', parsedUser);
+          setUser(parsedUser);
           setAuthenticated(true);
         } else {
           console.log('AuthContext: User not authenticated');

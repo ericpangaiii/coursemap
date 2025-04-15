@@ -1,17 +1,34 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { authAPI } from "@/lib/api";
+// import { authAPI } from "@/lib/api";
 import { APP_NAME } from "@/lib/config";
+import { useNavigate } from "react-router-dom";
 
 const SignInPage = () => {
-  const handleGoogleSignIn = () => {
+  const navigate = useNavigate();
+
+  const handleGoogleSignIn = async () => {
     try {
-      console.log('Initiating Google sign-in...');
-      const authUrl = authAPI.getGoogleAuthUrl();
-      console.log('Redirecting to auth URL:', authUrl);
-      window.location.href = authUrl;
+      // Hard-coded user data
+      const userData = {
+        id: 2,
+        google_id: "109602320362699715859",
+        name: "Eric Conrad Panga",
+        email: "evpanga2@up.edu.ph",
+        photo: "https://lh3.googleusercontent.com/a/ACg8ocKcJpFEuhOGAN7pBtkRqwACDAGflk3eqcXmlnnHtdO_bUwSU9k=s96-c",
+        program_id: 11,
+        curriculum_id: 67,
+        created_at: "2025-03-24 15:23:07.057071",
+        updated_at: "2025-03-24 15:23:15.82079"
+      };
+
+      // Set the user data in localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      // Navigate to dashboard
+      navigate('/dashboard');
     } catch (error) {
-      console.error('Failed to connect to authentication service:', error);
+      console.error('Failed to sign in:', error);
     }
   };
 
