@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CompactSemesterCard from "./CompactSemesterCard";
 import { getOrdinalYear } from "@/lib/utils";
@@ -15,7 +16,7 @@ const CompactYearCard = ({ year, semesters, onGradeChange }) => {
   return (
     <Card className="w-full">
       <CardHeader className="py-2 px-3">
-        <CardTitle className="text-sm font-medium text-gray-700">
+        <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-200">
           {getOrdinalYear(year)}
         </CardTitle>
       </CardHeader>

@@ -1455,12 +1455,12 @@ const PlanOverview = ({ selectedCourse, onSemesterClick, planData, onRemoveCours
                       <div
                         onClick={() => selectedCourse && onSemesterClick(year, sem)}
                         className={`w-full border rounded p-2 text-left transition-colors relative min-h-[4rem] flex flex-col
-                          ${selectedCourse ? 'hover:border-blue-300 cursor-pointer' : ''}
-                          ${hasContent && !isPrescribed ? 'bg-gray-50' : ''}
-                          ${isPrescribed ? 'bg-blue-50 border-blue-300' : ''}`}
+                          ${selectedCourse ? 'hover:border-blue-300 dark:hover:border-blue-500 cursor-pointer' : ''}
+                          ${hasContent && !isPrescribed ? 'bg-gray-50 dark:bg-gray-800/50' : ''}
+                          ${isPrescribed ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-500' : ''}`}
                       >
                         <div className="flex items-center justify-between">
-                          <p className={`text-xs font-medium ${isPrescribed ? 'text-blue-600' : 'text-gray-500'}`}>{sem}</p>
+                          <p className={`text-xs font-medium ${isPrescribed ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>{sem}</p>
                           {hasContent && isReviewStep && (
                             <TooltipProvider>
                               <Tooltip>

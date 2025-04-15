@@ -106,11 +106,7 @@ const DashboardPage = () => {
               title: courseDetailsMap[course.course_id]?.title || course.title,
               units: courseDetailsMap[course.course_id]?.units || course.units,
               is_academic: courseDetailsMap[course.course_id]?.is_academic,
-              course_type: course.course_type === 'REQUIRED' 
-                ? courseDetailsMap[course.course_id]?.is_academic 
-                  ? 'REQUIRED_ACADEMIC' 
-                  : 'REQUIRED_NON_ACADEMIC'
-                : course.course_type,
+              course_type: course.course_type,
               status: course.status || 'planned',
               grade: course.grade || null
             };
@@ -177,7 +173,7 @@ const DashboardPage = () => {
   }
 
   return (
-    <div className="w-full max-w-full">
+    <div className="w-full max-w-full p-2">
       <PageHeader title="Dashboard" />
       
       <div className="container mx-auto max-w-7xl">
@@ -185,26 +181,26 @@ const DashboardPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card className="md:col-span-1">
             <CardHeader>
-              <CardTitle>Welcome, {user?.name || 'Student'}!</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Welcome, {user?.name || 'Student'}!</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-10 gap-4">
-                  <div className="col-span-4 p-4 rounded-lg bg-blue-50">
-                    <div className="text-xs text-blue-700 mb-1">Degree Program</div>
-                    <div className="text-base font-bold text-blue-600">
+                  <div className="col-span-4 p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                    <div className="text-xs text-blue-700 dark:text-blue-400 mb-1">Degree Program</div>
+                    <div className="text-base font-bold text-blue-600 dark:text-blue-300">
                       {programTitle}
                     </div>
                   </div>
-                  <div className="col-span-4 p-4 rounded-lg bg-purple-50">
-                    <div className="text-xs text-purple-700 mb-1">Curriculum</div>
-                    <div className="text-base font-bold text-purple-600">
+                  <div className="col-span-4 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+                    <div className="text-xs text-purple-700 dark:text-purple-400 mb-1">Curriculum</div>
+                    <div className="text-base font-bold text-purple-600 dark:text-purple-300">
                       {curriculumName}
                     </div>
                   </div>
-                  <div className="col-span-2 p-4 rounded-lg bg-green-50">
-                    <div className="text-xs text-green-700 mb-1">College</div>
-                    <div className="text-base font-bold text-green-600">
+                  <div className="col-span-2 p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
+                    <div className="text-xs text-green-700 dark:text-green-400 mb-1">College</div>
+                    <div className="text-base font-bold text-green-600 dark:text-green-300">
                       {college}
                     </div>
                   </div>
@@ -215,28 +211,28 @@ const DashboardPage = () => {
           
           <Card className="md:col-span-1">
             <CardHeader className="pb-2">
-              <CardTitle>Overall Degree Progress</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Overall Degree Progress</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 pt-4">
                 {/* Progress Card - 60% width */}
-                <div className="w-[70%] p-4 border rounded-lg shadow-md">
-                  <div className="text-xs text-gray-500 mb-4">Course Completion</div>
+                <div className="w-[70%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course Completion</div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-700">{completedCourses} of {totalRequired} courses</span>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{completedCourses} of {totalRequired} courses</span>
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
                     <div 
-                      className="h-3 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
+                      className="h-3 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-1000 ease-in-out"
                       style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
                     ></div>
                   </div>
                 </div>
 
                 {/* CWA Card - 40% width */}
-                <div className="w-[30%] p-4 border rounded-lg shadow-md">
-                  <div className="text-xs text-gray-500 mb-4">Running CWA</div>
-                  <div className="text-2xl font-bold text-gray-700">
+                <div className="w-[30%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Running CWA</div>
+                  <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                     {currentCWA?.toFixed(2) || 'N/A'}
                   </div>
                 </div>

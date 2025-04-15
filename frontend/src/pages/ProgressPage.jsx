@@ -491,7 +491,7 @@ const ProgressPage = () => {
   }
   
   return (
-    <div className="w-full max-w-full">
+    <div className="w-full max-w-full p-2">
       <PageHeader 
         title="Academic Progress" 
         description="Track your progress towards completing your degree requirements."
@@ -513,12 +513,12 @@ const ProgressPage = () => {
                 <Card className="h-full">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-center">
-                      <CardTitle>Overall Degree Progress</CardTitle>
-                      <div className="px-3 py-1 rounded text-sm font-medium bg-blue-100 text-blue-800">
+                      <CardTitle className="text-gray-900 dark:text-gray-100">Overall Degree Progress</CardTitle>
+                      <div className="px-3 py-1 rounded text-sm font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400">
                         {totalRequired > 0 ? `${completionPercentage}%` : "N/A"}
                       </div>
                     </div>
-                    <CardDescription>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
                       {curriculumData?.curriculum?.name || "Your academic journey"}
                     </CardDescription>
                   </CardHeader>
@@ -526,31 +526,31 @@ const ProgressPage = () => {
                     <div className="space-y-3">
                       <div>
                         <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium">Course Completion</span>
-                          <span className="text-sm font-medium text-gray-700">0 of 0 courses</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Course Completion</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">0 of 0 courses</span>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                        <div className="w-full bg-gray-100 dark:bg-[hsl(220,10%,15%)] rounded-full h-2 overflow-hidden">
                           <div 
-                            className="h-2 rounded-full bg-blue-600 transition-all duration-1000 ease-in-out"
+                            className="h-2 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-1000 ease-in-out"
                             style={{ width: "0%" }}
                           ></div>
                         </div>
                       </div>
                       
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg border border-blue-100">
-                          <h3 className="text-2xl font-bold text-blue-600">{completedCourses}</h3>
-                          <p className="text-xs text-blue-700 font-medium">Completed</p>
+                        <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                          <h3 className="text-2xl font-bold text-blue-600 dark:text-blue-400">{completedCourses}</h3>
+                          <p className="text-xs text-blue-700 dark:text-blue-300 font-medium">Completed</p>
                         </div>
                         
-                        <div className="p-2 bg-amber-50 rounded-lg border border-amber-100">
-                          <h3 className="text-2xl font-bold text-amber-600">{remainingCourses}</h3>
-                          <p className="text-xs text-amber-700 font-medium">Remaining</p>
+                        <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-800">
+                          <h3 className="text-2xl font-bold text-amber-600 dark:text-amber-400">{remainingCourses}</h3>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Remaining</p>
                         </div>
                         
-                        <div className="p-2 bg-green-50 rounded-lg border border-green-100">
-                          <h3 className="text-2xl font-bold text-green-600">{completionPercentage}%</h3>
-                          <p className="text-xs text-green-700 font-medium">Overall</p>
+                        <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                          <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">{completionPercentage}%</h3>
+                          <p className="text-xs text-green-700 dark:text-green-300 font-medium">Overall</p>
                         </div>
                       </div>
                     </div>
@@ -562,7 +562,7 @@ const ProgressPage = () => {
               <div className="h-[240px]">
                 <Card className="h-full">
                   <CardHeader>
-                    <CardTitle>Course Requirements</CardTitle>
+                    <CardTitle className="text-gray-900 dark:text-gray-100">Course Requirements</CardTitle>
                   </CardHeader>
                   <CardContent className="h-[calc(100%-3.5rem)]">
                     <div className="grid grid-cols-2 gap-3 h-full">
@@ -573,9 +573,9 @@ const ProgressPage = () => {
                               const stats = getStatsForType(type);
                               const typeName = getCourseTypeName(type);
                               return (
-                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 rounded-md min-w-0">
-                                  <span className="text-xs font-medium text-gray-600 truncate">{typeName}</span>
-                                  <span className="text-sm font-semibold flex-shrink-0 ml-2">{stats.completed}/{stats.total}</span>
+                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-[hsl(220,10%,15%)] rounded-md min-w-0">
+                                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300 truncate">{typeName}</span>
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-shrink-0 ml-2">{stats.completed}/{stats.total}</span>
                                 </div>
                               );
                             })}
@@ -585,22 +585,22 @@ const ProgressPage = () => {
                               const stats = getStatsForType(type);
                               const typeName = getCourseTypeName(type);
                               return (
-                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 rounded-md min-w-0">
-                                  <span className="text-xs font-medium text-gray-600 truncate">{typeName}</span>
-                                  <span className="text-sm font-semibold flex-shrink-0 ml-2">{stats.completed}/{stats.total}</span>
+                                <div key={type} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-[hsl(220,10%,15%)] rounded-md min-w-0">
+                                  <span className="text-xs font-medium text-gray-600 dark:text-gray-300 truncate">{typeName}</span>
+                                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-shrink-0 ml-2">{stats.completed}/{stats.total}</span>
                                 </div>
                               );
                             })}
-                            <div className="flex items-center justify-between p-2 bg-blue-50 rounded-md border border-blue-100 min-w-0">
-                              <span className="text-xs font-medium text-blue-600 truncate">Total</span>
-                              <span className="text-sm font-semibold text-blue-600 flex-shrink-0 ml-2">{completedCourses}/{totalRequired}</span>
+                            <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-800 min-w-0">
+                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400 truncate">Total</span>
+                              <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 flex-shrink-0 ml-2">{completedCourses}/{totalRequired}</span>
                             </div>
                           </div>
                         </>
                       ) : (
-                        <div className="col-span-2 p-3 text-center bg-gray-50 rounded-lg border border-gray-200">
-                          <p className="text-xs text-gray-500">No course requirements found.</p>
-                          <p className="text-xs text-gray-400">Please contact your program administrator if you believe this is an error.</p>
+                        <div className="col-span-2 p-3 text-center bg-gray-50 dark:bg-[hsl(220,10%,15%)] rounded-lg border border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">No course requirements found.</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">Please contact your program administrator if you believe this is an error.</p>
                         </div>
                       )}
                     </div>
@@ -615,7 +615,7 @@ const ProgressPage = () => {
                 <CardTitle>Course Requirements</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {courseTypes.length > 0 ? (
                     courseTypes.map(type => (
                       <CourseTypeCard
@@ -626,9 +626,9 @@ const ProgressPage = () => {
                       />
                     ))
                   ) : (
-                    <div className="col-span-full p-8 text-center bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-gray-500">No courses found in your curriculum.</p>
-                      <p className="text-sm text-gray-400 mt-2">Please contact your program administrator if you believe this is an error.</p>
+                    <div className="col-span-full p-8 text-center bg-gray-50 dark:bg-[hsl(220,10%,15%)] rounded-lg border border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                      <p className="text-gray-500 dark:text-gray-400">No courses found in your curriculum.</p>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Please contact your program administrator if you believe this is an error.</p>
                     </div>
                   )}
                 </div>

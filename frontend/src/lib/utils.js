@@ -503,11 +503,11 @@ export const getWarningColor = (type) => {
 
 // Define the order of course types
 const courseTypeOrder = {
-  'REQUIRED_ACADEMIC': 1,
-  'REQUIRED_NON_ACADEMIC': 2,
-  'GE_ELECTIVE': 3,
-  'ELECTIVE': 4,
-  'MAJOR': 5
+  'Required Academic': 1,
+  'Required Non-Academic': 2,
+  'GE Elective': 3,
+  'Elective': 4,
+  'Major': 5
 };
 
 export function sortCourses(courses) {
@@ -532,32 +532,36 @@ export function getOrdinalYear(year) {
 }
 
 export const getGradeBadgeColor = (grade) => {
-  if (!grade) return "bg-white text-gray-500 border-gray-200";
+  if (!grade) return "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 border-dashed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors";
   
   const numericGrade = parseFloat(grade);
   if (isNaN(numericGrade)) {
     // Handle non-numeric grades
     switch (grade) {
       case "INC":
-        return "bg-yellow-100 text-yellow-700 border-yellow-200";
+        return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700";
       case "DRP":
-        return "bg-red-100 text-red-700 border-red-200";
+        return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
       default:
-        return "bg-white text-gray-500 border-gray-200";
+        return "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 border-dashed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors";
     }
   }
 
   // Handle numeric grades
-  if (numericGrade === 1.00) return "bg-green-100 text-green-700 border-green-200";
-  if (numericGrade <= 1.25) return "bg-emerald-100 text-emerald-700 border-emerald-200";
-  if (numericGrade <= 1.50) return "bg-teal-100 text-teal-700 border-teal-200";
-  if (numericGrade <= 1.75) return "bg-cyan-100 text-cyan-700 border-cyan-200";
-  if (numericGrade <= 2.00) return "bg-blue-100 text-blue-700 border-blue-200";
-  if (numericGrade <= 2.25) return "bg-indigo-100 text-indigo-700 border-indigo-200";
-  if (numericGrade <= 2.75) return "bg-violet-100 text-violet-700 border-violet-200";
-  if (numericGrade <= 3.00) return "bg-purple-100 text-purple-700 border-purple-200";
-  if (numericGrade <= 4.00) return "bg-pink-100 text-pink-700 border-pink-200";
-  return "bg-red-100 text-red-700 border-red-200";
+  if (numericGrade === 1.00) return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
+  if (numericGrade <= 1.25) return "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700";
+  if (numericGrade <= 1.50) return "bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-700";
+  if (numericGrade <= 1.75) return "bg-cyan-100 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-700";
+  if (numericGrade <= 2.00) return "bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-700";
+  if (numericGrade <= 2.25) return "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700";
+  if (numericGrade <= 2.50) return "bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700";
+  if (numericGrade <= 2.75) return "bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-700";
+  if (numericGrade <= 3.00) return "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-700";
+  if (numericGrade <= 3.50) return "bg-fuchsia-100 dark:bg-fuchsia-900/20 text-fuchsia-700 dark:text-fuchsia-400 border-fuchsia-200 dark:border-fuchsia-700";
+  if (numericGrade <= 4.00) return "bg-pink-100 dark:bg-pink-900/20 text-pink-700 dark:text-pink-400 border-pink-200 dark:border-pink-700";
+  if (numericGrade <= 5.00) return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
+  
+  return "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 border-dashed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors";
 };
 
 export const computeSemesterGWA = (courses) => {

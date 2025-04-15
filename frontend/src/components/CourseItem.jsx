@@ -147,17 +147,17 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     return (
       <div className="space-y-4">
         <div>
-          <h5 className="font-medium text-sm text-gray-700 mb-1.5">Description</h5>
-          <p className="text-sm text-gray-700 leading-relaxed">{courseDescription}</p>
+          <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Description</h5>
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{courseDescription}</p>
         </div>
         
         <div>
-          <h5 className="font-medium text-sm text-gray-700 mb-1.5">Components</h5>
+          <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Components</h5>
           <div className="space-y-2">
             {course.combined_courses.map((component, index) => (
-              <div key={index} className="text-sm text-gray-700">
+              <div key={index} className="text-sm text-gray-700 dark:text-gray-300">
                 <p className="font-medium">{component.course_code}</p>
-                <p className="text-gray-600">{component.title}</p>
+                <p className="text-gray-600 dark:text-gray-400">{component.title}</p>
               </div>
             ))}
           </div>
@@ -165,10 +165,10 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
         
         {formattedSemOffered.length > 0 && (
           <div>
-            <h5 className="font-medium text-sm text-gray-700 mb-1.5">Semesters Offered</h5>
+            <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Semesters Offered</h5>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {formattedSemOffered.map((sem, index) => (
-                <Badge key={index} variant="outline" className="text-xs bg-white text-gray-900 border-gray-200">
+                <Badge key={index} variant="outline" className="text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-200 dark:border-gray-700">
                   {sem}
                 </Badge>
               ))}
@@ -199,43 +199,43 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   };
 
   const getGradeBadgeColor = (grade) => {
-    if (!grade) return "bg-white text-gray-500 border-gray-200 border-dashed hover:bg-gray-50 hover:border-gray-300 hover:text-gray-600 transition-colors";
+    if (!grade) return "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 border-dashed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors";
     
     const numericGrade = parseFloat(grade);
     if (isNaN(numericGrade)) {
       // Handle non-numeric grades
       switch (grade) {
         case "INC":
-          return "bg-yellow-100 text-yellow-700 border-yellow-200";
+          return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700";
         case "DRP":
-          return "bg-red-100 text-red-700 border-red-200";
+          return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
         default:
-          return "bg-white text-gray-500 border-gray-200 border-dashed hover:bg-gray-50 hover:border-gray-300 hover:text-gray-600 transition-colors";
+          return "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 border-dashed hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:text-gray-600 dark:hover:text-gray-300 transition-colors";
       }
     }
 
     // Handle numeric grades
-    if (numericGrade === 1.00) return "bg-green-100 text-green-700 border-green-200";
-    if (numericGrade <= 1.25) return "bg-emerald-100 text-emerald-700 border-emerald-200";
-    if (numericGrade <= 1.50) return "bg-teal-100 text-teal-700 border-teal-200";
-    if (numericGrade <= 1.75) return "bg-cyan-100 text-cyan-700 border-cyan-200";
-    if (numericGrade <= 2.00) return "bg-blue-100 text-blue-700 border-blue-200";
-    if (numericGrade <= 2.25) return "bg-indigo-100 text-indigo-700 border-indigo-200";
-    if (numericGrade <= 2.75) return "bg-violet-100 text-violet-700 border-violet-200";
-    if (numericGrade <= 3.00) return "bg-purple-100 text-purple-700 border-purple-200";
-    if (numericGrade <= 4.00) return "bg-orange-100 text-orange-700 border-orange-200";
-    return "bg-red-100 text-red-700 border-red-200"; // 5.00
+    if (numericGrade === 1.00) return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
+    if (numericGrade <= 1.25) return "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700";
+    if (numericGrade <= 1.50) return "bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-700";
+    if (numericGrade <= 1.75) return "bg-cyan-100 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-700";
+    if (numericGrade <= 2.00) return "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700";
+    if (numericGrade <= 2.25) return "bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700";
+    if (numericGrade <= 2.75) return "bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-700";
+    if (numericGrade <= 3.00) return "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-700";
+    if (numericGrade <= 4.00) return "bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-700";
+    return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700"; // 5.00
   };
 
   return (
-    <div className="p-3 rounded border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all flex items-center justify-between relative overflow-hidden">
+    <div className="p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all flex items-center justify-between relative overflow-hidden">
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
       
       <div className="flex-1 min-w-0 pl-2">
         <div className="flex items-center flex-wrap gap-y-1">
-          <h4 className="font-medium text-gray-900 mr-2">{courseCode}</h4>
+          <h4 className="font-medium text-gray-900 dark:text-gray-100 mr-2">{courseCode}</h4>
           <div className="flex items-center gap-1">
-            <Badge variant="outline" className="bg-white">
+            <Badge variant="outline" className="bg-white dark:bg-[hsl(220,10%,15%)] text-gray-700 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]">
               {courseUnits} units
             </Badge>
             {enableGradeSelection && (
@@ -249,12 +249,12 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                       {grade || "Not yet completed"}
                     </Badge>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[100px]">
+                  <DropdownMenuContent className="w-[100px] bg-white dark:bg-gray-800">
                     <ScrollArea className="h-[140px]">
                       {gradeOptions.map((option) => (
                         <DropdownMenuItem 
                           key={option.value} 
-                          className={`text-xs py-1.5 ${!option.value ? 'text-[10px]' : ''}`}
+                          className={`text-xs py-1.5 ${!option.value ? 'text-[10px]' : ''} text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700`}
                           onClick={() => handleGradeChange(option.value)}
                         >
                           {option.label}
@@ -267,7 +267,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             )}
           </div>
         </div>
-        <p className="text-xs text-gray-500 truncate">{course.title}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{course.title}</p>
         
         <TooltipProvider>
           <Tooltip open={showTooltip} onOpenChange={setShowTooltip}>
@@ -288,23 +288,23 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             </TooltipTrigger>
             <TooltipContent 
               side="right" 
-              className="max-w-md p-4 bg-white border border-gray-200 shadow-lg rounded-lg"
+              className="max-w-md p-4 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,20%)] shadow-lg dark:shadow-[hsl(220,10%,10%)]/20 rounded-lg"
             >
               {isCombinedCourse ? (
                 getCombinedCourseTooltipContent()
               ) : (
                 <div className="space-y-3">
                   <div>
-                    <h5 className="font-medium text-xs text-gray-700 mb-1">Description</h5>
-                    <p className="text-xs text-gray-700 leading-relaxed">{courseDescription}</p>
+                    <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Description</h5>
+                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{courseDescription}</p>
                   </div>
                   
                   {formattedSemOffered.length > 0 && (
                     <div>
-                      <h5 className="font-medium text-xs text-gray-700 mb-1">Semesters Offered</h5>
+                      <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Semesters Offered</h5>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {formattedSemOffered.map((sem, index) => (
-                          <Badge key={index} variant="outline" className="text-[10px] bg-white text-gray-900 border-gray-200">
+                          <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]">
                             {sem}
                           </Badge>
                         ))}
@@ -314,8 +314,8 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                   
                   {prescribedText && (
                     <div>
-                      <h5 className="font-medium text-xs text-gray-700 mb-1">Prescribed Schedule</h5>
-                      <p className="text-xs text-gray-700">{prescribedText}</p>
+                      <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Prescribed Schedule</h5>
+                      <p className="text-xs text-gray-700 dark:text-gray-300">{prescribedText}</p>
                     </div>
                   )}
                 </div>

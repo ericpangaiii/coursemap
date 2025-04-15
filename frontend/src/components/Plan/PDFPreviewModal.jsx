@@ -13,10 +13,9 @@ import { useState } from "react";
 const PDFPreviewModal = ({ 
   open, 
   onOpenChange, 
-  onExport,
-  content
+  onExport
 }) => {
-  const [selectedType, setSelectedType] = useState(null);
+  const [selectedTypes, setSelectedTypes] = useState([]);
 
   const exportTypes = [
     { id: 'ge_elective', name: 'GE Elective POS', color: 'bg-yellow-500' },
@@ -25,27 +24,34 @@ const PDFPreviewModal = ({
   ];
 
   const handleTypeClick = (typeId) => {
-    setSelectedType(selectedType === typeId ? null : typeId);
+    setSelectedTypes(prev => {
+      if (prev.includes(typeId)) {
+        return prev.filter(id => id !== typeId);
+      } else {
+        return [...prev, typeId];
+      }
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-[800px] h-[90vh] flex flex-col">
+      <DialogContent className="w-[80vw] max-w-[600px] flex flex-col">
         <DialogHeader>
           <DialogTitle>PDF Preview</DialogTitle>
-          <DialogDescription>
-            Select the type of document to export and review the content.
-          </DialogDescription>
         </DialogHeader>
         
         {/* Export Type Selection */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-2">
           {exportTypes.map((type) => (
             <Button
               key={type.id}
-              variant={selectedType === type.id ? "default" : "outline"}
+              variant={selectedTypes.includes(type.id) ? "default" : "outline"}
               size="sm"
-              className={`flex items-center gap-1.5 ${selectedType === type.id ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+              className={`flex items-center gap-1.5 ${
+                selectedTypes.includes(type.id)
+                  ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white' 
+                  : 'dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800'
+              }`}
               onClick={() => handleTypeClick(type.id)}
             >
               <div className={`w-1 h-3 rounded ${type.color}`} />
@@ -54,31 +60,35 @@ const PDFPreviewModal = ({
           ))}
         </div>
 
-        {/* Preview Content */}
-        <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full">
-            <div className="bg-white">
-              <div className="border border-gray-200 rounded-lg p-6 min-h-[500px] shadow-sm">
-                {content}
+        {/* PDF Preview */}
+        <div className="flex justify-center my-4">
+          <div className="w-[105mm] h-[148.5mm] bg-white dark:bg-[hsl(220,10%,15%)] border border-gray-200 dark:border-[hsl(220,10%,20%)] rounded-lg shadow-sm dark:shadow-[hsl(220,10%,10%)]/20">
+            <div className="p-4">
+              <div className="text-center text-gray-500">
+                <p className="text-sm">PDF Preview Content</p>
               </div>
             </div>
-          </ScrollArea>
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+        <div className="flex justify-end gap-2 pt-4 border-t dark:border-[hsl(220,10%,20%)]">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 dark:border-[hsl(220,10%,20%)] dark:text-gray-300 dark:hover:bg-[hsl(220,10%,25%)]"
           >
             <X className="h-4 w-4" />
             Cancel
           </Button>
           <Button 
-            onClick={() => onExport(selectedType)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            disabled={!selectedType}
+            onClick={() => onExport(selectedTypes)}
+            className={`flex items-center gap-2 ${
+              selectedTypes.length > 0
+                ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white' 
+                : 'bg-gray-100 dark:bg-[hsl(220,10%,15%)] text-gray-400 dark:text-gray-500 cursor-not-allowed'
+            }`}
+            disabled={selectedTypes.length === 0}
           >
             <FileDown className="h-4 w-4" />
             Export as PDF

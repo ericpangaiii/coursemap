@@ -12,7 +12,7 @@ const AppLayout = () => {
         {/* Main content */}
         <div className="flex-1 overflow-auto">
           <div className="p-2 md:p-4">
-            <SidebarTrigger className="mb-4 md:mb-0" />
+            <SidebarTrigger className="mb-4" />
             <Outlet />
           </div>
         </div>

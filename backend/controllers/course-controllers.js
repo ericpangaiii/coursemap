@@ -26,7 +26,6 @@ export const getCoursesByIds = async (req, res) => {
       FROM courses 
       WHERE course_id IN (${placeholders})
       AND career != 'GRD'
-      AND is_active = true
       AND sem_offered NOT IN ('--', '"1s,2s"')
       AND acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
     `;

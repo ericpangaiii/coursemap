@@ -13,7 +13,7 @@ import { LoadingSpinner } from "@/components/ui/loading";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { coursesAPI, plansAPI } from "@/lib/api";
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Filter, SearchX, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Filter, SearchX, X, ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -24,7 +24,7 @@ const CoursesPage = () => {
   const [filteredCourses, setFilteredCourses] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [filters, setFilters] = useState({
     type: [],
     semOffered: [],
@@ -146,7 +146,10 @@ const CoursesPage = () => {
       filtered = filtered.filter(course => {
         if (!course.sem_offered) return false;
         const courseSemesters = course.sem_offered.split(',').map(s => s.trim());
-        return courseSemesters.some(sem => filters.semOffered.includes(sem));
+        // Check if the course is offered exclusively in any of the selected semesters
+        return filters.semOffered.some(sem => 
+          courseSemesters.length === 1 && courseSemesters[0] === sem
+        );
       });
     }
     
@@ -216,7 +219,7 @@ const CoursesPage = () => {
   const currentCourses = sortedCourses.slice(startIndex, endIndex);
 
   return (
-    <div className="w-full max-w-full p-4">
+    <div className="w-full max-w-full p-2">
       {isLoading ? (
         <div className="fixed inset-0 flex justify-center items-center">
           <LoadingSpinner className="w-8 h-8" />
@@ -233,8 +236,8 @@ const CoursesPage = () => {
                 <button
                   className={`px-3 py-1.5 text-xs font-medium rounded-t-md transition-colors ${
                     activeTab === "all"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                      ? "bg-blue-600 dark:bg-blue-500 text-white"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-[hsl(220,10%,25%)]"
                   }`}
                   onClick={() => {
                     setActiveTab("all");
@@ -253,8 +256,8 @@ const CoursesPage = () => {
                 <button
                   className={`px-3 py-1.5 text-xs font-medium rounded-t-md transition-colors ${
                     activeTab === "plan"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                      ? "bg-blue-600 dark:bg-blue-500 text-white"
+                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-[hsl(220,10%,25%)]"
                   }`}
                   onClick={() => {
                     setActiveTab("plan");
@@ -268,14 +271,14 @@ const CoursesPage = () => {
                     });
                   }}
                 >
-                  Plan Courses
+                  Plan of Coursework Courses
                 </button>
               </div>
               
               {/* Search and Filters */}
               <div className="space-y-3">
                 {/* Search Bar and Filters Row */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-6">
                   {/* Search Bar - 40% width */}
                   <div className="w-2/5">
                     <Input
@@ -285,6 +288,52 @@ const CoursesPage = () => {
                       className="w-full h-8 text-xs"
                     />
                   </div>
+                  
+                  {/* Rows per page dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                      >
+                        {itemsPerPage} items
+                        <ChevronDown className="w-3 h-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                      <DropdownMenuItem 
+                        onClick={() => setItemsPerPage(5)}
+                        className={`py-1.5 ${
+                          itemsPerPage === 5 
+                            ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
+                        }`}
+                      >
+                        <span className="text-xs">5 items</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setItemsPerPage(10)}
+                        className={`py-1.5 ${
+                          itemsPerPage === 10 
+                            ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
+                        }`}
+                      >
+                        <span className="text-xs">10 items</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setItemsPerPage(20)}
+                        className={`py-1.5 ${
+                          itemsPerPage === 20 
+                            ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
+                        }`}
+                      >
+                        <span className="text-xs">20 items</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
                   {/* Filter Controls - 60% width */}
                   <div className="w-3/5 flex items-center gap-2">
@@ -293,21 +342,21 @@ const CoursesPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Course Type
                           {filters.type.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                               {filters.type.length}
                             </span>
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-auto min-w-[200px] max-w-[300px]">
+                      <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
                         <div 
-                          className={`flex items-center gap-2 py-1.5 pl-2 ${
-                            filters.type.length === 0 ? 'text-gray-400 cursor-default' : 'cursor-pointer hover:bg-gray-50'
+                          className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                            filters.type.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
                           }`}
                           onClick={() => filters.type.length > 0 && clearFilter('type')}
                         >
@@ -340,22 +389,22 @@ const CoursesPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           College
                           {filters.acadGroup.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                               {filters.acadGroup.length}
                             </span>
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-auto min-w-[200px] max-w-[300px]">
+                      <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
                         <ScrollArea className="h-[120px]">
                           <div 
-                            className={`flex items-center gap-2 py-1.5 pl-2 ${
-                              filters.acadGroup.length === 0 ? 'text-gray-400 cursor-default' : 'cursor-pointer hover:bg-gray-50'
+                            className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                              filters.acadGroup.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
                             }`}
                             onClick={() => filters.acadGroup.length > 0 && clearFilter('acadGroup')}
                           >
@@ -387,24 +436,24 @@ const CoursesPage = () => {
                     {activeTab !== "plan" && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button
+                          <Button 
                             variant="ghost" 
-                            size="sm"
-                            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                            size="sm" 
+                            className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                           >
                             <Filter className="w-4 h-4 mr-1" />
                             Sems Offered
                             {filters.semOffered.length > 0 && (
-                              <span className="ml-1 text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                              <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                                 {filters.semOffered.length}
                               </span>
                             )}
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-auto min-w-[200px] max-w-[300px]">
+                        <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
                           <div 
-                            className={`flex items-center gap-2 py-1.5 pl-2 ${
-                              filters.semOffered.length === 0 ? 'text-gray-400 cursor-default' : 'cursor-pointer hover:bg-gray-50'
+                            className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                              filters.semOffered.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
                             }`}
                             onClick={() => filters.semOffered.length > 0 && clearFilter('semOffered')}
                           >
@@ -439,22 +488,22 @@ const CoursesPage = () => {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                            className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                           >
                             <Filter className="w-4 h-4 mr-1" />
                             When Taken
                             {filters.whenTaken?.length > 0 && (
-                              <span className="ml-1 text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                              <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                                 {filters.whenTaken.length}
                               </span>
                             )}
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-auto min-w-[200px] max-w-[300px]">
+                        <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
                           <ScrollArea className="h-[120px]">
                             <div 
-                              className={`flex items-center gap-2 py-1.5 pl-2 ${
-                                filters.whenTaken?.length === 0 ? 'text-gray-400 cursor-default' : 'cursor-pointer hover:bg-gray-50'
+                              className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                                filters.whenTaken?.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
                               }`}
                               onClick={() => filters.whenTaken?.length > 0 && clearFilter('whenTaken')}
                             >
@@ -500,22 +549,22 @@ const CoursesPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Units
                           {filters.units.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 px-1.5 py-0.5 rounded">
+                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                               {filters.units.length}
                             </span>
                           )}
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-auto min-w-[200px] max-w-[300px]">
+                      <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
                         <ScrollArea className="h-[120px]">
                           <div 
-                            className={`flex items-center gap-2 py-1.5 pl-2 ${
-                              filters.units.length === 0 ? 'text-gray-400 cursor-default' : 'cursor-pointer hover:bg-gray-50'
+                            className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                              filters.units.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
                             }`}
                             onClick={() => filters.units.length > 0 && clearFilter('units')}
                           >
@@ -553,7 +602,7 @@ const CoursesPage = () => {
           <Card className="mb-6 w-full max-w-[1200px]">
             <CardHeader className="pb-0">
               <div className="flex items-center justify-between">
-                <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                   {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
                 </span>
               </div>
@@ -567,14 +616,14 @@ const CoursesPage = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full table-fixed">
                     <thead>
-                      <tr className="text-xs text-gray-500">
-                        <th className="text-left py-2 px-2 w-12 text-gray-500">#</th>
+                      <tr className="text-xs text-gray-500 dark:text-gray-400">
+                        <th className="text-left py-2 px-2 w-12 text-gray-500 dark:text-gray-400">#</th>
                         <th className={`text-left py-2 px-2 w-64 ${
-                          sortConfig.key === 'course_code' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
-                        }`}>
+                          sortConfig.key === 'course_code' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                        } rounded-md`}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <div className="flex items-center cursor-pointer hover:text-gray-900">
+                              <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
                                 Course Code and Title
                                 {getSortIcon('course_code')}
                               </div>
@@ -584,8 +633,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('course_code', 'ascending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'course_code' && sortConfig.direction === 'ascending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowUp className="w-3 h-3" />
@@ -595,8 +644,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('course_code', 'descending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'course_code' && sortConfig.direction === 'descending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowDown className="w-3 h-3" />
@@ -607,8 +656,8 @@ const CoursesPage = () => {
                                 disabled={!sortConfig.key}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   !sortConfig.key 
-                                    ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <X className="w-3 h-3" />
@@ -618,16 +667,16 @@ const CoursesPage = () => {
                           </DropdownMenu>
                         </th>
                         <th className={`text-left py-2 px-3 w-80 ${
-                          sortConfig.key === 'description' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
+                          sortConfig.key === 'description' ? 'bg-gray-50 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100 rounded-md' : 'text-gray-500 dark:text-gray-400'
                         }`}>
                           Description
                         </th>
                         <th className={`text-left py-2 px-2 w-48 ${
-                          sortConfig.key === 'course_type' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
-                        }`}>
+                          sortConfig.key === 'course_type' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                        } rounded-md`}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <div className="flex items-center cursor-pointer hover:text-gray-900">
+                              <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
                                 Course Type
                                 {getSortIcon('course_type')}
                               </div>
@@ -637,8 +686,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('course_type', 'ascending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'course_type' && sortConfig.direction === 'ascending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowUp className="w-3 h-3" />
@@ -648,8 +697,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('course_type', 'descending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'course_type' && sortConfig.direction === 'descending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowDown className="w-3 h-3" />
@@ -660,8 +709,8 @@ const CoursesPage = () => {
                                 disabled={!sortConfig.key}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   !sortConfig.key 
-                                    ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <X className="w-3 h-3" />
@@ -671,11 +720,11 @@ const CoursesPage = () => {
                           </DropdownMenu>
                         </th>
                         <th className={`text-left py-2 px-2 w-24 ${
-                          sortConfig.key === 'acad_group' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
-                        }`}>
+                          sortConfig.key === 'acad_group' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                        } rounded-md`}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <div className="flex items-center cursor-pointer hover:text-gray-900">
+                              <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
                                 College
                                 {getSortIcon('acad_group')}
                               </div>
@@ -685,8 +734,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('acad_group', 'ascending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'acad_group' && sortConfig.direction === 'ascending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowUp className="w-3 h-3" />
@@ -696,8 +745,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('acad_group', 'descending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'acad_group' && sortConfig.direction === 'descending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowDown className="w-3 h-3" />
@@ -708,8 +757,8 @@ const CoursesPage = () => {
                                 disabled={!sortConfig.key}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   !sortConfig.key 
-                                    ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <X className="w-3 h-3" />
@@ -720,11 +769,11 @@ const CoursesPage = () => {
                         </th>
                         {activeTab !== "plan" && (
                           <th className={`text-left py-2 px-3 w-32 ${
-                            sortConfig.key === 'sem_offered' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
-                          }`}>
+                            sortConfig.key === 'sem_offered' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                          } rounded-md`}>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <div className="flex items-center cursor-pointer hover:text-gray-900">
+                                <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
                                   Sems Offered
                                   {getSortIcon('sem_offered')}
                                 </div>
@@ -734,8 +783,8 @@ const CoursesPage = () => {
                                   onClick={() => handleSort('sem_offered', 'ascending')}
                                   className={`flex items-center gap-2 py-1.5 ${
                                     sortConfig.key === 'sem_offered' && sortConfig.direction === 'ascending' 
-                                      ? 'bg-gray-100 text-gray-900' 
-                                      : 'text-gray-600 hover:bg-gray-50'
+                                      ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                   }`}
                                 >
                                   <ArrowUp className="w-3 h-3" />
@@ -745,8 +794,8 @@ const CoursesPage = () => {
                                   onClick={() => handleSort('sem_offered', 'descending')}
                                   className={`flex items-center gap-2 py-1.5 ${
                                     sortConfig.key === 'sem_offered' && sortConfig.direction === 'descending' 
-                                      ? 'bg-gray-100 text-gray-900' 
-                                      : 'text-gray-600 hover:bg-gray-50'
+                                      ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                   }`}
                                 >
                                   <ArrowDown className="w-3 h-3" />
@@ -757,8 +806,8 @@ const CoursesPage = () => {
                                   disabled={!sortConfig.key}
                                   className={`flex items-center gap-2 py-1.5 ${
                                     !sortConfig.key 
-                                      ? 'text-gray-400 cursor-not-allowed' 
-                                      : 'text-gray-600 hover:bg-gray-50'
+                                      ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                   }`}
                                 >
                                   <X className="w-3 h-3" />
@@ -770,11 +819,11 @@ const CoursesPage = () => {
                         )}
                         {activeTab === "plan" && (
                           <th className={`text-left py-2 px-3 w-32 ${
-                            sortConfig.key === 'year' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
-                          }`}>
+                            sortConfig.key === 'year' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                          } rounded-md`}>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <div className="flex items-center cursor-pointer hover:text-gray-900">
+                                <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
                                   When Taken
                                   {getSortIcon('year')}
                                 </div>
@@ -784,8 +833,8 @@ const CoursesPage = () => {
                                   onClick={() => handleSort('year', 'ascending')}
                                   className={`flex items-center gap-2 py-1.5 ${
                                     sortConfig.key === 'year' && sortConfig.direction === 'ascending' 
-                                      ? 'bg-gray-100 text-gray-900' 
-                                      : 'text-gray-600 hover:bg-gray-50'
+                                      ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                   }`}
                                 >
                                   <ArrowUp className="w-3 h-3" />
@@ -795,8 +844,8 @@ const CoursesPage = () => {
                                   onClick={() => handleSort('year', 'descending')}
                                   className={`flex items-center gap-2 py-1.5 ${
                                     sortConfig.key === 'year' && sortConfig.direction === 'descending' 
-                                      ? 'bg-gray-100 text-gray-900' 
-                                      : 'text-gray-600 hover:bg-gray-50'
+                                      ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                   }`}
                                 >
                                   <ArrowDown className="w-3 h-3" />
@@ -807,8 +856,8 @@ const CoursesPage = () => {
                                   disabled={!sortConfig.key}
                                   className={`flex items-center gap-2 py-1.5 ${
                                     !sortConfig.key 
-                                      ? 'text-gray-400 cursor-not-allowed' 
-                                      : 'text-gray-600 hover:bg-gray-50'
+                                      ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                   }`}
                                 >
                                   <X className="w-3 h-3" />
@@ -819,11 +868,11 @@ const CoursesPage = () => {
                           </th>
                         )}
                         <th className={`text-left py-2 px-2 w-24 ${
-                          sortConfig.key === 'units' ? 'bg-gray-50 text-gray-900' : 'text-gray-500'
-                        }`}>
+                          sortConfig.key === 'units' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                        } rounded-md`}>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <div className="flex items-center cursor-pointer hover:text-gray-900">
+                              <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
                                 Units
                                 {getSortIcon('units')}
                               </div>
@@ -833,8 +882,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('units', 'ascending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'units' && sortConfig.direction === 'ascending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowUp className="w-3 h-3" />
@@ -844,8 +893,8 @@ const CoursesPage = () => {
                                 onClick={() => handleSort('units', 'descending')}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   sortConfig.key === 'units' && sortConfig.direction === 'descending' 
-                                    ? 'bg-gray-100 text-gray-900' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <ArrowDown className="w-3 h-3" />
@@ -856,8 +905,8 @@ const CoursesPage = () => {
                                 disabled={!sortConfig.key}
                                 className={`flex items-center gap-2 py-1.5 ${
                                   !sortConfig.key 
-                                    ? 'text-gray-400 cursor-not-allowed' 
-                                    : 'text-gray-600 hover:bg-gray-50'
+                                    ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                                 }`}
                               >
                                 <X className="w-3 h-3" />
@@ -870,19 +919,26 @@ const CoursesPage = () => {
                     </thead>
                     <tbody>
                       {currentCourses.length > 0 ? (
-                        currentCourses.map((course) => (
-                          <tr key={activeTab === "plan" ? course.unique_id : course.course_id}>
+                        currentCourses.map((course, index) => (
+                          <tr 
+                            key={activeTab === "plan" ? course.unique_id : course.course_id}
+                            className={`${
+                              index % 2 === 1 
+                                ? 'bg-gray-50 dark:bg-[hsl(220,10%,11%)]' 
+                                : ''
+                            } hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,14%)] transition-colors`}
+                          >
                             <td className="py-2 px-2 text-sm text-gray-500">
                               {startIndex + currentCourses.indexOf(course) + 1}
                             </td>
                             <td className="py-2 px-2">
                               <div className="space-y-0.5">
-                                <div className="font-medium text-gray-900 text-sm">{course.course_code}</div>
-                                <div className="text-xs text-gray-600">{course.title}</div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100">{course.course_code}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-300">{course.title}</div>
                               </div>
                             </td>
                             <td className="py-2 px-2">
-                              <div className="text-xs text-gray-600">
+                              <div className="text-xs text-gray-600 dark:text-gray-300">
                                 {course.description}
                               </div>
                             </td>
@@ -953,7 +1009,7 @@ const CoursesPage = () => {
                   <PaginationItem>
                     <PaginationPrevious 
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      className={currentPage === 1 ? "pointer-events-none text-gray-400" : "text-gray-800 hover:bg-gray-100"}
+                      className={currentPage === 1 ? "pointer-events-none text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"}
                     />
                   </PaginationItem>
                   
@@ -963,8 +1019,8 @@ const CoursesPage = () => {
                       onClick={() => setCurrentPage(1)}
                       className={`${
                         currentPage === 1 
-                          ? "bg-blue-600 text-white" 
-                          : "text-gray-800 hover:bg-gray-100"
+                          ? "bg-blue-600 text-white pointer-events-none" 
+                          : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                       }`}
                     >
                       1
@@ -997,8 +1053,8 @@ const CoursesPage = () => {
                           onClick={() => setCurrentPage(page)}
                           className={`${
                             currentPage === page 
-                              ? "bg-blue-600 text-white" 
-                              : "text-gray-800 hover:bg-gray-100"
+                              ? "bg-blue-600 text-white pointer-events-none" 
+                              : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                           }`}
                         >
                           {page}
@@ -1021,8 +1077,8 @@ const CoursesPage = () => {
                         onClick={() => setCurrentPage(totalPages)}
                         className={`${
                           currentPage === totalPages 
-                            ? "bg-blue-600 text-white" 
-                            : "text-gray-800 hover:bg-gray-100"
+                            ? "bg-blue-600 text-white pointer-events-none" 
+                            : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                         }`}
                       >
                         {totalPages}
@@ -1033,7 +1089,7 @@ const CoursesPage = () => {
                   <PaginationItem>
                     <PaginationNext 
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      className={currentPage === totalPages ? "pointer-events-none text-gray-400" : "text-gray-800 hover:bg-gray-100"}
+                      className={currentPage === totalPages ? "pointer-events-none text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"}
                     />
                   </PaginationItem>
                 </PaginationContent>

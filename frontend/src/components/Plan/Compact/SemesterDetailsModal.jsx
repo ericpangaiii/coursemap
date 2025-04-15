@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, computeSemesterGWA, getCourseTypeName, getScholarshipEligibility, sortCourses, isSemesterOverloaded, isSemesterUnderloaded, getSemesterName } from "@/lib/utils";
-import { AlertTriangle, Award, BookOpen, Calendar, Check, ChevronDown, Filter, SearchX } from "lucide-react";
+import { AlertTriangle, Award, BookOpen, Calendar, Check, ChevronDown, Filter, SearchX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 const formatOrdinal = (n) => {
@@ -27,8 +27,8 @@ const formatOrdinal = (n) => {
 };
 
 const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGradeChange }) => {
-  const [selectedType, setSelectedType] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selectedTypes, setSelectedTypes] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [coursesState, setCourses] = useState(courses);
 
   // Update local state when courses prop changes
@@ -75,11 +75,11 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
 
   // Filter courses based on selected filters
   const filteredCourses = coursesState.filter((course) => {
-    const typeMatch = !selectedType || course.course_type === selectedType;
-    const statusMatch = !selectedStatus || 
-      (selectedStatus === 'completed' && course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) ||
-      (selectedStatus === 'taken' && course.grade && ['5.00', 'INC', 'DRP'].includes(course.grade)) ||
-      (selectedStatus === 'planned' && !course.grade);
+    const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(course.course_type);
+    const statusMatch = selectedStatuses.length === 0 || 
+      (selectedStatuses.includes('completed') && course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) ||
+      (selectedStatuses.includes('taken') && course.grade && ['5.00', 'INC', 'DRP'].includes(course.grade)) ||
+      (selectedStatuses.includes('planned') && !course.grade);
     return typeMatch && statusMatch;
   });
 
@@ -158,13 +158,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
       <DialogContent className={cn("sm:max-w-xl")}>
         <DialogHeader>
           <div>
-            <DialogTitle className="text-lg font-medium">
+            <DialogTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
               {formatOrdinal(year)} Year {getSemesterName(semester)} Details
             </DialogTitle>
             <div className="flex justify-between items-center mt-1">
               <DialogDescription className="pb-1">
                 <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                  <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                     {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
                   </span>
                 </div>
@@ -172,33 +172,52 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
               <div className="flex items-center gap-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                     >
                       <Filter className="w-4 h-4 mr-1" />
-                      {selectedType ? getCourseTypeName(selectedType) : "All Types"}
+                      Course Type
+                      {selectedTypes.length > 0 && (
+                        <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                          {selectedTypes.length}
+                        </span>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-[8rem]">
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedType(null)}
-                      className="flex items-center gap-2 py-1.5"
+                  <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                    <div 
+                      className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                        selectedTypes.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                      }`}
+                      onClick={() => selectedTypes.length > 0 && setSelectedTypes([])}
                     >
-                      <div className={`w-1 h-3 rounded ${!selectedType ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      <span className="text-xs">All Types</span>
-                    </DropdownMenuItem>
+                      <X className="w-3 h-3" />
+                      <span className="text-xs">Clear</span>
+                    </div>
                     {courseTypes.map(type => {
-                      const isSelected = selectedType === type;
+                      const isSelected = selectedTypes.includes(type);
                       return (
                         <DropdownMenuItem 
                           key={type} 
-                          onClick={() => setSelectedType(type)}
-                          className="flex items-center gap-2 py-1.5"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedTypes(prev => 
+                              isSelected 
+                                ? prev.filter(t => t !== type)
+                                : [...prev, type]
+                            );
+                          }}
+                          className="flex items-center gap-2 py-1.5 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
-                          <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                          <span className="text-xs">{getCourseTypeName(type)}</span>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="h-3 w-3 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                          />
+                          <span className="text-xs text-gray-700 dark:text-gray-200">{getCourseTypeName(type)}</span>
                         </DropdownMenuItem>
                       );
                     })}
@@ -210,37 +229,52 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                      className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                     >
                       <Filter className="w-4 h-4 mr-1" />
-                      {selectedStatus 
-                        ? (selectedStatus === 'planned' ? 'Planned' : 
-                           selectedStatus === 'completed' ? 'Completed' : 
-                           'Taken')
-                        : "All Statuses"}
+                      Status
+                      {selectedStatuses.length > 0 && (
+                        <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                          {selectedStatuses.length}
+                        </span>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="min-w-[7rem]">
-                    <DropdownMenuItem 
-                      onClick={() => setSelectedStatus(null)}
-                      className="flex items-center gap-2 py-1.5"
+                  <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                    <div 
+                      className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                        selectedStatuses.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                      }`}
+                      onClick={() => selectedStatuses.length > 0 && setSelectedStatuses([])}
                     >
-                      <div className={`w-1 h-3 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      <span className="text-xs">All Statuses</span>
-                    </DropdownMenuItem>
+                      <X className="w-3 h-3" />
+                      <span className="text-xs">Clear</span>
+                    </div>
                     {['planned', 'completed', 'taken'].map((status) => {
-                      const isSelected = selectedStatus === status;
+                      const isSelected = selectedStatuses.includes(status);
                       const label = status === 'planned' ? 'Planned' : 
                                   status === 'completed' ? 'Completed' : 
                                   'Taken';
                       return (
                         <DropdownMenuItem 
                           key={status}
-                          onClick={() => setSelectedStatus(status)}
-                          className="flex items-center gap-2 py-1.5"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setSelectedStatuses(prev => 
+                              isSelected 
+                                ? prev.filter(s => s !== status)
+                                : [...prev, status]
+                            );
+                          }}
+                          className="flex items-center gap-2 py-1.5 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
-                          <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                          <span className="text-xs">{label}</span>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {}}
+                            className="h-3 w-3 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+                          />
+                          <span className="text-xs text-gray-700 dark:text-gray-200">{label}</span>
                         </DropdownMenuItem>
                       );
                     })}
@@ -256,7 +290,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-sm font-medium text-gray-700">
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Courses
                   </CardTitle>
                 </div>
@@ -275,7 +309,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                     ))}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-6 text-gray-500">
+                  <div className="flex flex-col items-center justify-center py-6 text-gray-500 dark:text-gray-400">
                     <SearchX className="h-8 w-8 mb-2" />
                     <p className="text-sm font-medium">No courses found</p>
                     <p className="text-sm">Try adjusting your filters</p>
@@ -289,18 +323,18 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
               <Card>
                 <CardHeader className="pb-1">
                   <div className="flex items-center gap-2">
-                    <Award className="h-4 w-4 text-gray-500" />
-                    <CardTitle className="text-sm font-medium text-gray-700">
+                    <Award className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Semester GWA
                     </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="flex flex-col items-center gap-0.5">
-                    <Badge variant="outline" className="h-7 text-base bg-blue-50 text-blue-600 font-semibold">
+                    <Badge variant="outline" className="h-7 text-base bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-700 font-semibold">
                       {semesterGWA.toFixed(2)}
                     </Badge>
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                       <Award className="h-3 w-3" />
                       {getScholarshipEligibility(semesterGWA)}
                     </div>
@@ -313,14 +347,14 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
             <Card>
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                  <CardTitle className="text-sm font-medium text-gray-700">
+                  <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Warnings
                   </CardTitle>
-                  <div className={`rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium ${
+                  <div className={`w-5 h-5 flex items-center justify-center text-xs font-medium rounded ${
                     warnings.length > 0 
-                      ? 'bg-yellow-100 text-yellow-700' 
-                      : 'bg-gray-100 text-gray-500'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
                   }`}>
                     {warnings.length}
                   </div>
@@ -331,13 +365,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                   <div className="space-y-2">
                     {warnings.map((warning, idx) => (
                       <div key={idx} className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-gray-700">{warning.text}</p>
-                        <p className="text-xs text-gray-500">{warning.details}</p>
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{warning.text}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{warning.details}</p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500">No issues detected in this semester.</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">No issues detected in this semester.</p>
                 )}
               </CardContent>
             </Card>

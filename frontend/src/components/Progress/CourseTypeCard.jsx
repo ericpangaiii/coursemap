@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Expand, Search, SearchX, ChevronDown, CheckCircle2, Info, Filter } from "lucide-react";
+import { Expand, Search, SearchX, ChevronDown, CheckCircle2, Info, Filter, X } from "lucide-react";
 import { getCourseTypeName, getCourseTypeColor, getNormalizedCourseType } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,8 +25,8 @@ import CourseItem from "../CourseItem";
 const CourseTypeCard = ({ type, courses, stats }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSemester, setSelectedSemester] = useState(null);
-  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selectedSemesters, setSelectedSemesters] = useState([]);
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [planCourses, setPlanCourses] = useState([]);
   const typeName = getCourseTypeName(type);
   const typeColor = getCourseTypeColor(type);
@@ -60,19 +60,19 @@ const CourseTypeCard = ({ type, courses, stats }) => {
     }
     
     // Apply semester filter
-    if (selectedSemester) {
+    if (selectedSemesters.length > 0) {
       filtered = filtered.filter(course => {
-        // Check if course is offered exclusively in the selected semester
+        // Check if course is offered exclusively in any of the selected semesters
         const semesters = course.sem_offered?.split(',').map(s => s.trim().toLowerCase()) || [];
-        const isExclusive = semesters.length === 1 && (
-          (selectedSemester === 'M' && semesters[0] === 'm') || 
-          (selectedSemester !== 'M' && semesters[0] === `${selectedSemester}s`)
+        const isExclusive = semesters.length === 1 && selectedSemesters.some(sem => 
+          (sem === 'M' && semesters[0] === 'm') || 
+          (sem !== 'M' && semesters[0] === `${sem}s`)
         );
         
         // Also check plan data
         const planSemester = planCourses.find(pc => 
           pc.course_id === course.course_id && 
-          pc.sem === selectedSemester
+          selectedSemesters.includes(pc.sem)
         );
         
         return isExclusive || planSemester;
@@ -80,19 +80,21 @@ const CourseTypeCard = ({ type, courses, stats }) => {
     }
     
     // Apply status filter
-    if (selectedStatus) {
+    if (selectedStatuses.length > 0) {
       filtered = filtered.filter(course => {
         const planCourse = planCourses.find(pc => String(pc.course_id) === course.course_id);
         if (!planCourse) return false;
         
-        if (selectedStatus === 'completed') {
-          return planCourse.grade && !['5.00', 'INC', 'DRP'].includes(planCourse.grade);
-        } else if (selectedStatus === 'taken') {
-          return planCourse.grade && ['5.00', 'INC', 'DRP'].includes(planCourse.grade);
-        } else if (selectedStatus === 'planned') {
-          return !planCourse.grade;
-        }
-        return false;
+        return selectedStatuses.some(status => {
+          if (status === 'completed') {
+            return planCourse.grade && !['5.00', 'INC', 'DRP'].includes(planCourse.grade);
+          } else if (status === 'taken') {
+            return planCourse.grade && ['5.00', 'INC', 'DRP'].includes(planCourse.grade);
+          } else if (status === 'planned') {
+            return !planCourse.grade;
+          }
+          return false;
+        });
       });
     }
     return filtered;
@@ -116,9 +118,9 @@ const CourseTypeCard = ({ type, courses, stats }) => {
             {/* Progress bar */}
             <div>
               <div className="flex justify-between mb-1">
-                <span className="text-xs font-medium">Completion</span>
+                <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Completion</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
                 <div 
                   className={`h-2.5 rounded-full ${typeColor}`} 
                   style={{ 
@@ -135,17 +137,17 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                 courses.slice(0, 5).map(course => (
                   <div 
                     key={course.course_id} 
-                    className="text-xs px-2 py-1.5 rounded bg-gray-50 flex items-center justify-between relative overflow-hidden"
+                    className="text-xs px-2 py-1.5 rounded bg-gray-50 dark:bg-[hsl(220,10%,15%)] flex items-center justify-between relative overflow-hidden"
                   >
                     <div 
                       className={`absolute left-0 top-0 bottom-0 w-1 ${!course.is_academic ? 'bg-blue-300' : getCourseTypeColor(getNormalizedCourseType(course.course_type))}`}
                     />
                     <div className="flex-1 min-w-0 ml-1.5">
                       <div className="flex items-center justify-between">
-                        <p className="font-medium truncate">{course.course_code}</p>
+                        <p className="font-medium truncate text-gray-900 dark:text-gray-100">{course.course_code}</p>
                         <Badge 
                           variant="outline" 
-                          className={`text-[10px] h-5 ${!course.is_academic ? 'text-gray-500' : ''}`}
+                          className={`text-[10px] h-5 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-700 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)] ${!course.is_academic ? 'text-gray-500 dark:text-gray-400' : ''}`}
                         >
                           {course.units} units
                         </Badge>
@@ -154,8 +156,8 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   </div>
                 ))
               ) : (
-                <div className="p-3 text-center bg-gray-50 rounded-md border border-gray-200">
-                  <p className="text-sm text-gray-500">No courses found</p>
+                <div className="p-3 text-center bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No courses found</p>
                 </div>
               )}
             </div>
@@ -166,7 +168,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 px-2 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  className="h-6 px-2 text-xs text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                   onClick={() => setIsDialogOpen(true)}
                 >
                   View All
@@ -179,30 +181,31 @@ const CourseTypeCard = ({ type, courses, stats }) => {
 
       {/* View All Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-xl bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
           <DialogHeader>
             <div className="flex items-center justify-between">
-              <DialogTitle className="text-lg font-medium">
+              <DialogTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 {typeName}
               </DialogTitle>
             </div>
           </DialogHeader>
 
           {/* Search bar outside Card */}
-          <div className="relative">
-            <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-gray-500" />
-            <Input
-              type="text"
-              placeholder="Search by course code or title..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-9 pl-9 text-sm"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 dark:text-gray-500" />
+              <Input
+                placeholder="Search courses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-7 h-7 text-xs bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+              />
+            </div>
           </div>
 
           {/* Filter controls outside Card */}
           <div className="flex items-center justify-between">
-            <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+            <div className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
               {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
             </div>
             <div className="flex items-center gap-4">
@@ -211,33 +214,49 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                   >
                     <Filter className="w-4 h-4 mr-1" />
-                    {selectedSemester 
-                      ? (selectedSemester === '1' ? '1st Sem Only' : 
-                         selectedSemester === '2' ? '2nd Sem Only' : 'Mid Year Only')
-                      : "All Semesters"}
+                    Sems Offered
+                    {selectedSemesters.length > 0 && (
+                      <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                        {selectedSemesters.length}
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[8rem]">
-                  <DropdownMenuItem 
-                    onClick={() => setSelectedSemester(null)}
-                    className="flex items-center gap-2 py-1.5"
+                <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                  <div 
+                    className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                      selectedSemesters.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                    }`}
+                    onClick={() => selectedSemesters.length > 0 && setSelectedSemesters([])}
                   >
-                    <div className={`w-1 h-3 rounded ${!selectedSemester ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                    <span className="text-xs">All Semesters</span>
-                  </DropdownMenuItem>
+                    <X className="w-3 h-3" />
+                    <span className="text-xs">Clear</span>
+                  </div>
                   {['1', '2', 'M'].map((sem) => {
-                    const isSelected = selectedSemester === sem;
-                    const label = sem === '1' ? '1st Sem Only' : sem === '2' ? '2nd Sem Only' : 'Mid Year Only';
+                    const isSelected = selectedSemesters.includes(sem);
+                    const label = sem === '1' ? '1S' : sem === '2' ? '2S' : 'M';
                     return (
                       <DropdownMenuItem 
                         key={sem}
-                        onClick={() => setSelectedSemester(sem)}
-                        className="flex items-center gap-2 py-1.5"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedSemesters(prev => 
+                            isSelected 
+                              ? prev.filter(s => s !== sem)
+                              : [...prev, sem]
+                          );
+                        }}
+                        className="flex items-center gap-2 py-1.5 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]"
                       >
-                        <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="h-3 w-3 rounded border-gray-300 dark:border-[hsl(220,10%,20%)] text-blue-600 focus:ring-blue-500"
+                        />
                         <span className="text-xs">{label}</span>
                       </DropdownMenuItem>
                     );
@@ -250,36 +269,51 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 px-2 text-gray-500 hover:text-blue-600"
+                    className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                   >
                     <Filter className="w-4 h-4 mr-1" />
-                    {selectedStatus 
-                      ? (selectedStatus === 'planned' ? 'Planned' : 
-                         selectedStatus === 'completed' ? 'Completed' : 
-                         'Taken')
-                      : "All Statuses"}
+                    Status
+                    {selectedStatuses.length > 0 && (
+                      <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                        {selectedStatuses.length}
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[7rem]">
-                  <DropdownMenuItem 
-                    onClick={() => setSelectedStatus(null)}
-                    className="flex items-center gap-2 py-1.5"
+                <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                  <div 
+                    className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                      selectedStatuses.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                    }`}
+                    onClick={() => selectedStatuses.length > 0 && setSelectedStatuses([])}
                   >
-                    <div className={`w-1 h-3 rounded ${!selectedStatus ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                    <span className="text-xs">All Statuses</span>
-                  </DropdownMenuItem>
+                    <X className="w-3 h-3" />
+                    <span className="text-xs">Clear</span>
+                  </div>
                   {['planned', 'completed', 'taken'].map((status) => {
-                    const isSelected = selectedStatus === status;
+                    const isSelected = selectedStatuses.includes(status);
                     const label = status === 'planned' ? 'Planned' : 
                                 status === 'completed' ? 'Completed' : 
                                 'Taken';
                     return (
                       <DropdownMenuItem 
                         key={status}
-                        onClick={() => setSelectedStatus(status)}
-                        className="flex items-center gap-2 py-1.5"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedStatuses(prev => 
+                            isSelected 
+                              ? prev.filter(s => s !== status)
+                              : [...prev, status]
+                          );
+                        }}
+                        className="flex items-center gap-2 py-1.5 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]"
                       >
-                        <div className={`w-1 h-3 rounded ${isSelected ? 'bg-gray-900' : 'bg-gray-200'}`} />
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          className="h-3 w-3 rounded border-gray-300 dark:border-[hsl(220,10%,20%)] text-blue-600 focus:ring-blue-500"
+                        />
                         <span className="text-xs">{label}</span>
                       </DropdownMenuItem>
                     );
@@ -289,10 +323,10 @@ const CourseTypeCard = ({ type, courses, stats }) => {
             </div>
           </div>
           
-          <ScrollArea className="max-h-[70vh]">
+          <ScrollArea className="max-h-[65vh]">
             <Card className="p-6">
               <div className="mb-4">
-                <h3 className="text-sm font-medium text-gray-700">Courses</h3>
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Courses</h3>
               </div>
               <div className="space-y-2">
                 {filteredCourses.length > 0 ? (
@@ -305,7 +339,7 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                     />
                   ))
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
+                  <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400 min-h-[300px]">
                     <SearchX className="h-12 w-12 mb-3" />
                     <p className="text-sm font-medium">No courses found</p>
                     <p className="text-sm">Try adjusting your search query or filters</p>
