@@ -169,6 +169,9 @@ export const updateCourse = async (req, res) => {
 // Get all courses
 export const getAllCourses = async (req, res) => {
   try {
+    // Get the current user's curriculum ID
+    const { curriculum_id } = req.user;
+    
     const query = `
       SELECT 
         c.course_id,
@@ -192,7 +195,7 @@ export const getAllCourses = async (req, res) => {
         courses c
       LEFT JOIN 
         curriculum_courses cc 
-        ON c.course_id = cc.course_id AND cc.curriculum_id = 67
+        ON c.course_id = cc.course_id AND cc.curriculum_id = $1
       WHERE 
         c.career != 'GRD'
         AND c.is_active = true
@@ -203,7 +206,7 @@ export const getAllCourses = async (req, res) => {
         c.course_code ASC
     `;
 
-    const result = await client.query(query);
+    const result = await client.query(query, [curriculum_id]);
     
     // Clean up the data before sending
     const cleanedData = result.rows.map(course => {
@@ -242,7 +245,7 @@ export const getAllCourses = async (req, res) => {
         description: cleanedDescription
       };
     });
-    
+
     res.json({
       success: true,
       data: cleanedData
