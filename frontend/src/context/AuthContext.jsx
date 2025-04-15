@@ -17,19 +17,33 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        console.log('AuthContext: Checking auth status...');
         const data = await authAPI.getAuthStatus();
+        console.log('AuthContext: Auth status response:', data);
         
         if (data.authenticated) {
+          console.log('AuthContext: User authenticated:', data.user);
           setUser(data.user);
           setAuthenticated(true);
         } else {
+          console.log('AuthContext: User not authenticated');
           setUser(null);
           setAuthenticated(false);
+          // Redirect to sign-in if not on sign-in page
+          if (!window.location.pathname.includes('/sign-in')) {
+            console.log('AuthContext: Redirecting to sign-in');
+            window.location.href = '/sign-in';
+          }
         }
       } catch (error) {
-        console.error('Authentication check failed:', error);
+        console.error('AuthContext: Authentication check failed:', error);
         setUser(null);
         setAuthenticated(false);
+        // Redirect to sign-in on error
+        if (!window.location.pathname.includes('/sign-in')) {
+          console.log('AuthContext: Redirecting to sign-in due to error');
+          window.location.href = '/sign-in';
+        }
       } finally {
         setLoading(false);
       }
@@ -41,22 +55,26 @@ export const AuthProvider = ({ children }) => {
   // Function to handle logout
   const logout = async () => {
     try {
+      console.log('AuthContext: Logging out...');
       const data = await authAPI.logout();
       
       if (data.success) {
+        console.log('AuthContext: Logout successful');
         setUser(null);
         setAuthenticated(false);
         return true;
       }
+      console.log('AuthContext: Logout failed:', data);
       return false;
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('AuthContext: Logout failed:', error);
       return false;
     }
   };
 
   // Function to update user data in the context
   const updateUser = (userData) => {
+    console.log('AuthContext: Updating user data:', userData);
     if (userData) {
       setUser(prevUser => ({
         ...prevUser,
@@ -74,5 +92,6 @@ export const AuthProvider = ({ children }) => {
     updateUser
   };
 
+  console.log('AuthContext: Current state:', { user, loading, authenticated });
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 

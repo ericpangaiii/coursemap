@@ -5,11 +5,15 @@ export const authAPI = {
   // Get authentication status
   getAuthStatus: async () => {
     try {
+      console.log('Checking auth status...');
       const response = await fetch(`${API_BASE_URL}/auth/status`, {
         method: 'GET',
         credentials: 'include',
       });
-      return await response.json();
+      console.log('Auth status response:', response.status, response.statusText);
+      const data = await response.json();
+      console.log('Auth status data:', data);
+      return data;
     } catch (error) {
       console.error('Authentication check failed:', error);
       return { authenticated: false };
@@ -19,11 +23,15 @@ export const authAPI = {
   // Logout the user
   logout: async () => {
     try {
+      console.log('Logging out...');
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'GET',
         credentials: 'include',
       });
-      return await response.json();
+      console.log('Logout response:', response.status, response.statusText);
+      const data = await response.json();
+      console.log('Logout data:', data);
+      return data;
     } catch (error) {
       console.error('Logout failed:', error);
       return { success: false, error: 'Failed to logout' };
@@ -32,12 +40,15 @@ export const authAPI = {
 
   // Get Google authentication URL
   getGoogleAuthUrl: () => {
-    return `${API_BASE_URL}/auth/google`;
+    const url = `${API_BASE_URL}/auth/google`;
+    console.log('Generated Google auth URL:', url);
+    return url;
   },
 
   // Update user's program
   updateProgram: async (programId, curriculumId = null) => {
     try {
+      console.log('Updating program:', { programId, curriculumId });
       const response = await fetch(`${API_BASE_URL}/auth/update-program`, {
         method: 'POST',
         headers: {
@@ -46,7 +57,10 @@ export const authAPI = {
         credentials: 'include',
         body: JSON.stringify({ programId, curriculumId }),
       });
-      return await response.json();
+      console.log('Update program response:', response.status, response.statusText);
+      const data = await response.json();
+      console.log('Update program data:', data);
+      return data;
     } catch (error) {
       console.error('Error updating program:', error);
       return { success: false, error: 'Failed to update program' };

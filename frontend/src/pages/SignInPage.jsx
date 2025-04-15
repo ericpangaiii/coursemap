@@ -6,8 +6,10 @@ import { APP_NAME } from "@/lib/config";
 const SignInPage = () => {
   const handleGoogleSignIn = () => {
     try {
-      // Redirect to the backend's Google auth route
-      window.location.href = authAPI.getGoogleAuthUrl();
+      console.log('Initiating Google sign-in...');
+      const authUrl = authAPI.getGoogleAuthUrl();
+      console.log('Redirecting to auth URL:', authUrl);
+      window.location.href = authUrl;
     } catch (error) {
       console.error('Failed to connect to authentication service:', error);
     }
