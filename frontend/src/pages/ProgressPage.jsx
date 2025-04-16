@@ -527,12 +527,12 @@ const ProgressPage = () => {
                       <div>
                         <div className="flex justify-between mb-1">
                           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Course Completion</span>
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">0 of 0 courses</span>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{completedCourses} of {totalRequired} courses</span>
                         </div>
                         <div className="w-full bg-gray-100 dark:bg-[hsl(220,10%,15%)] rounded-full h-2 overflow-hidden">
                           <div 
                             className="h-2 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-1000 ease-in-out"
-                            style={{ width: "0%" }}
+                            style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
                           ></div>
                         </div>
                       </div>

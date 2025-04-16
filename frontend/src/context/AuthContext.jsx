@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { authAPI } from '@/lib/api';
 
 // Create the auth context
@@ -12,24 +12,41 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const hasShownToast = useRef(false);
 
   // Check authentication status on component mount
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
+        console.log('AuthContext: Checking auth status...');
         const data = await authAPI.getAuthStatus();
+        console.log('AuthContext: Auth status response:', data);
         
         if (data.authenticated) {
+          console.log('AuthContext: User authenticated:', data.user);
           setUser(data.user);
           setAuthenticated(true);
         } else {
+          console.log('AuthContext: User not authenticated');
           setUser(null);
           setAuthenticated(false);
+          hasShownToast.current = false;
+          // Redirect to sign-in if not on sign-in page
+          if (!window.location.pathname.includes('/sign-in')) {
+            console.log('AuthContext: Redirecting to sign-in');
+            window.location.href = '/sign-in';
+          }
         }
       } catch (error) {
-        console.error('Authentication check failed:', error);
+        console.error('AuthContext: Authentication check failed:', error);
         setUser(null);
         setAuthenticated(false);
+        hasShownToast.current = false;
+        // Redirect to sign-in on error
+        if (!window.location.pathname.includes('/sign-in')) {
+          console.log('AuthContext: Redirecting to sign-in due to error');
+          window.location.href = '/sign-in';
+        }
       } finally {
         setLoading(false);
       }

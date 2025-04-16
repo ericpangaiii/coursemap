@@ -20,9 +20,6 @@ const ElectivesStep = ({ courses = [], onCourseSelect, selectedCourse, planData,
             {selectedCount}/{stats.total}
           </div>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
-          Choose {stats.total} from {stats.available} available options
-        </p>
       </div>
       <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">

@@ -504,10 +504,10 @@ export const getWarningColor = (type) => {
 // Define the order of course types
 const courseTypeOrder = {
   'Required Academic': 1,
-  'Required Non-Academic': 2,
-  'GE Elective': 3,
-  'Elective': 4,
-  'Major': 5
+  'GE Elective': 2,
+  'Elective': 3,
+  'Major': 4,
+  'Required Non-Academic': 5
 };
 
 export function sortCourses(courses) {

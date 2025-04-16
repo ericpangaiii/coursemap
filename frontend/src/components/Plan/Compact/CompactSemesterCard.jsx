@@ -52,7 +52,7 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
 
   return (
     <>
-      <Card className={`w-full ${isMidyear ? 'h-[160px]' : 'h-[380px]'} flex flex-col`}>
+      <Card className={`w-full ${isMidyear ? 'h-[160px]' : 'h-[420px]'} flex flex-col`}>
         <CardHeader className="py-2 px-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-300">
@@ -68,7 +68,7 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className={`px-2 pt-2 pb-0 flex-1 flex flex-col ${isMidyear ? 'max-h-[100px]' : 'max-h-[320px]'}`}>
+        <CardContent className={`px-2 pt-2 pb-0 flex-1 flex flex-col ${isMidyear ? 'max-h-[100px]' : 'max-h-[360px]'}`}>
           <div className="flex-1 overflow-y-auto">
             {coursesState.length > 0 ? (
               <div className="space-y-1.5">

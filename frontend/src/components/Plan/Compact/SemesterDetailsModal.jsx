@@ -19,6 +19,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, computeSemesterGWA, getCourseTypeName, getScholarshipEligibility, sortCourses, isSemesterOverloaded, isSemesterUnderloaded, getSemesterName } from "@/lib/utils";
 import { AlertTriangle, Award, BookOpen, Calendar, Check, ChevronDown, Filter, SearchX, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { gradeToastFunctions } from "@/lib/toast";
 
 const formatOrdinal = (n) => {
   const s = ["th", "st", "nd", "rd"];
@@ -37,15 +38,24 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
   }, [courses]);
 
   const handleGradeChange = async (courseId, newGrade) => {
-    // Update the grade in the local state
-    const updatedCourses = coursesState.map(course => 
-      course.course_id === courseId ? { ...course, grade: newGrade } : course
-    );
-    setCourses(updatedCourses);
-    
-    // Pass the grade change up to the parent
-    if (onGradeChange) {
-      onGradeChange(courseId, newGrade);
+    try {
+      // Update the grade in the local state
+      const updatedCourses = coursesState.map(course => 
+        course.course_id === courseId ? { ...course, grade: newGrade } : course
+      );
+      setCourses(updatedCourses);
+      
+      // Pass the grade change up to the parent
+      if (onGradeChange) {
+        await onGradeChange(courseId, newGrade);
+      }
+      
+      // Show success toast
+      gradeToastFunctions.updateSuccess();
+    } catch (error) {
+      console.error("Error updating grade:", error);
+      // Show error toast
+      gradeToastFunctions.updateError();
     }
   };
 

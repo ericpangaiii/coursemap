@@ -9,6 +9,8 @@ import AppLayout from './components/AppLayout';
 import { useAuth } from './context/AuthContext';
 import { LoadingSpinner } from "@/components/ui/loading";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { Toaster } from 'react-hot-toast';
+import { toasterConfig } from './lib/toast-styles';
 
 const App = () => {
   const { loading } = useAuth();
@@ -18,7 +20,8 @@ const App = () => {
   }
 
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <Toaster {...toasterConfig} />
       <Router>
         <Routes>
           <Route element={<AppLayout />}>

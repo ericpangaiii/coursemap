@@ -188,6 +188,9 @@ export const getAllCourses = async (req, res) => {
           WHEN cc.course_type = 'ELECTIVE' THEN 'Elective'
           WHEN cc.course_type = 'CORE' THEN 'Core'
           WHEN cc.course_type = 'MAJOR' THEN 'Major'
+          WHEN cc.course_type = 'COGNATE' THEN 'Cognate'
+          WHEN cc.course_type = 'SPECIALIZED' THEN 'Specialized'
+          WHEN cc.course_type = 'FOUNDATION' THEN 'Foundation'
           WHEN c.title LIKE '(GE)%' THEN 'GE Elective'
           ELSE 'Elective'
         END AS course_type

@@ -135,11 +135,8 @@ const SummaryStep = ({ planData }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-shrink-0 mb-6">
+      <div className="flex-shrink-0">
         <h3 className="text-lg font-semibold">Plan Summary</h3>
-        <p className="text-sm text-gray-500 mt-1">
-          Review your course selections before finalizing your plan.
-        </p>
       </div>
       
       {/* Simple button toggle instead of dropdown */}
@@ -157,17 +154,17 @@ const SummaryStep = ({ planData }) => {
       
       {/* Summary Table Card - By Course Type */}
       {viewMode === "by-type" && (
-        <Card className="p-4 mb-6 border border-gray-200">
+        <Card className="p-2 mb-6 border border-gray-200">
           <ScrollArea className="h-[280px]">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[300px]">Course Type</TableHead>
-                  <TableHead className="text-center w-[100px]">Courses</TableHead>
-                  <TableHead className="text-center w-[100px]">Units</TableHead>
+                  <TableHead className="w-[300px] text-xs">Course Type</TableHead>
+                  <TableHead className="text-center w-[100px] text-xs">Courses</TableHead>
+                  <TableHead className="text-center w-[100px] text-xs">Units</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody className="text-sm">
+              <TableBody className="text-xs">
                 {/* Academic courses - only show types that have courses */}
                 {activeTypeEntries.map(([type, { count, units }]) => (
                   <TableRow key={type}>
@@ -210,17 +207,17 @@ const SummaryStep = ({ planData }) => {
       
       {/* Semester breakdown for a more detailed view */}
       {viewMode === "by-semester" && (
-        <Card className="p-4 mb-6 border border-gray-200">
+        <Card className="p-2 mb-6 border border-gray-200">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Year</TableHead>
-                <TableHead>Semester</TableHead>
-                <TableHead className="text-center">Courses</TableHead>
-                <TableHead className="text-center">Units</TableHead>
+                <TableHead className="text-xs">Year</TableHead>
+                <TableHead className="text-xs">Semester</TableHead>
+                <TableHead className="text-center text-xs">Courses</TableHead>
+                <TableHead className="text-center text-xs">Units</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody className="text-sm">
+            <TableBody className="text-xs">
               {/* Group semesters by year */}
               {Object.keys(semesterBreakdown).sort().map(year => {
                 const yearText = year === "1" ? "1st Year" : year === "2" ? "2nd Year" : year === "3" ? "3rd Year" : `${year}th Year`;
@@ -271,17 +268,11 @@ const SummaryStep = ({ planData }) => {
           onClick={() => setWarningsExpanded(!warningsExpanded)}
         >
           <div className="flex items-center gap-2">
-            {warnings.length > 0 ? (
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            ) : (
-              <Check className="h-4 w-4 text-green-500" />
-            )}
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
             <h3 className="text-sm font-medium">Warnings</h3>
-            {warnings.length > 0 && (
-              <div className="bg-yellow-100 text-yellow-700 rounded-full w-5 h-5 flex items-center justify-center text-xs font-medium">
-                {warnings.length}
-              </div>
-            )}
+            <div className={`${warnings.length > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'} rounded-md w-5 h-5 flex items-center justify-center text-xs font-medium`}>
+              {warnings.length}
+            </div>
           </div>
           <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${warningsExpanded ? 'rotate-180' : 'rotate-0'}`} />
         </div>
@@ -298,7 +289,7 @@ const SummaryStep = ({ planData }) => {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-green-700">No issues detected with your current plan.</p>
+              <p className="text-xs text-gray-700">No issues detected with your current plan.</p>
             )}
           </div>
         )}

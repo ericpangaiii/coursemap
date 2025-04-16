@@ -5,7 +5,7 @@
 @tailwind utilities;
 
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -17,6 +17,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Toast colors - Light mode */
+  --success-bg: #059669;
+  --success-text: #fff;
+  --error-bg: #dc2626;
+  --error-text: #fff;
+  --loading-bg: #2563eb;
+  --loading-text: #fff;
 }
 
 a {
@@ -162,6 +170,14 @@ button:focus-visible {
     --course-item-active: 220 10% 30%;
     --pdf-preview-hover: 220 10% 25%;
     --pdf-preview-active: 220 10% 30%;
+
+    /* Toast colors - Dark mode */
+    --success-bg: #065f46;
+    --success-text: #fff;
+    --error-bg: #991b1b;
+    --error-text: #fff;
+    --loading-bg: #1e40af;
+    --loading-text: #fff;
   }
   * {
     @apply border-border;

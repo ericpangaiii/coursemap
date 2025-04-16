@@ -229,7 +229,7 @@ const CoursesPage = () => {
           <PageHeader title="Course Catalog" />
           
           {/* Main Content Card */}
-          <Card className="mb-6">
+          <Card className="mb-6 w-full max-w-[1300px]">
             <CardContent className="p-6">
               {/* Tabs */}
               <div className="flex space-x-1 mb-6 border-b">
@@ -599,7 +599,7 @@ const CoursesPage = () => {
           </Card>
 
           {/* Course List Card */}
-          <Card className="mb-6 w-full max-w-[1200px]">
+          <Card className="mb-6 w-full max-w-[1300px]">
             <CardHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
@@ -867,7 +867,7 @@ const CoursesPage = () => {
                             </DropdownMenu>
                           </th>
                         )}
-                        <th className={`text-left py-2 px-2 w-24 ${
+                        <th className={`text-left py-2 px-2 w-32 ${
                           sortConfig.key === 'units' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                         } rounded-md`}>
                           <DropdownMenu>

@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { authAPI } from "@/lib/api";
 import { APP_NAME } from "@/lib/config";
+import { authToastFunctions } from "@/lib/toast";
 
 const SignInPage = () => {
   const handleGoogleSignIn = () => {
@@ -10,6 +11,7 @@ const SignInPage = () => {
       window.location.href = authAPI.getGoogleAuthUrl();
     } catch (error) {
       console.error('Failed to connect to authentication service:', error);
+      authToastFunctions.signInError();
     }
   };
 

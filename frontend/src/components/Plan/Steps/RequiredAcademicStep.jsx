@@ -143,9 +143,6 @@ const RequiredAcademicStep = ({
             Auto Assign
           </Button>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
-          {stats.total} required academic courses
-        </p>
       </div>
       <div className="flex-1 min-h-0 overflow-hidden">
         <ScrollArea className="h-full">

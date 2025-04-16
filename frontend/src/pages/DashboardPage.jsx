@@ -43,6 +43,72 @@ const DashboardPage = () => {
     });
   };
 
+  // Function to fetch and organize plan data
+  const fetchAndOrganizePlanData = async () => {
+    try {
+      // Fetch plan data
+      const planData = await plansAPI.getCurrentPlan();
+
+      // Organize courses by year and semester
+      const organized = {};
+      if (planData?.courses) {
+        // Get all course IDs to fetch descriptions
+        const courseIds = planData.courses.map(course => course.course_id);
+        
+        // Fetch course details including descriptions
+        const courseDetailsResponse = await coursesAPI.getCoursesByIds(courseIds);
+        
+        // Create a map of course_id to course details
+        const courseDetailsMap = {};
+        if (courseDetailsResponse.success && courseDetailsResponse.data) {
+          courseDetailsResponse.data.forEach(course => {
+            courseDetailsMap[course.course_id] = course;
+          });
+        }
+        
+        // Organize courses with their descriptions
+        planData.courses.forEach(course => {
+          const year = course.year;
+          const sem = course.sem;
+          
+          if (!organized[year]) {
+            organized[year] = {};
+          }
+          
+          if (!organized[year][sem]) {
+            organized[year][sem] = [];
+          }
+          
+          // Merge course details with plan course data
+          const courseWithDetails = {
+            ...course,
+            description: courseDetailsMap[course.course_id]?.description || course.description,
+            title: courseDetailsMap[course.course_id]?.title || course.title,
+            units: courseDetailsMap[course.course_id]?.units || course.units,
+            is_academic: courseDetailsMap[course.course_id]?.is_academic,
+            course_type: course.course_type,
+            status: course.status || 'planned',
+            grade: course.grade || null
+          };
+          
+          // Check if this course is already in the semester
+          const isDuplicate = organized[year][sem].some(
+            existingCourse => existingCourse.course_id === course.course_id
+          );
+          
+          if (!isDuplicate) {
+            organized[year][sem].push(courseWithDetails);
+          }
+        });
+      }
+      setOrganizedCourses(organized);
+      // Calculate initial CWA
+      setCurrentCWA(computeCumulativeGWA(organized));
+    } catch (error) {
+      console.error("Error fetching plan data:", error);
+    }
+  };
+
   useEffect(() => {
     // Set default loading state
     setLoading(true);
@@ -66,64 +132,8 @@ const DashboardPage = () => {
           }
         }
 
-        // Fetch plan data
-        const planData = await plansAPI.getCurrentPlan();
-
-        // Organize courses by year and semester
-        const organized = {};
-        if (planData?.courses) {
-          // Get all course IDs to fetch descriptions
-          const courseIds = planData.courses.map(course => course.course_id);
-          
-          // Fetch course details including descriptions
-          const courseDetailsResponse = await coursesAPI.getCoursesByIds(courseIds);
-          
-          // Create a map of course_id to course details
-          const courseDetailsMap = {};
-          if (courseDetailsResponse.success && courseDetailsResponse.data) {
-            courseDetailsResponse.data.forEach(course => {
-              courseDetailsMap[course.course_id] = course;
-            });
-          }
-          
-          // Organize courses with their descriptions
-          planData.courses.forEach(course => {
-            const year = course.year;
-            const sem = course.sem;
-            
-            if (!organized[year]) {
-              organized[year] = {};
-            }
-            
-            if (!organized[year][sem]) {
-              organized[year][sem] = [];
-            }
-            
-            // Merge course details with plan course data
-            const courseWithDetails = {
-              ...course,
-              description: courseDetailsMap[course.course_id]?.description || course.description,
-              title: courseDetailsMap[course.course_id]?.title || course.title,
-              units: courseDetailsMap[course.course_id]?.units || course.units,
-              is_academic: courseDetailsMap[course.course_id]?.is_academic,
-              course_type: course.course_type,
-              status: course.status || 'planned',
-              grade: course.grade || null
-            };
-            
-            // Check if this course is already in the semester
-            const isDuplicate = organized[year][sem].some(
-              existingCourse => existingCourse.course_id === course.course_id
-            );
-            
-            if (!isDuplicate) {
-              organized[year][sem].push(courseWithDetails);
-            }
-          });
-        }
-        setOrganizedCourses(organized);
-        // Calculate initial CWA
-        setCurrentCWA(computeCumulativeGWA(organized));
+        // Fetch and organize plan data
+        await fetchAndOrganizePlanData();
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -219,7 +229,9 @@ const DashboardPage = () => {
                 <div className="w-[70%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course Completion</div>
                   <div className="flex justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{completedCourses} of {totalRequired} courses</span>
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses} of ${totalRequired} courses`}
+                    </span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
                     <div 
@@ -233,7 +245,7 @@ const DashboardPage = () => {
                 <div className="w-[30%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Running CWA</div>
                   <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                    {currentCWA?.toFixed(2) || 'N/A'}
+                    {currentCWA?.toFixed(2) || '0.00'}
                   </div>
                 </div>
               </div>
@@ -241,10 +253,12 @@ const DashboardPage = () => {
           </Card>
         </div>
 
-        {/* Plan of Coursework */}
+        {/* Plan View */}
         <CompactPlanView 
-          organizedCourses={organizedCourses} 
+          organizedCourses={organizedCourses}
+          onOrganizedCoursesChange={setOrganizedCourses}
           onGradeChange={handleGradeChange}
+          onPlanCreated={fetchAndOrganizePlanData}
         />
       </div>
     </div>

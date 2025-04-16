@@ -10,15 +10,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { FileDown, FileText, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CompactYearCard from "./Compact/CompactYearCard";
 
-const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeChange }) => {
+const CompactPlanView = ({ organizedCourses, onGradeChange, onPlanCreated }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isPDFPreviewOpen, setIsPDFPreviewOpen] = useState(false);
+  const [localOrganizedCourses, setLocalOrganizedCourses] = useState(organizedCourses);
+  
+  // Watch for changes in organizedCourses prop
+  useEffect(() => {
+    setLocalOrganizedCourses(organizedCourses);
+  }, [organizedCourses]);
   
   // Check if plan has courses
-  const hasCourses = Object.values(organizedCourses).some(
+  const hasCourses = Object.values(localOrganizedCourses).some(
     semesters => Object.values(semesters).some(courses => courses.length > 0)
   );
 
@@ -54,8 +60,13 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeCh
           <div className="flex gap-2">
             <Button 
               size="sm" 
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+              className={`flex items-center gap-1.5 ${
+                hasCourses 
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white text-sm' 
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
               onClick={handleExportClick}
+              disabled={!hasCourses}
             >
               <FileDown className="h-4 w-4" />
               Export as PDF
@@ -74,9 +85,9 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeCh
         </div>
       </CardHeader>
       <CardContent className="p-4">
-        {Object.keys(organizedCourses).length > 0 ? (
+        {Object.keys(localOrganizedCourses).length > 0 ? (
           <div className="grid grid-cols-4 gap-4">
-            {Object.entries(organizedCourses).map(([year, semesters]) => (
+            {Object.entries(localOrganizedCourses).map(([year, semesters]) => (
               <CompactYearCard 
                 key={year}
                 year={parseInt(year)}
@@ -88,7 +99,7 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeCh
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
             <FileText className="h-12 w-12 mb-3" />
-            <p className="text-sm font-medium">No courses planned yet</p>
+            <p className="text-sm font-medium">No courses in plan yet</p>
             <p className="text-sm">Click "Create Plan" to get started</p>
           </div>
         )}
@@ -96,32 +107,14 @@ const CompactPlanView = ({ organizedCourses, onOrganizedCoursesChange, onGradeCh
       <PlanCreationModal 
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        onPlanCreated={(newPlan) => {
-          // Reorganize courses after plan update
-          const organized = {};
-          if (newPlan?.courses) {
-            newPlan.courses.forEach(course => {
-              const year = course.year;
-              const sem = course.sem;
-              
-              if (!organized[year]) {
-                organized[year] = {};
-              }
-              
-              if (!organized[year][sem]) {
-                organized[year][sem] = [];
-              }
-              
-              organized[year][sem].push(course);
-            });
-          }
-          // Update the parent component's organizedCourses through the prop
-          if (onOrganizedCoursesChange) {
-            onOrganizedCoursesChange(organized);
+        onPlanCreated={async (newPlan) => {
+          // Call the parent's onPlanCreated callback to fetch fresh data
+          if (onPlanCreated) {
+            await onPlanCreated(newPlan);
           }
         }}
         isEditMode={hasCourses}
-        existingPlan={organizedCourses}
+        existingPlan={localOrganizedCourses}
         loadingSpinner={<LoadingSpinner />}
       />
       <PDFPreviewModal
