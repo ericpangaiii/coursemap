@@ -26,35 +26,35 @@ export const toasterConfig = {
     // Type-specific styles
     success: {
       style: {
-        background: 'var(--success-bg)',
-        color: 'var(--success-text)',
+        background: 'rgb(220 252 231)', // bg-green-100
+        color: 'rgb(22 163 74)', // text-green-600
         fontFamily: "'Poppins', sans-serif",
       },
       iconTheme: {
-        primary: 'var(--success-text)',
-        secondary: 'var(--success-bg)',
+        primary: 'rgb(22 163 74)', // text-green-600
+        secondary: 'rgb(220 252 231)', // bg-green-100
       },
     },
     error: {
       style: {
-        background: 'var(--error-bg)',
-        color: 'var(--error-text)',
+        background: 'rgb(254 226 226)', // bg-red-100
+        color: 'rgb(220 38 38)', // text-red-600
         fontFamily: "'Poppins', sans-serif",
       },
       iconTheme: {
-        primary: 'var(--error-text)',
-        secondary: 'var(--error-bg)',
+        primary: 'rgb(220 38 38)', // text-red-600
+        secondary: 'rgb(254 226 226)', // bg-red-100
       },
     },
     loading: {
       style: {
-        background: 'var(--loading-bg)',
-        color: 'var(--loading-text)',
+        background: 'rgb(241 245 249)', // bg-slate-100
+        color: 'rgb(71 85 105)', // text-slate-600
         fontFamily: "'Poppins', sans-serif",
       },
       iconTheme: {
-        primary: 'var(--loading-text)',
-        secondary: 'var(--loading-bg)',
+        primary: 'rgb(71 85 105)', // text-slate-600
+        secondary: 'rgb(241 245 249)', // bg-slate-100
       },
     },
   },

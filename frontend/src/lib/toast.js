@@ -1,5 +1,5 @@
 import toast from 'react-hot-toast';
-import { authToasts, programToasts, courseToasts, planToasts, gradeToasts } from './toast-messages';
+import { authToasts, programToasts, courseToasts, planToasts, gradeToasts, themeToasts } from './toast-messages';
 
 // Toast functions
 export const showSuccessToast = (message) => {
@@ -48,4 +48,10 @@ export const gradeToastFunctions = {
   updateSuccess: () => showSuccessToast(gradeToasts.updateSuccess),
   updateError: () => showErrorToast(gradeToasts.updateError),
   updateLoading: () => showLoadingToast(gradeToasts.updateLoading),
+};
+
+// Theme-related toast functions
+export const themeToastFunctions = {
+  lightMode: () => showSuccessToast(themeToasts.lightMode),
+  darkMode: () => showSuccessToast(themeToasts.darkMode),
 }; 

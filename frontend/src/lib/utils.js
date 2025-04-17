@@ -567,9 +567,9 @@ export const getGradeBadgeColor = (grade) => {
 export const computeSemesterGWA = (courses) => {
   // Filter out non-academic courses and courses without grades
   const academicCourses = courses.filter(course => 
-    course.is_academic && 
+    course.course_type !== 'Required Non-Academic' && 
     course.grade && 
-    !['5', 'INC', 'DRP'].includes(course.grade)
+    !['5.00', 'INC', 'DRP'].includes(course.grade)
   );
 
   if (academicCourses.length === 0) return null;
@@ -618,9 +618,9 @@ export const computeCumulativeGWA = (organizedCourses) => {
 
   // Filter out non-academic courses and courses without grades
   const academicCourses = allCourses.filter(course => 
-    course.is_academic && 
+    course.course_type !== 'Required Non-Academic' && 
     course.grade && 
-    !['5', 'INC', 'DRP'].includes(course.grade)
+    !['5.00', 'INC', 'DRP'].includes(course.grade)
   );
 
   if (academicCourses.length === 0) return null;

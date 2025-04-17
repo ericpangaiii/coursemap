@@ -18,14 +18,14 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
   // Determine if this is a midyear semester (semester 3)
   const isMidyear = semester === 3;
 
-  // Calculate academic units (excluding required_non_academic and DRP courses)
+  // Calculate academic units (excluding Required Non-Academic and DRP courses)
   const academicUnits = courses.reduce((total, course) => {
     // Skip if course is dropped (DRP) and not required non-academic
-    if (course.grade === 'DRP' && course.course_type !== 'required_non_academic') {
+    if (course.grade === 'DRP' && course.course_type !== 'Required Non-Academic') {
       return total;
     }
     // Only count academic courses' units
-    if (course.is_academic && !course._isCurriculumCourse) {
+    if (course.course_type !== 'Required Non-Academic' && !course._isCurriculumCourse) {
       return total + (parseInt(course.units) || 0);
     }
     return total;
@@ -77,7 +77,7 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
                     key={course.course_id}
                     className="text-xs px-2 py-1.5 rounded bg-gray-50 dark:bg-[hsl(220,10%,15%)] flex items-center justify-between relative overflow-hidden hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)] active:bg-gray-200 dark:active:bg-[hsl(220,10%,30%)]"
                   >
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${!course.is_academic ? 'bg-blue-300' : getCourseTypeColor(course.course_type)}`} />
+                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${getCourseTypeColor(course.course_type)}`} />
                     <div className="flex items-center justify-between w-full">
                       <span className="font-medium ml-1.5 text-gray-900 dark:text-gray-100">{course.course_code}</span>
                       <div className="flex items-center gap-1.5">

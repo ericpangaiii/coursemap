@@ -185,7 +185,8 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
       const status = newGrade && newGrade !== "" && !['INC', 'DRP'].includes(newGrade) ? 'completed' : 'planned';
       const response = await coursesAPI.updateCourse(course.course_id, { 
         grade: newGrade,
-        status: status
+        status: status,
+        plan_course_id: course.id
       });
       if (response.success) {
         setGrade(newGrade);

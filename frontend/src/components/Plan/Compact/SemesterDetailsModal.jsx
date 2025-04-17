@@ -73,7 +73,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
     const units = Number(course.units || 0);
     courseTypeStats[type].total += units;
     // Course is completed if it has a grade that is not 5, INC, or DRP
-    if (course.grade && !['5', 'INC', 'DRP'].includes(course.grade)) {
+    if (course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) {
       courseTypeStats[type].completed += units;
     } else {
       courseTypeStats[type].planned += units;
@@ -361,11 +361,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                   <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
                     Warnings
                   </CardTitle>
-                  <div className={`w-5 h-5 flex items-center justify-center text-xs font-medium rounded ${
-                    warnings.length > 0 
-                      ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' 
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400'
-                  }`}>
+                  <div className={`${warnings.length > 0 ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'} rounded-md w-5 h-5 flex items-center justify-center text-xs font-medium`}>
                     {warnings.length}
                   </div>
                 </div>

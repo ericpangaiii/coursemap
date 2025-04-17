@@ -1,20 +1,20 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { 
-  Sidebar as ShadcnSidebar, 
+import {
+  Sidebar as ShadcnSidebar,
   SidebarContent,
-  SidebarHeader,
   SidebarFooter,
-  SidebarTrigger,
-  useSidebar,
+  SidebarHeader,
+  useSidebar
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/context/AuthContext";
+import { programsAPI } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import { BarChart2, BookOpen, Home, LogOut, Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { programsAPI } from "@/lib/api";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "./ThemeProvider";
+import { themeToastFunctions } from "@/lib/toast";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -62,6 +62,15 @@ const Sidebar = () => {
   const handleLogout = async () => {
     await logout();
     navigate('/sign-in');
+  };
+
+  const handleThemeToggle = () => {
+    toggleTheme();
+    if (theme === "light") {
+      themeToastFunctions.darkMode();
+    } else {
+      themeToastFunctions.lightMode();
+    }
   };
 
   return (
@@ -149,7 +158,7 @@ const Sidebar = () => {
                 "h-10 w-10 hover:bg-accent/50 dark:hover:bg-[hsl(220,10%,20%)]",
                 state === "collapsed" ? "mt-0" : ""
               )}
-              onClick={toggleTheme}
+              onClick={handleThemeToggle}
             >
               {theme === "light" ? (
                 <Moon className="h-4 w-4" />

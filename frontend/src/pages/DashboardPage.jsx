@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { AlertCircle } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { programsAPI, curriculumsAPI, plansAPI, coursesAPI } from "@/lib/api";
+import { programsAPI, curriculumsAPI, plansAPI } from "@/lib/api";
 import CompactPlanView from "@/components/Plan/CompactPlanView";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { computeCumulativeGWA } from "@/lib/utils";
@@ -52,21 +52,6 @@ const DashboardPage = () => {
       // Organize courses by year and semester
       const organized = {};
       if (planData?.courses) {
-        // Get all course IDs to fetch descriptions
-        const courseIds = planData.courses.map(course => course.course_id);
-        
-        // Fetch course details including descriptions
-        const courseDetailsResponse = await coursesAPI.getCoursesByIds(courseIds);
-        
-        // Create a map of course_id to course details
-        const courseDetailsMap = {};
-        if (courseDetailsResponse.success && courseDetailsResponse.data) {
-          courseDetailsResponse.data.forEach(course => {
-            courseDetailsMap[course.course_id] = course;
-          });
-        }
-        
-        // Organize courses with their descriptions
         planData.courses.forEach(course => {
           const year = course.year;
           const sem = course.sem;
@@ -79,26 +64,8 @@ const DashboardPage = () => {
             organized[year][sem] = [];
           }
           
-          // Merge course details with plan course data
-          const courseWithDetails = {
-            ...course,
-            description: courseDetailsMap[course.course_id]?.description || course.description,
-            title: courseDetailsMap[course.course_id]?.title || course.title,
-            units: courseDetailsMap[course.course_id]?.units || course.units,
-            is_academic: courseDetailsMap[course.course_id]?.is_academic,
-            course_type: course.course_type,
-            status: course.status || 'planned',
-            grade: course.grade || null
-          };
-          
-          // Check if this course is already in the semester
-          const isDuplicate = organized[year][sem].some(
-            existingCourse => existingCourse.course_id === course.course_id
-          );
-          
-          if (!isDuplicate) {
-            organized[year][sem].push(courseWithDetails);
-          }
+          // Add the course to the organized structure
+          organized[year][sem].push(course);
         });
       }
       setOrganizedCourses(organized);
@@ -167,7 +134,7 @@ const DashboardPage = () => {
     Object.values(organizedCourses).forEach(year => {
       Object.values(year).forEach(semester => {
         semester.forEach(course => {
-          if (course.grade && !['5', 'INC', 'DRP'].includes(course.grade)) {
+          if (course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) {
             completed++;
           }
         });

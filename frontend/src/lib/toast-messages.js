@@ -32,4 +32,10 @@ export const gradeToasts = {
   updateSuccess: 'Grade updated successfully!',
   updateError: 'Failed to update grade. Please try again.',
   updateLoading: 'Updating grade...',
+};
+
+// Theme-related toast messages
+export const themeToasts = {
+  lightMode: 'Switched to light mode',
+  darkMode: 'Switched to dark mode',
 }; 
