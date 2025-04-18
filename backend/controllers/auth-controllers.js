@@ -118,8 +118,15 @@ export const googleCallback = (req, res, next) => {
       // Check if user has a program_id
       const isNewUserWithoutProgram = !user.program_id;
       
-      // Redirect new users without program to degree selection page, others to dashboard
-      const redirectPath = isNewUserWithoutProgram ? 'degree-select' : 'dashboard';
+      // Redirect based on user role and program status
+      let redirectPath;
+      if (user.role === 'admin') {
+        redirectPath = 'admin';
+      } else if (isNewUserWithoutProgram) {
+        redirectPath = 'degree-select';
+      } else {
+        redirectPath = 'dashboard';
+      }
       
       return res.redirect(
         process.env.NODE_ENV === 'production'
@@ -222,7 +229,8 @@ export const getAuthStatus = (req, res) => {
         email: req.user.email,
         photo: req.user.photo || '',
         program_id: req.user.program_id || null,
-        curriculum_id: req.user.curriculum_id || null
+        curriculum_id: req.user.curriculum_id || null,
+        role: req.user.role || 'user'
       }
     });
   }

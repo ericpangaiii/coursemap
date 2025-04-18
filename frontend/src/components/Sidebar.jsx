@@ -8,45 +8,31 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { programsAPI } from "@/lib/api";
+import { themeToastFunctions } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { BarChart2, BookOpen, Home, LogOut, Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BarChart2, BookOpen, FileText, Home, LogOut, Moon, Settings, Sun, Users } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "./ThemeProvider";
-import { themeToastFunctions } from "@/lib/toast";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
-  const [programTitle, setProgramTitle] = useState("Not assigned");
   const { theme, toggleTheme } = useTheme();
-  
-  // Fetch program details
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        if (user?.program_id) {
-          const programData = await programsAPI.getProgramById(user.program_id);
-          if (programData && programData.title) {
-            setProgramTitle(programData.title);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching program details:", error);
-      }
-    };
-
-    fetchDetails();
-  }, [user?.program_id]);
   
   // Navigation items with icons
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: Home },
     { name: "Progress", path: "/progress", icon: BarChart2 },
     { name: "Courses", path: "/courses", icon: BookOpen },
+  ];
+
+  // Admin navigation items
+  const adminNavItems = [
+    { name: "Dashboard", path: "/admin", icon: Settings },
+    { name: "Users", path: "/admin/users", icon: Users },
+    { name: "Plans", path: "/admin/plans", icon: FileText },
   ];
 
   // Helper to get initials from name
@@ -98,9 +84,6 @@ const Sidebar = () => {
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email || ""}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-gray-500 dark:text-gray-400">{programTitle}</p>
-              </div>
             </>
           )}
         </SidebarHeader>
@@ -114,7 +97,26 @@ const Sidebar = () => {
               </h2>
             )}
             <div className="space-y-1">
-              {navItems.map((item) => (
+              {/* Show regular navigation only for non-admin users */}
+              {user?.role !== 'admin' && navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors",
+                    state === "collapsed" ? "justify-center px-2 w-10" : "mx-3",
+                    location.pathname === item.path
+                      ? "bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100"
+                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,20%)] hover:text-gray-900 dark:hover:text-gray-100"
+                  )}
+                >
+                  <item.icon className={cn("h-5 w-5 flex-shrink-0", state === "expanded" ? "mr-2" : "")} />
+                  {state === "expanded" && <span>{item.name}</span>}
+                </Link>
+              ))}
+
+              {/* Admin Navigation */}
+              {user?.role === 'admin' && adminNavItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

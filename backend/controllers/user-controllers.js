@@ -3,6 +3,11 @@ import pool from '../database/index.js';
 // Get all users
 export const getAllUsers = async (req, res) => {
   try {
+    // Check if the requesting user is an admin
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
     const result = await pool.query(`
       SELECT u.*, p.title as program_title 
       FROM users u
@@ -59,17 +64,23 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, photo, program_id } = req.body;
-    
+    const { role } = req.body;
+
+    // Check if the requesting user is an admin
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    // Update the user's role
     const result = await pool.query(
-      'UPDATE users SET name = $1, email = $2, photo = $3, program_id = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
-      [name, email, photo, program_id, id]
+      'UPDATE users SET role = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [role, id]
     );
-    
+
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
-    
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error('Error in updateUser:', error);

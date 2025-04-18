@@ -333,7 +333,28 @@ export const plansAPI = {
       console.error('Error deleting plan course:', error);
       return null;
     }
-  }
+  },
+
+  // Get all plans for a user
+  getAllPlansByUserId: async (userId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/plans/user/${userId}/all`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return []; // No plans found
+        }
+        throw new Error('Failed to fetch plans');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      return [];
+    }
+  },
 };
 
 // Users API calls
@@ -341,7 +362,9 @@ export const usersAPI = {
   // Get all users
   getAllUsers: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users`);
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
+        credentials: 'include'
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch users');
@@ -357,7 +380,9 @@ export const usersAPI = {
   // Get user by ID
   getUserById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+        credentials: 'include'
+      });
       
       if (!response.ok) {
         throw new Error('Failed to fetch user');
@@ -366,6 +391,29 @@ export const usersAPI = {
       return await response.json();
     } catch (error) {
       console.error(`Error fetching user with ID ${id}:`, error);
+      return null;
+    }
+  },
+
+  // Update user
+  updateUser: async (id, updates) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(updates),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update user');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error(`Error updating user with ID ${id}:`, error);
       return null;
     }
   }

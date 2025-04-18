@@ -2,7 +2,7 @@ import { getAllPrograms, getProgramById, createProgram, updateProgram, deletePro
 import { getAllUsers, getUserById, createUser, updateUser } from './controllers/user-controllers.js';
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
 import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses } from './controllers/curriculum-controllers.js';
-import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan } from './controllers/plan-controllers.js';
+import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId } from './controllers/plan-controllers.js';
 import { getCoursesByIds, updateCourse, getAllCourses } from './controllers/course-controllers.js';
 
 const router = (app) => {
@@ -34,6 +34,8 @@ const router = (app) => {
     // Plan Routes
     app.get("/api/users/:userId/plan", getPlanByUserId);
     app.get("/api/my/plan", getCurrentUserPlan);
+    app.get("/plans/user/:userId", getPlanByUserId);
+    app.get("/plans/user/:userId/all", getAllPlansByUserId);
     app.post("/api/plans", createPlan);
     app.post("/api/plans/courses", addCourseToPlan);
     app.put("/api/plans/courses/:id", updatePlanCourse);

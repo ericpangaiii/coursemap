@@ -227,4 +227,43 @@ export const getCurrentUserPlan = async (req, res) => {
     console.error('Error in getCurrentUserPlan:', error);
     res.status(500).json({ error: "Failed to fetch plan" });
   }
+};
+
+// Get all plans for a user
+export const getAllPlansByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Get all plans for the user
+    const plansResult = await client.query(
+      'SELECT * FROM plans WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    
+    if (plansResult.rows.length === 0) {
+      return res.status(404).json({ error: "No plans found for this user" });
+    }
+    
+    // Get courses for each plan
+    const plansWithCourses = await Promise.all(plansResult.rows.map(async (plan) => {
+      const coursesResult = await client.query(
+        `SELECT pc.*, c.title, c.course_code, c.units 
+         FROM plan_courses pc 
+         JOIN courses c ON pc.course_id = c.course_id 
+         WHERE pc.plan_id = $1
+         ORDER BY pc.year, pc.sem`,
+        [plan.id]
+      );
+      
+      return {
+        ...plan,
+        courses: coursesResult.rows
+      };
+    }));
+    
+    res.json(plansWithCourses);
+  } catch (error) {
+    console.error('Error in getAllPlansByUserId:', error);
+    res.status(500).json({ error: "Failed to fetch plans" });
+  }
 }; 
