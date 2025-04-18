@@ -569,7 +569,7 @@ export const computeSemesterGWA = (courses) => {
   const academicCourses = courses.filter(course => 
     course.course_type !== 'Required Non-Academic' && 
     course.grade && 
-    !['5.00', 'INC', 'DRP'].includes(course.grade)
+    !['INC', 'DRP'].includes(course.grade)
   );
 
   if (academicCourses.length === 0) return null;
@@ -620,7 +620,7 @@ export const computeCumulativeGWA = (organizedCourses) => {
   const academicCourses = allCourses.filter(course => 
     course.course_type !== 'Required Non-Academic' && 
     course.grade && 
-    !['5.00', 'INC', 'DRP'].includes(course.grade)
+    !['INC', 'DRP'].includes(course.grade)
   );
 
   if (academicCourses.length === 0) return null;

@@ -4,7 +4,12 @@ import client from '../database/index.js';
 export const getAllPrograms = async (req, res) => {
   try {
     const result = await client.query(
-      'SELECT * FROM programs ORDER BY title ASC'
+      `SELECT * FROM programs 
+       WHERE college = $1 
+       AND is_visible = $2 
+       AND acronym NOT IN ($3, $4, $5, $6, $7, $8, $9)
+       ORDER BY title ASC`,
+      ['CAS', 'YES', 'CRCAS', 'DCS', 'DPE', 'NDCAS', 'SPCAS', 'EXCAS', 'AASS']
     );
     res.json(result.rows);
   } catch (error) {

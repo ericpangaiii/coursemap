@@ -37,16 +37,16 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
   // Calculate GWA
   const semesterGWA = computeSemesterGWA(coursesState);
 
-  const handleGradeChange = (courseId, newGrade) => {
+  const handleGradeChange = (planCourseId, newGrade) => {
     // Update the grade in the local state
     const updatedCourses = coursesState.map(course => 
-      course.course_id === courseId ? { ...course, grade: newGrade } : course
+      course.id === planCourseId ? { ...course, grade: newGrade } : course
     );
     setCourses(updatedCourses);
     
     // Pass the grade change up to the parent
     if (onGradeChange) {
-      onGradeChange(courseId, newGrade);
+      onGradeChange(planCourseId, newGrade);
     }
   };
 

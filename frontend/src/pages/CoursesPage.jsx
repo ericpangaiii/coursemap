@@ -13,9 +13,8 @@ import { LoadingSpinner } from "@/components/ui/loading";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { coursesAPI, plansAPI } from "@/lib/api";
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, Filter, SearchX, X, ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, ChevronDown, Filter, SearchX, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 
 const CoursesPage = () => {
   const [activeTab, setActiveTab] = useState("all"); // "all", "plan"

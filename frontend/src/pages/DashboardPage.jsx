@@ -19,7 +19,7 @@ const DashboardPage = () => {
   const [currentCWA, setCurrentCWA] = useState(null);
 
   // Add this function to handle grade updates
-  const handleGradeChange = (courseId, newGrade) => {
+  const handleGradeChange = (planCourseId, newGrade) => {
     setOrganizedCourses(prevCourses => {
       const updatedCourses = { ...prevCourses };
       
@@ -27,7 +27,7 @@ const DashboardPage = () => {
       Object.keys(updatedCourses).forEach(year => {
         Object.keys(updatedCourses[year]).forEach(sem => {
           updatedCourses[year][sem] = updatedCourses[year][sem].map(course => {
-            if (course.course_id === courseId) {
+            if (course.id === planCourseId) {
               return { ...course, grade: newGrade };
             }
             return course;
@@ -197,7 +197,7 @@ const DashboardPage = () => {
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course Completion</div>
                   <div className="flex justify-between mb-2">
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses} of ${totalRequired} courses`}
+                      {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses}/${totalRequired}`}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
@@ -211,7 +211,7 @@ const DashboardPage = () => {
                 {/* CWA Card - 40% width */}
                 <div className="w-[30%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Running CWA</div>
-                  <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
+                  <div className="text-4xl font-bold text-gray-700 dark:text-gray-300">
                     {currentCWA?.toFixed(2) || '0.00'}
                   </div>
                 </div>
@@ -222,7 +222,7 @@ const DashboardPage = () => {
 
         {/* Plan View */}
         <CompactPlanView 
-          organizedCourses={organizedCourses}
+          organizedCourses={organizedCourses} 
           onOrganizedCoursesChange={setOrganizedCourses}
           onGradeChange={handleGradeChange}
           onPlanCreated={fetchAndOrganizePlanData}

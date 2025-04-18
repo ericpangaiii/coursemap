@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { authAPI, programsAPI, curriculumsAPI } from '@/lib/api';
 import { APP_NAME } from '@/lib/config';
+import { LoadingSpinner } from '@/components/ui/loading';
+import { authToastFunctions } from '@/lib/toast';
 
 const DegreeSelectPage = () => {
   const [programs, setPrograms] = useState([]);
@@ -25,7 +27,7 @@ const DegreeSelectPage = () => {
     }
   }, [user, navigate]);
 
-  // Fetch programs from API
+  // Fetch CAS programs from API
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
@@ -34,6 +36,7 @@ const DegreeSelectPage = () => {
         setPrograms(data);
       } catch (err) {
         console.error('Error fetching programs:', err);
+        authToastFunctions.accountCreationError();
       } finally {
         setProgramLoading(false);
       }
@@ -60,6 +63,7 @@ const DegreeSelectPage = () => {
         }
       } catch (err) {
         console.error('Error fetching curriculums:', err);
+        authToastFunctions.accountCreationError();
       } finally {
         setCurriculumLoading(false);
       }
@@ -93,16 +97,32 @@ const DegreeSelectPage = () => {
           curriculum_id: selectedCurriculum
         });
         
-        navigate('/dashboard');
+        // Show success toast
+        authToastFunctions.accountCreated();
+        
+        // Navigate to dashboard after showing the toast
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       } else {
         console.error('Failed to update program:', data.error);
+        authToastFunctions.accountCreationError();
       }
     } catch (err) {
       console.error('Error updating program:', err);
+      authToastFunctions.accountCreationError();
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isProgramLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+        <LoadingSpinner fullPage />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
@@ -132,6 +152,9 @@ const DegreeSelectPage = () => {
             </Select>
             {isProgramLoading && (
               <p className="text-xs text-gray-500 mt-1">Loading available programs...</p>
+            )}
+            {!isProgramLoading && programs.length === 0 && (
+              <p className="text-xs text-red-500 mt-1">No programs available</p>
             )}
           </div>
 

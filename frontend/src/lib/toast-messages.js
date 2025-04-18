@@ -6,6 +6,9 @@ export const authToasts = {
   signOutSuccess: 'Successfully signed out!',
   signOutError: 'Failed to sign out. Please try again.',
   invalidEmail: 'Please use your UP Mail account to sign in.',
+  accountCreated: 'Account created successfully!',
+  accountCreationError: 'Failed to create account. Please try again.',
+  accountSetupComplete: 'Account setup complete! Welcome to your dashboard.',
 };
 
 // Program-related toast messages

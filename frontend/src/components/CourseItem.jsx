@@ -20,7 +20,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   
   // UP Grading System
   const gradeOptions = [
-    { value: "", label: "Not yet completed" },
+    { value: "", label: "No grade" },
     { value: "1.00", label: "1.00" },
     { value: "1.25", label: "1.25" },
     { value: "1.50", label: "1.50" },
@@ -190,7 +190,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
       });
       if (response.success) {
         setGrade(newGrade);
-        onGradeChange?.(course.course_id, newGrade);
+        onGradeChange?.(course.id, newGrade);
       } else {
         console.error('Failed to update grade:', response.error);
       }
@@ -247,7 +247,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                       variant="outline" 
                       className={`cursor-pointer hover:opacity-80 ${getGradeBadgeColor(grade)}`}
                     >
-                      {grade || "Not yet completed"}
+                      {grade || "No grade"}
                     </Badge>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-[100px] bg-white dark:bg-gray-800">

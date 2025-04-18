@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Expand, Search, SearchX, ChevronDown, CheckCircle2, Info, Filter, X } from "lucide-react";
-import { getCourseTypeName, getCourseTypeColor, getNormalizedCourseType } from "@/lib/utils";
+import { getCourseTypeName, getCourseTypeColor } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
@@ -105,24 +105,33 @@ const CourseTypeCard = ({ type, courses, stats }) => {
   return (
     <>
       <Card>
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
+        <CardHeader className="pt-2.5 pb-0 px-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className={`w-1 h-4 rounded ${typeColor}`}></div>
               <CardTitle className="text-sm font-medium">{typeName}</CardTitle>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-6 ml-0 px-2 text-xs text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              View All
+            </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="py-2.5 px-3">
+          <div className="space-y-3.5">
             {/* Progress bar */}
             <div>
-              <div className="flex justify-between mb-1">
+              <div className="flex justify-between mb-2 pr-1.5">
                 <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Completion</span>
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{stats.completed}/{stats.total}</span>
               </div>
               <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
                 <div 
-                  className={`h-2.5 rounded-full ${typeColor}`} 
+                  className="h-2.5 rounded-full bg-blue-600 dark:bg-blue-500" 
                   style={{ 
                     width: `${stats.percentage}%`,
                     transition: 'width 1s ease-in-out'
@@ -130,51 +139,6 @@ const CourseTypeCard = ({ type, courses, stats }) => {
                 ></div>
               </div>
             </div>
-            
-            {/* Course list */}
-              <div className="space-y-2">
-              {courses.length > 0 ? (
-                courses.slice(0, 5).map(course => (
-                  <div 
-                    key={course.course_id} 
-                    className="text-xs px-2 py-1.5 rounded bg-gray-50 dark:bg-[hsl(220,10%,15%)] flex items-center justify-between relative overflow-hidden"
-                  >
-                    <div 
-                      className={`absolute left-0 top-0 bottom-0 w-1 ${!course.is_academic ? 'bg-blue-300' : getCourseTypeColor(getNormalizedCourseType(course.course_type))}`}
-                    />
-                    <div className="flex-1 min-w-0 ml-1.5">
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium truncate text-gray-900 dark:text-gray-100">{course.course_code}</p>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-[10px] h-5 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-700 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)] ${!course.is_academic ? 'text-gray-500 dark:text-gray-400' : ''}`}
-                        >
-                          {course.units} units
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-3 text-center bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No courses found</p>
-                </div>
-              )}
-            </div>
-
-            {/* View all button */}
-            {courses.length > 5 && (
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-xs text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
-                  onClick={() => setIsDialogOpen(true)}
-                >
-                  View All
-                </Button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

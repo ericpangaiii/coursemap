@@ -22,6 +22,9 @@ export const authToastFunctions = {
   signOutSuccess: () => showSuccessToast(authToasts.signOutSuccess),
   signOutError: () => showErrorToast(authToasts.signOutError),
   invalidEmail: () => showErrorToast(authToasts.invalidEmail),
+  accountCreated: () => showSuccessToast(authToasts.accountCreated),
+  accountCreationError: () => showErrorToast(authToasts.accountCreationError),
+  accountSetupComplete: () => showSuccessToast(authToasts.accountSetupComplete),
 };
 
 // Program-related toast functions
