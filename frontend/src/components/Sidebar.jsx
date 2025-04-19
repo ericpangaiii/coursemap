@@ -30,7 +30,6 @@ const Sidebar = () => {
 
   // Admin navigation items
   const adminNavItems = [
-    { name: "Dashboard", path: "/admin", icon: Settings },
     { name: "Users", path: "/admin/users", icon: Users },
     { name: "Plans", path: "/admin/plans", icon: FileText },
   ];
@@ -74,7 +73,7 @@ const Sidebar = () => {
             </Avatar>
           ) : (
             <>
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 shrink-0">
                   <AvatarImage src={user?.photo} alt={user?.name} />
                   <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
@@ -98,7 +97,7 @@ const Sidebar = () => {
             )}
             <div className="space-y-1">
               {/* Show regular navigation only for non-admin users */}
-              {user?.role !== 'admin' && navItems.map((item) => (
+              {user?.role !== 'Admin' && navItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -116,7 +115,7 @@ const Sidebar = () => {
               ))}
 
               {/* Admin Navigation */}
-              {user?.role === 'admin' && adminNavItems.map((item) => (
+              {user?.role === 'Admin' && adminNavItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}

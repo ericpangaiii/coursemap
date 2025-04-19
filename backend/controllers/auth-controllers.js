@@ -120,7 +120,7 @@ export const googleCallback = (req, res, next) => {
       
       // Redirect based on user role and program status
       let redirectPath;
-      if (user.role === 'admin') {
+      if (user.role === 'Admin') {
         redirectPath = 'admin';
       } else if (isNewUserWithoutProgram) {
         redirectPath = 'degree-select';
@@ -230,7 +230,7 @@ export const getAuthStatus = (req, res) => {
         photo: req.user.photo || '',
         program_id: req.user.program_id || null,
         curriculum_id: req.user.curriculum_id || null,
-        role: req.user.role || 'user'
+        role: req.user.role || 'User'
       }
     });
   }

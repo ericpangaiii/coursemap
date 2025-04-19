@@ -212,6 +212,27 @@ export const curriculumsAPI = {
 
 // Plans API calls
 export const plansAPI = {
+  // Get all plans (admin only)
+  getAllPlans: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/plans`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Admin access required');
+        }
+        throw new Error('Failed to fetch plans');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      return [];
+    }
+  },
+
   // Get current user's plan
   getCurrentPlan: async () => {
     try {
@@ -396,27 +417,45 @@ export const usersAPI = {
   },
 
   // Update user
-  updateUser: async (id, updates) => {
+  updateUser: async (userId, userData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(updates),
+        body: JSON.stringify(userData),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update user');
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error(`Error updating user with ID ${id}:`, error);
+      console.error('Error updating user:', error);
       return null;
     }
-  }
+  },
+
+  deleteUser: async (userId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  },
 };
 
 // Course API calls

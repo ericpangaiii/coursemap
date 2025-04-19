@@ -1,9 +1,10 @@
 import { getAllPrograms, getProgramById, createProgram, updateProgram, deleteProgram } from './controllers/program-controllers.js';
-import { getAllUsers, getUserById, createUser, updateUser } from './controllers/user-controllers.js';
+import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './controllers/user-controllers.js';
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
 import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses } from './controllers/curriculum-controllers.js';
-import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId } from './controllers/plan-controllers.js';
+import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId, getAllPlans } from './controllers/plan-controllers.js';
 import { getCoursesByIds, updateCourse, getAllCourses } from './controllers/course-controllers.js';
+import { authMiddleware } from './middlewares/auth-middleware.js';
 
 const router = (app) => {
     app.get("/", (req, res) => {
@@ -22,6 +23,7 @@ const router = (app) => {
     app.get("/api/users/:id", getUserById);
     app.post("/api/users", createUser);
     app.put("/api/users/:id", updateUser);
+    app.delete("/api/users/:id", deleteUser);
 
     // Curriculum Routes
     app.get("/api/curriculums", getAllCurriculums);
@@ -36,6 +38,7 @@ const router = (app) => {
     app.get("/api/my/plan", getCurrentUserPlan);
     app.get("/plans/user/:userId", getPlanByUserId);
     app.get("/plans/user/:userId/all", getAllPlansByUserId);
+    app.get("/api/plans", getAllPlans);
     app.post("/api/plans", createPlan);
     app.post("/api/plans/courses", addCourseToPlan);
     app.put("/api/plans/courses/:id", updatePlanCourse);

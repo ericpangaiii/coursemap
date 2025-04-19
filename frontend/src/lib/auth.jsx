@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 // Hook to check if current user is an admin
 export const useIsAdmin = () => {
   const { user } = useAuth();
-  return user?.isAdmin || false;
+  return user?.isAdmin ? user : false;
 };
 
 // Higher-order component to protect admin routes

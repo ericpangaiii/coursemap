@@ -528,7 +528,6 @@ const ProgressPage = () => {
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex justify-between mb-2 pr-1.5">
-                          <span className="text-xs font-medium text-gray-900 dark:text-gray-100">Completion</span>
                           <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{completedCourses}/{totalRequired}</span>
                         </div>
                         <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">

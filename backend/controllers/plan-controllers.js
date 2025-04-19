@@ -266,4 +266,57 @@ export const getAllPlansByUserId = async (req, res) => {
     console.error('Error in getAllPlansByUserId:', error);
     res.status(500).json({ error: "Failed to fetch plans" });
   }
+};
+
+// Get all plans
+export const getAllPlans = async (req, res) => {
+  try {
+    // Check if the requesting user is an admin
+    if (!req.user || req.user.role !== 'Admin') {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    // Get all plans with user and curriculum information
+    const plansResult = await client.query(`
+      SELECT 
+        p.id,
+        p.created_at,
+        p.updated_at,
+        json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'email', u.email
+        ) as user,
+        json_build_object(
+          'id', c.curriculum_id,
+          'name', c.name,
+          'code', c.code
+        ) as curriculum,
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', pc.id,
+              'course_code', co.course_code,
+              'title', co.title,
+              'units', co.units,
+              'grade', pc.grade,
+              'year', pc.year,
+              'sem', pc.sem
+            )
+          )
+          FROM plan_courses pc
+          JOIN courses co ON pc.course_id = co.course_id
+          WHERE pc.plan_id = p.id
+        ) as courses
+      FROM plans p
+      JOIN users u ON p.user_id = u.id
+      JOIN curriculums c ON p.curriculum_id = c.curriculum_id
+      ORDER BY p.created_at DESC
+    `);
+    
+    res.json(plansResult.rows);
+  } catch (error) {
+    console.error('Error in getAllPlans:', error);
+    res.status(500).json({ error: "Failed to fetch plans" });
+  }
 }; 

@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
           console.log('AuthContext: User authenticated:', data.user);
           setUser({
             ...data.user,
-            isAdmin: data.user.role === 'admin'
+            isAdmin: data.user.role === 'Admin'
           });
           setAuthenticated(true);
         } else {
