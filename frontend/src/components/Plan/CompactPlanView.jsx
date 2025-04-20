@@ -13,10 +13,9 @@ import { FileDown, FileText, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import CompactYearCard from "./Compact/CompactYearCard";
 
-const CompactPlanView = ({ organizedCourses, onGradeChange, onPlanCreated }) => {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isPDFPreviewOpen, setIsPDFPreviewOpen] = useState(false);
+const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, hideExport = false, hideCard = false }) => {
   const [localOrganizedCourses, setLocalOrganizedCourses] = useState(organizedCourses);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
   
   // Watch for changes in organizedCourses prop
   useEffect(() => {
@@ -28,63 +27,48 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, onPlanCreated }) => 
     semesters => Object.values(semesters).some(courses => courses.length > 0)
   );
 
-  const handlePlanButtonClick = () => {
-    setIsCreateModalOpen(true);
+  const handleExport = (selectedTypes) => {
+    // TODO: Implement PDF export functionality
+    console.log('Exporting PDF with types:', selectedTypes);
   };
 
-  const handleExportClick = () => {
-    setIsPDFPreviewOpen(true);
-  };
-
-  const handleExport = (type) => {
-    // TODO: Implement actual PDF export logic
-    console.log(`Exporting ${type} as PDF`);
-    setIsPDFPreviewOpen(false);
-  };
-
-  const getPreviewContent = () => {
-    return (
-      <div className="space-y-4">
-        <div className="text-center text-gray-500">
-          <p className="text-sm">PDF Preview Content</p>
-        </div>
-      </div>
-    );
-  };
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle>Plan of Coursework</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              size="sm" 
-              className={`flex items-center gap-1.5 ${
-                hasCourses 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white text-sm' 
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-              }`}
-              onClick={handleExportClick}
-              disabled={!hasCourses}
-            >
-              <FileDown className="h-4 w-4" />
-              Export as PDF
-            </Button>
-            {!hasCourses && (
-              <Button 
-                size="sm" 
-                onClick={handlePlanButtonClick}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Create Plan
-              </Button>
-            )}
+  const content = (
+    <>
+      {!hideHeader && (
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle>Plan of Coursework</CardTitle>
+            <div className="flex gap-2">
+              {!hideExport && (
+                <Button 
+                  size="sm" 
+                  className={`flex items-center gap-1.5 ${
+                    hasCourses 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white text-sm' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                  }`}
+                  onClick={() => setPdfModalOpen(true)}
+                  disabled={!hasCourses}
+                >
+                  <FileDown className="h-4 w-4" />
+                  Export as PDF
+                </Button>
+              )}
+              {!hasCourses && (
+                <Button 
+                  size="sm" 
+                  onClick={() => {}}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Plan
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4">
+        </CardHeader>
+      )}
+      <CardContent className={`${hideCard ? 'p-0' : 'p-4'}`}>
         {Object.keys(localOrganizedCourses).length > 0 ? (
           <div className="grid grid-cols-4 gap-4">
             {Object.entries(localOrganizedCourses).map(([year, semesters]) => (
@@ -93,6 +77,7 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, onPlanCreated }) => 
                 year={parseInt(year)}
                 semesters={semesters}
                 onGradeChange={onGradeChange}
+                hideDetailsButton={hideCard}
               />
             ))}
           </div>
@@ -104,27 +89,21 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, onPlanCreated }) => 
           </div>
         )}
       </CardContent>
-      <PlanCreationModal 
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-        onPlanCreated={async (newPlan) => {
-          // Call the parent's onPlanCreated callback to fetch fresh data
-          if (onPlanCreated) {
-            await onPlanCreated(newPlan);
-          }
-        }}
-        isEditMode={hasCourses}
-        existingPlan={localOrganizedCourses}
-        loadingSpinner={<LoadingSpinner />}
-      />
+
+      {/* PDF Preview Modal */}
       <PDFPreviewModal
-        open={isPDFPreviewOpen}
-        onOpenChange={setIsPDFPreviewOpen}
+        open={pdfModalOpen}
+        onOpenChange={setPdfModalOpen}
         onExport={handleExport}
-        content={getPreviewContent()}
       />
-    </Card>
+    </>
   );
+
+  if (hideCard) {
+    return content;
+  }
+
+  return <Card>{content}</Card>;
 };
 
 export default CompactPlanView; 

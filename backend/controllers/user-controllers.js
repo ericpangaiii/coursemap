@@ -13,6 +13,7 @@ export const getAllUsers = async (req, res) => {
         u.*, 
         p.title as program_title,
         p.acronym as program_acronym,
+        p.college as college,
         c.name as curriculum_name
       FROM users u
       LEFT JOIN programs p ON u.program_id = p.program_id

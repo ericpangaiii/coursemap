@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import SemesterDetailsModal from "./SemesterDetailsModal";
 
-const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
+const CompactSemesterCard = ({ semester, courses, year, onGradeChange, hideDetailsButton = false }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [coursesState, setCourses] = useState(courses);
   
@@ -58,14 +58,16 @@ const CompactSemesterCard = ({ semester, courses, year, onGradeChange }) => {
             <CardTitle className="text-xs font-medium text-gray-600 dark:text-gray-300">
               {getSemesterName(semester)}
             </CardTitle>
-            <Button
-              variant="ghost" 
-              size="sm"
-              className="h-6 px-2 text-xs text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
-              onClick={() => setIsModalOpen(true)}
-            >
-              View Details
-            </Button>
+            {!hideDetailsButton && (
+              <Button
+                variant="ghost" 
+                size="sm"
+                className="h-6 px-2 text-xs text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                onClick={() => setIsModalOpen(true)}
+              >
+                View Details
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className={`px-2 pt-2 pb-0 flex-1 flex flex-col ${isMidyear ? 'max-h-[100px]' : 'max-h-[360px]'}`}>

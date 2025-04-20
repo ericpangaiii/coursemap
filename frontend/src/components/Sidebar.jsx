@@ -31,7 +31,6 @@ const Sidebar = () => {
   // Admin navigation items
   const adminNavItems = [
     { name: "Users", path: "/admin/users", icon: Users },
-    { name: "Plans", path: "/admin/plans", icon: FileText },
   ];
 
   // Helper to get initials from name

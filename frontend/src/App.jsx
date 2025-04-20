@@ -5,7 +5,6 @@ import DashboardPage from './pages/DashboardPage';
 import ProgressPage from './pages/ProgressPage';
 import CoursesPage from './pages/CoursesPage';
 import UserManagementPage from './pages/admin/UserManagementPage';
-import UserPlansPage from './pages/admin/UserPlansPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import AppLayout from './components/AppLayout';
@@ -33,7 +32,6 @@ const App = () => {
             <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
             <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
             <Route path="/admin/users" element={<AdminRoute><UserManagementPage /></AdminRoute>} />
-            <Route path="/admin/plans" element={<AdminRoute><UserPlansPage /></AdminRoute>} />
           </Route>
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/degree-select" element={<ProtectedRoute><DegreeSelectPage /></ProtectedRoute>} />
