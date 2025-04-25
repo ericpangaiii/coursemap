@@ -28,6 +28,8 @@ export const planToasts = {
   createSuccess: 'Plan created successfully!',
   createError: 'Failed to create plan. Please try again.',
   createLoading: 'Creating your plan...',
+  exportSuccess: 'PDF exported successfully!',
+  exportError: 'Failed to export PDF. Please try again.',
 };
 
 // Grade-related toast messages

@@ -44,6 +44,8 @@ export const planToastFunctions = {
   createSuccess: () => showSuccessToast(planToasts.createSuccess),
   createError: () => showErrorToast(planToasts.createError),
   createLoading: () => showLoadingToast(planToasts.createLoading),
+  exportSuccess: () => showSuccessToast(planToasts.exportSuccess),
+  exportError: () => showErrorToast(planToasts.exportError),
 };
 
 // Grade-related toast functions

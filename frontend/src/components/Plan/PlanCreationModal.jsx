@@ -1014,6 +1014,12 @@ const PlanCreationModal = ({
   };
 
   const handleCourseSelect = useCallback((course) => {
+    // If course is null, deselect the current course
+    if (!course) {
+      setSelectedCourse(null);
+      return;
+    }
+
     // If this is a combined course (HIST 1/KAS 1 or HK 12/13)
     if (course.combined_courses) {
       // Open the course selection dialog
@@ -1021,22 +1027,32 @@ const PlanCreationModal = ({
       setCourseSelectionType(course.course_code);
       setCourseSelectionOpen(true);
     } else {
-      // Handle regular course selection
-      setSelectedCourse(course);
+      // If the course is already selected, deselect it
+      if (selectedCourse && selectedCourse.course_id === course.course_id) {
+        setSelectedCourse(null);
+      } else {
+        // Otherwise, select the new course
+        setSelectedCourse(course);
+      }
     }
-  }, []);
+  }, [selectedCourse]);
 
   const handleCourseVariantSelect = useCallback((selectedVariant) => {
     // Close the dialog
     setCourseSelectionOpen(false);
     
-    // Add the selected course variant
-    setSelectedCourse({
-      ...selectedVariant,
-      original_course_id: selectedVariant.course_id,
-      course_type: currentStepType
-    });
-  }, [currentStepType]);
+    // If the course is already selected, deselect it
+    if (selectedCourse && selectedCourse.course_id === selectedVariant.course_id) {
+      setSelectedCourse(null);
+    } else {
+      // Add the selected course variant
+      setSelectedCourse({
+        ...selectedVariant,
+        original_course_id: selectedVariant.course_id,
+        course_type: currentStepType
+      });
+    }
+  }, [currentStepType, selectedCourse]);
 
   const handleSemesterClick = (year, semester) => {
     if (!selectedCourse) return;
@@ -1252,7 +1268,6 @@ const PlanCreationModal = ({
         {loading ? (
           <div className="flex items-center justify-center h-full gap-2">
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-t-transparent border-blue-500"></div>
-            <p className="text-gray-500 text-sm">Loading courses...</p>
           </div>
         ) : error ? (
           <div className="flex items-center justify-center h-full">

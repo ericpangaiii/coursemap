@@ -13,9 +13,10 @@ import { FileDown, FileText, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
 import CompactYearCard from "./Compact/CompactYearCard";
 
-const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, hideExport = false, hideCard = false }) => {
+const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, hideExport = false, hideCard = false, onPlanCreated }) => {
   const [localOrganizedCourses, setLocalOrganizedCourses] = useState(organizedCourses);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [planCreationModalOpen, setPlanCreationModalOpen] = useState(false);
   
   // Watch for changes in organizedCourses prop
   useEffect(() => {
@@ -57,7 +58,7 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
               {!hasCourses && (
                 <Button 
                   size="sm" 
-                  onClick={() => {}}
+                  onClick={() => setPlanCreationModalOpen(true)}
                   className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -95,6 +96,13 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
         open={pdfModalOpen}
         onOpenChange={setPdfModalOpen}
         onExport={handleExport}
+      />
+
+      {/* Plan Creation Modal */}
+      <PlanCreationModal
+        open={planCreationModalOpen}
+        onOpenChange={setPlanCreationModalOpen}
+        onPlanCreated={onPlanCreated}
       />
     </>
   );

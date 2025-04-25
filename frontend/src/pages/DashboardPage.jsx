@@ -211,7 +211,7 @@ const DashboardPage = () => {
                 {/* CWA Card - 40% width */}
                 <div className="w-[30%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Running CWA</div>
-                  <div className="text-4xl font-bold text-gray-700 dark:text-gray-300">
+                  <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
                     {currentCWA?.toFixed(2) || '0.00'}
                   </div>
                 </div>
