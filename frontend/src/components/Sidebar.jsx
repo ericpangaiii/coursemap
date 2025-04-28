@@ -8,7 +8,6 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { themeToastFunctions } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { BarChart2, BookOpen, FileText, Home, LogOut, Moon, Settings, Sun, Users } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -50,11 +49,6 @@ const Sidebar = () => {
 
   const handleThemeToggle = () => {
     toggleTheme();
-    if (theme === "light") {
-      themeToastFunctions.darkMode();
-    } else {
-      themeToastFunctions.lightMode();
-    }
   };
 
   return (

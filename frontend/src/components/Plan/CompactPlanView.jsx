@@ -43,9 +43,9 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
               {!hideExport && (
                 <Button 
                   size="sm" 
-                  className={`flex items-center gap-1.5 ${
+                  className={`flex items-center gap-1.5 text-sm ${
                     hasCourses 
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white text-sm' 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                   }`}
                   onClick={() => setPdfModalOpen(true)}

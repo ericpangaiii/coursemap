@@ -40,11 +40,6 @@ const SignInPage = () => {
             Google
           </Button>
         </CardContent>
-        <CardFooter className="flex justify-center border-t dark:border-[hsl(220,10%,20%)] pt-4">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Sign in with your UP Mail account to access the system
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

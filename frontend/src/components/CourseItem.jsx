@@ -1,7 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
@@ -12,12 +11,18 @@ import { coursesAPI } from '@/lib/api';
 import { getCourseTypeColor } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { useState } from "react";
+import { useDraggable } from '@dnd-kit/core';
 
-const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester", enableGradeSelection = false, onGradeChange }) => {
+const CourseItem = ({ course, type = "course", enableGradeSelection = false, onGradeChange, compact = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [grade, setGrade] = useState(course.grade || "");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   
+  const {attributes, listeners, setNodeRef} = useDraggable({
+    id: course.course_id,
+    data: course
+  });
+
   // UP Grading System
   const gradeOptions = [
     { value: "", label: "No grade" },
@@ -47,22 +52,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   const semOffered = course.sem_offered;
   const isCombinedCourse = courseCode === "HK 12/13" || !!course.combined_courses;
   
-  // Year options
-  const yearOptions = [
-    { value: "1", label: "1st Year" },
-    { value: "2", label: "2nd Year" },
-    { value: "3", label: "3rd Year" },
-    { value: "4", label: "4th Year" },
-    { value: "5", label: "5th Year" }
-  ];
-
-  // Semester options
-  const semesterOptions = [
-    { value: "1", label: "1st Semester" },
-    { value: "2", label: "2nd Semester" },
-    { value: "M", label: "Mid Year" }
-  ];
-  
   // Normalize course type for color determination
   const normalizedType = (type && type !== "course") ? type.toLowerCase() : 
                          (course.course_type ? course.course_type.toLowerCase() : "course");
@@ -81,60 +70,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
              trimmedSem === '2' || trimmedSem === '2s' || trimmedSem === '2S' ? '2nd Sem' : 
              trimmedSem === 'M' || trimmedSem === 'm' ? 'Mid Year' : trimmedSem;
     });
-  }
-  
-  // Get prescribed year and semester directly from the course data
-  // In the API response, the fields are 'year' and 'sem'
-  // Fallback chain: year > prescribed_year, sem > semester > prescribed_semester
-  const prescribedYear = course.year !== undefined ? course.year : (course.prescribed_year || null);
-  const prescribedSemester = course.sem !== undefined ? course.sem : 
-                           (course.semester !== undefined ? course.semester : (course.prescribed_semester || null));
-  
-  // Format prescribed semester for display
-  const formatSemester = (sem) => {
-    if (!sem && sem !== 0 && sem !== '0') return null;
-    
-    // Convert to string in case it's a number
-    const semStr = String(sem);
-    
-    if (semStr === "1") return "1st Sem";
-    if (semStr === "2") return "2nd Sem";
-    if (semStr.toLowerCase() === "m" || semStr === "3") return "Mid Year";
-    if (semStr === "0") return "Any";
-    return semStr; // Return as is if it doesn't match known formats
-  };
-  
-  // Format year for display
-  const formatYear = (year) => {
-    if (!year && year !== 0 && year !== '0') return null;
-    
-    // Convert to string in case it's a number
-    const yearStr = String(year);
-    
-    if (yearStr === "0") return "Any Year";
-    if (yearStr === "1") return "1st Year";
-    if (yearStr === "2") return "2nd Year";
-    if (yearStr === "3") return "3rd Year";
-    if (yearStr === "4") return "4th Year";
-    if (yearStr === "5") return "5th Year";
-    return `${yearStr}th Year`; // Fallback for other numbers
-  };
-  
-  // Build the prescribed information text
-  let prescribedText = "";
-  
-  // Process prescribed semester information from course data
-  if (prescribedYear || prescribedSemester) {
-    const yearText = formatYear(prescribedYear);
-    const semText = formatSemester(prescribedSemester);
-    
-    if (yearText && semText) {
-      prescribedText = `${yearText} ${semText}`;
-    } else if (yearText) {
-      prescribedText = `${yearText}`;
-    } else if (semText) {
-      prescribedText = `${semText}`;
-    }
   }
   
   // Get course description with fallback
@@ -228,8 +163,22 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700"; // 5.00
   };
 
+  if (compact) {
+    return (
+      <div className="px-2 py-1.5 rounded-md border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center gap-2">
+        <div className={`w-1 h-4 rounded-full ${getCourseColor()}`} />
+        <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{courseCode}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all flex items-center justify-between relative overflow-hidden">
+    <div 
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className="p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center justify-between relative overflow-hidden cursor-grab active:cursor-grabbing"
+    >
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
       
       <div className="flex-1 min-w-0 pl-2">
@@ -312,54 +261,12 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                       </div>
                     </div>
                   )}
-                  
-                  {prescribedText && (
-                    <div>
-                      <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Prescribed Schedule</h5>
-                      <p className="text-xs text-gray-700 dark:text-gray-300">{prescribedText}</p>
-                    </div>
-                  )}
                 </div>
               )}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      {inPlanCreation && (
-        <div className="flex flex-col gap-2">
-          <Select
-            value={course.year || ""}
-            onValueChange={(value) => onYearChange?.(course.id, value)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder={yearPlaceholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {yearOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={course.semester || ""}
-            onValueChange={(value) => onSemesterChange?.(course.id, value)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder={semesterPlaceholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {semesterOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
     </div>
   );
 };

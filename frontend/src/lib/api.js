@@ -461,9 +461,22 @@ export const usersAPI = {
 // Course API calls
 export const coursesAPI = {
   // Get all courses
-  getAllCourses: async () => {
+  getAllCourses: async (page = 1, limit = 10, searchQuery = '', filters = {}, sortConfig = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/courses`, {
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(searchQuery && { search: searchQuery }),
+        ...(filters.type?.length && { type: filters.type.join(',') }),
+        ...(filters.semOffered?.length && { semOffered: filters.semOffered.join(',') }),
+        ...(filters.acadGroup?.length && { acadGroup: filters.acadGroup.join(',') }),
+        ...(filters.units?.length && { units: filters.units.join(',') }),
+        ...(filters.whenTaken?.length && { whenTaken: filters.whenTaken.join(',') }),
+        ...(sortConfig.key && { sortKey: sortConfig.key }),
+        ...(sortConfig.direction && { sortDirection: sortConfig.direction })
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/courses?${queryParams}`, {
         method: 'GET',
         credentials: 'include'
       });
