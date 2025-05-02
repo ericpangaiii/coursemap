@@ -2,9 +2,21 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trash2 } from "lucide-react";
 import YearGrid from "./YearGrid";
+import StepProgress from "./StepProgress";
+import InfoMessage from "./InfoMessage";
 
-const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll }) => {
+const COURSE_STEPS = [
+  { id: 'ge_electives', label: 'GE Electives', type: 'GE Elective' },
+  { id: 'free_electives', label: 'Free Electives', type: 'Elective' },
+  { id: 'majors', label: 'Majors', type: 'Major' },
+  { id: 'required_academic', label: 'Required Academic', type: 'Required Academic' },
+  { id: 'required_non_academic', label: 'Required Non-Academic', type: 'Required Non-Academic' },
+  { id: 'summary', label: 'Summary', type: 'summary' },
+];
+
+const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll, courseTypeCounts, currentStepType, filteredCourses, activeCourse, currentStep, courseSteps }) => {
   const years = [1, 2, 3, 4];
+  const isDragging = activeCourse !== null;
 
   const handleSemesterClick = (year, semester) => {
     // TODO: Handle semester click
@@ -13,8 +25,23 @@ const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="pt-4 flex justify-between items-center mb-4 pr-4">
-        <h2 className="text-lg font-semibold">Plan Overview</h2>
+      <div className="pt-2 px-2">
+        <StepProgress 
+          currentStep={currentStep}
+          courseSteps={courseSteps}
+        />
+      </div>
+      <InfoMessage 
+        isDragging={isDragging} 
+        currentStepType={currentStepType}
+        courseTypeCounts={courseTypeCounts}
+        filteredCourses={filteredCourses}
+        semesterGrid={semesterGrid}
+      />
+      <div className="flex justify-between items-center mb-4 pr-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">Plan Overview</h2>
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 
@@ -34,6 +61,9 @@ const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll }) => {
               onSemesterClick={handleSemesterClick}
               semesterGrid={semesterGrid}
               onDeleteCourse={onDeleteCourse}
+              activeCourse={activeCourse}
+              courseTypeCounts={courseTypeCounts}
+              currentStepType={currentStepType}
             />
           ))}
         </div>

@@ -172,13 +172,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
               {formatOrdinal(year)} Year {getSemesterName(semester)} Details
             </DialogTitle>
             <div className="flex justify-between items-center mt-1">
-              <DialogDescription className="pb-1">
+              <div className="pb-1">
                 <div className="flex items-center gap-2">
                   <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                     {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
                   </span>
                 </div>
-              </DialogDescription>
+              </div>
               <div className="flex items-center gap-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -309,12 +309,12 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                 {sortedCourses.length > 0 ? (
                   <div className="space-y-2">
                     {sortedCourses.map((course) => (
-                      <CourseItem 
+                      <CourseItem
                         key={course.course_id}
                         course={course}
-                        type={course.course_type}
                         enableGradeSelection={true}
                         onGradeChange={handleGradeChange}
+                        isInCoursesList={false}
                       />
                     ))}
                   </div>

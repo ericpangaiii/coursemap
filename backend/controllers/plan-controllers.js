@@ -198,8 +198,8 @@ export const getCurrentUserPlan = async (req, res) => {
           END AS course_type
       FROM plan_courses pc 
       JOIN courses c ON pc.course_id = c.course_id 
-      JOIN ranked_curriculum_courses cc ON c.course_id = cc.course_id AND cc.rn = 1
-      WHERE pc.plan_id =$1
+      LEFT JOIN ranked_curriculum_courses cc ON c.course_id = cc.course_id AND cc.rn = 1
+      WHERE pc.plan_id = $1
       ORDER BY pc.year, pc.sem;`,
       [plan.id, plan.curriculum_id]
     );

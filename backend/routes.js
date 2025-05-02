@@ -1,10 +1,10 @@
 import { getAllPrograms, getProgramById, createProgram, updateProgram, deleteProgram } from './controllers/program-controllers.js';
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './controllers/user-controllers.js';
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
-import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses } from './controllers/curriculum-controllers.js';
+import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses, getCurriculumCourseTypeCounts } from './controllers/curriculum-controllers.js';
 import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId, getAllPlans } from './controllers/plan-controllers.js';
-import { getCoursesByIds, updateCourse, getAllCourses } from './controllers/course-controllers.js';
-import { authMiddleware } from './middlewares/auth-middleware.js';
+import { getCoursesByIds, updateCourse, getAllCourses, getCoursesForPlanCreation } from './controllers/course-controllers.js';
+import { authMiddleware, isAuthenticated } from './middlewares/auth-middleware.js';
 
 const router = (app) => {
     app.get("/", (req, res) => {
@@ -32,6 +32,7 @@ const router = (app) => {
     app.get("/api/curriculums/:curriculumId/structure", getCurriculumStructure);
     app.get("/api/my/curriculum/structure", getCurrentUserCurriculumStructure);
     app.get("/api/my/curriculum/courses", getCurrentUserCurriculumCourses);
+    app.get("/api/curriculums/:curriculumId/course-type-counts", getCurriculumCourseTypeCounts);
 
     // Plan Routes
     app.get("/api/users/:userId/plan", getPlanByUserId);
@@ -46,6 +47,7 @@ const router = (app) => {
 
     // Course Routes
     app.get("/api/courses", getAllCourses);
+    app.get("/api/courses/plan-creation", isAuthenticated, getCoursesForPlanCreation);
     app.post("/api/courses/batch", getCoursesByIds);
     app.put("/api/courses/:courseId", updateCourse);
 

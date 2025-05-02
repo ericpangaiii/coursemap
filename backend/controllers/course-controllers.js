@@ -221,7 +221,6 @@ export const getAllCourses = async (req, res) => {
         ON c.course_id = cc.course_id AND cc.curriculum_id = $1
       WHERE 
         c.career != 'GRD'
-        AND c.is_active = true
         AND c.sem_offered NOT IN ('--', '"1s,2s"')
         AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
         AND c.units != '--'
@@ -388,6 +387,248 @@ export const getAllCourses = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching all courses:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch courses' 
+    });
+  }
+};
+
+// Get courses for plan creation modal
+export const getCoursesForPlanCreation = async (req, res) => {
+  try {
+    // Get the current user's curriculum ID
+    const { curriculum_id } = req.user;
+    
+    if (!curriculum_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'No curriculum selected'
+      });
+    }
+
+    // First query to get courses with cleared year/sem for certain types
+    const coursesQuery = `
+      WITH combined_courses AS (
+        SELECT 
+          c.course_id,
+          CASE 
+            WHEN c.course_code IN ('HIST 1', 'KAS 1') THEN 'HIST 1 / KAS 1'
+            ELSE c.course_code
+          END as course_code,
+          CASE 
+            WHEN c.course_code IN ('HIST 1', 'KAS 1') THEN 'Philippine History / Kasaysayan ng Pilipinas'
+            ELSE c.title
+          END as title,
+          c.description,
+          c.units,
+          c.sem_offered,
+          c.acad_group,
+          c.is_academic,
+          c.is_repeatable,
+          CASE 
+            WHEN cc.course_type = 'REQUIRED' AND c.is_academic = true THEN 'Required Academic'
+            WHEN cc.course_type = 'REQUIRED' AND c.is_academic = false THEN 'Required Non-Academic'
+            WHEN cc.course_type = 'ELECTIVE' AND c.title LIKE '(GE)%' THEN 'GE Elective'
+            WHEN cc.course_type = 'ELECTIVE' THEN 'Elective'
+            WHEN cc.course_type = 'CORE' THEN 'Core'
+            WHEN cc.course_type = 'MAJOR' THEN 'Major'
+            WHEN cc.course_type = 'COGNATE' THEN 'Cognate'
+            WHEN cc.course_type = 'SPECIALIZED' THEN 'Specialized'
+            WHEN cc.course_type = 'FOUNDATION' THEN 'Foundation'
+            WHEN c.title LIKE '(GE)%' THEN 'GE Elective'
+            ELSE 'Elective'
+          END AS course_type,
+          CASE 
+            WHEN cc.course_type IN ('ELECTIVE', 'CORE', 'MAJOR', 'COGNATE', 'SPECIALIZED', 'FOUNDATION') 
+              OR (cc.course_type = 'ELECTIVE' AND c.title LIKE '(GE)%')
+            THEN NULL
+            ELSE cc.year
+          END as year,
+          CASE 
+            WHEN cc.course_type IN ('ELECTIVE', 'CORE', 'MAJOR', 'COGNATE', 'SPECIALIZED', 'FOUNDATION') 
+              OR (cc.course_type = 'ELECTIVE' AND c.title LIKE '(GE)%')
+            THEN NULL
+            ELSE cc.sem
+          END as sem,
+          CASE 
+            WHEN COALESCE(string_agg(r.req_courses, ', ' ORDER BY r.req_type), '') = '' 
+                OR TRIM(string_agg(r.req_courses, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+            ELSE string_agg(REPLACE(REPLACE(r.req_courses, '(', ''), ')', ''), ', ' ORDER BY r.req_type)
+          END AS requisites,
+          CASE 
+            WHEN COALESCE(string_agg(
+              CASE 
+                WHEN r.req_type = 'PRE' THEN 'Prerequisite'
+                WHEN r.req_type = 'CO' THEN 'Corequisite'
+                ELSE r.req_type
+              END, ', ' ORDER BY r.req_type), '') = ''
+                OR TRIM(string_agg(r.req_type, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+            ELSE string_agg(
+              CASE 
+                WHEN r.req_type = 'PRE' THEN 'Prerequisite'
+                WHEN r.req_type = 'CO' THEN 'Corequisite'
+                ELSE r.req_type
+              END, ', ' ORDER BY r.req_type)
+          END AS requisite_types,
+          CASE 
+            WHEN COALESCE(string_agg(r.course_id_req, ', ' ORDER BY r.req_type), '') = ''
+                OR TRIM(string_agg(r.course_id_req, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+            ELSE string_agg(r.course_id_req, ', ' ORDER BY r.req_type)
+          END AS requisite_course_ids,
+          cc.id as curriculum_course_id
+        FROM 
+          courses c
+        LEFT JOIN 
+          curriculum_courses cc 
+          ON c.course_id = cc.course_id AND cc.curriculum_id = $1
+        LEFT JOIN 
+          requisites r
+          ON c.course_id = r.course_id AND r.is_active = true
+        WHERE 
+          c.career != 'GRD'
+          AND c.sem_offered NOT IN ('--', '"1s,2s"')
+          AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
+          AND c.units != '--'
+        GROUP BY
+          c.course_id, c.course_code, c.title, c.description, c.units,
+          c.sem_offered, c.acad_group, c.is_academic, c.is_repeatable,
+          cc.course_type, cc.year, cc.sem, cc.id
+      )
+      SELECT *
+      FROM (
+        SELECT DISTINCT ON (course_code) *
+        FROM combined_courses
+        WHERE course_code = 'HIST 1 / KAS 1'
+        ORDER BY course_code, course_id
+      ) hist_kas
+      UNION ALL
+      SELECT *
+      FROM combined_courses
+      WHERE course_code != 'HIST 1 / KAS 1';
+    `;
+
+    // Second query to get prescribed semesters from curriculum_structures
+    const prescribedSemestersQuery = `
+      SELECT 
+        'GE Elective' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND ge_elective_count > 0
+      UNION ALL
+      SELECT 
+        'Elective' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND elective_count > 0
+      UNION ALL
+      SELECT 
+        'Major' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND major_count > 0
+      UNION ALL
+      SELECT 
+        'Cognate' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND cognate_count > 0
+      UNION ALL
+      SELECT 
+        'Specialized' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND specialized_count > 0
+      UNION ALL
+      SELECT 
+        'Foundation' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND track_count > 0
+      ORDER BY course_type, year, sem;
+    `;
+
+    const [coursesResult, prescribedSemestersResult] = await Promise.all([
+      client.query(coursesQuery, [curriculum_id]),
+      client.query(prescribedSemestersQuery, [curriculum_id])
+    ]);
+
+    // Create a map of course types to their prescribed semesters
+    const prescribedSemestersMap = prescribedSemestersResult.rows.reduce((acc, row) => {
+      if (!acc[row.course_type]) {
+        acc[row.course_type] = [];
+      }
+      acc[row.course_type].push({ year: row.year, sem: row.sem });
+      return acc;
+    }, {});
+
+    // Clean up the data and apply prescribed semesters
+    const cleanedData = coursesResult.rows.map(course => {
+      // Clean semester offered values
+      let cleanedSemOffered = course.sem_offered;
+      if (cleanedSemOffered) {
+        cleanedSemOffered = cleanedSemOffered
+          .replace(/"/g, '') // Remove quotes
+          .replace(/\s+/g, '') // Remove spaces
+          .toUpperCase() // Convert to uppercase
+          .split(',') // Split into array
+          .filter(sem => ['1S', '2S', 'M'].includes(sem)) // Keep only valid values
+          .join(', '); // Join back with comma and space
+      }
+
+      // Clean units values
+      let cleanedUnits = course.units;
+      if (cleanedUnits) {
+        cleanedUnits = cleanedUnits
+          .replace(/\s+/g, '') // Remove spaces
+          .split(',') // Split into array
+          .filter(unit => unit !== '--') // Remove invalid values
+          .join(', '); // Join back with comma and space
+      }
+
+      // Clean description
+      let cleanedDescription = course.description;
+      if (cleanedDescription === 'No Available DATA') {
+        cleanedDescription = 'No description available.';
+      }
+
+      // Apply prescribed semesters based on course type
+      let prescribed_semesters = [];
+      if (course.course_type === 'Required Academic' || course.course_type === 'Required Non-Academic') {
+        // For required courses, use their fixed year/sem as the single prescribed semester
+        if (course.year && course.sem) {
+          prescribed_semesters = [{ year: course.year, sem: course.sem }];
+        }
+      } else {
+        // For other course types, use the prescribed semesters from curriculum_structures
+        prescribed_semesters = prescribedSemestersMap[course.course_type] || [];
+      }
+
+      return {
+        ...course,
+        sem_offered: cleanedSemOffered,
+        units: cleanedUnits,
+        description: cleanedDescription,
+        year: course.year,
+        sem: course.sem,
+        prescribed_semesters,
+        // Use curriculum_course_id as the unique identifier for repeatable courses
+        id: course.is_repeatable ? course.curriculum_course_id : course.course_id
+      };
+    });
+
+    res.json({
+      success: true,
+      data: cleanedData
+    });
+  } catch (error) {
+    console.error('Error fetching courses for plan creation:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Failed to fetch courses' 

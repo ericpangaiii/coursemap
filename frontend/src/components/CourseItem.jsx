@@ -13,14 +13,15 @@ import { Info } from "lucide-react";
 import { useState } from "react";
 import { useDraggable } from '@dnd-kit/core';
 
-const CourseItem = ({ course, type = "course", enableGradeSelection = false, onGradeChange, compact = false }) => {
+const CourseItem = ({ course, type = "course", enableGradeSelection = false, onGradeChange, compact = false, disabled = false, isInCoursesList = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [grade, setGrade] = useState(course.grade || "");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   
   const {attributes, listeners, setNodeRef} = useDraggable({
-    id: course.course_id,
-    data: course
+    id: course.id || course.course_id,
+    data: course,
+    disabled: disabled || !isInCoursesList
   });
 
   // UP Grading System
@@ -82,15 +83,15 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
     return (
       <div className="space-y-4">
         <div>
-          <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Description</h5>
-          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{courseDescription}</p>
+          <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1.5">Description</h5>
+          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{courseDescription}</p>
         </div>
         
         <div>
-          <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Components</h5>
+          <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1.5">Components</h5>
           <div className="space-y-2">
             {course.combined_courses.map((component, index) => (
-              <div key={index} className="text-sm text-gray-700 dark:text-gray-300">
+              <div key={index} className="text-xs text-gray-700 dark:text-gray-300">
                 <p className="font-medium">{component.course_code}</p>
                 <p className="text-gray-600 dark:text-gray-400">{component.title}</p>
               </div>
@@ -100,10 +101,10 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
         
         {formattedSemOffered.length > 0 && (
           <div>
-            <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Semesters Offered</h5>
+            <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1.5">Semesters Offered</h5>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {formattedSemOffered.map((sem, index) => (
-                <Badge key={index} variant="outline" className="text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-200 dark:border-gray-700">
+                <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-200 dark:border-gray-700">
                   {sem}
                 </Badge>
               ))}
@@ -177,7 +178,9 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      className="p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center justify-between relative overflow-hidden cursor-grab active:cursor-grabbing"
+      className={`p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center justify-between relative overflow-hidden ${
+        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
+      }`}
     >
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
       
@@ -238,7 +241,7 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
             </TooltipTrigger>
             <TooltipContent 
               side="right" 
-              className="max-w-md p-4 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,20%)] shadow-lg dark:shadow-[hsl(220,10%,10%)]/20 rounded-lg"
+              className="w-[370px] p-4 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,20%)] shadow-lg dark:shadow-[hsl(220,10%,10%)]/20 rounded-lg"
             >
               {isCombinedCourse ? (
                 getCombinedCourseTooltipContent()
@@ -261,6 +264,87 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
                       </div>
                     </div>
                   )}
+
+                  {course.prescribed_semesters && course.prescribed_semesters.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Prescribed Semesters</h5>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {course.prescribed_semesters.map((sem, index) => (
+                          <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                            {`${sem.year}${sem.year === '1' ? 'st' : sem.year === '2' ? 'nd' : sem.year === '3' ? 'rd' : 'th'} Year ${sem.sem === '3' ? 'Mid Year' : sem.sem === '1' ? '1st Sem' : '2nd Sem'}`}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {(() => {
+                      // Check if there are any prerequisites or corequisites
+                      const hasPrerequisites = course.requisite_types?.includes('Prerequisite');
+                      const hasCorequisites = course.requisite_types?.includes('Corequisite');
+
+                      if (!hasPrerequisites && !hasCorequisites) {
+                        return (
+                          <div>
+                            <h6 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                              Requisites
+                            </h6>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">None</span>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <>
+                          {hasPrerequisites && (
+                            <div>
+                              <h6 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                Prerequisites
+                              </h6>
+                              <div className="flex flex-wrap gap-1">
+                                {course.requisites === 'None' ? (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">None</span>
+                                ) : (
+                                  course.requisites.split(',').map((req, index) => (
+                                    <Badge 
+                                      key={index}
+                                      variant="outline" 
+                                      className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]"
+                                    >
+                                      {req.trim()}
+                                    </Badge>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {hasCorequisites && (
+                            <div>
+                              <h6 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                Corequisites
+                              </h6>
+                              <div className="flex flex-wrap gap-1">
+                                {course.requisites === 'None' ? (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">None</span>
+                                ) : (
+                                  course.requisites.split(',').map((req, index) => (
+                                    <Badge 
+                                      key={index}
+                                      variant="outline" 
+                                      className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]"
+                                    >
+                                      {req.trim()}
+                                    </Badge>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </TooltipContent>

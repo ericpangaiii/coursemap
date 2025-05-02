@@ -4,22 +4,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import PlanOverview from "./PlanOverview";
-import CoursesList from "./CoursesList";
 import { LoadingSpinner } from "@/components/ui/loading";
-import { coursesAPI } from "@/lib/api";
-import { useState, useEffect } from "react";
-import { DndContext, DragOverlay } from '@dnd-kit/core';
+import { coursesAPI, curriculumsAPI, plansAPI } from "@/lib/api";
 import { getCourseTypeColor } from "@/lib/utils";
+import { DndContext, DragOverlay } from '@dnd-kit/core';
+import { useEffect, useMemo, useState } from "react";
+import CoursesList from "./CoursesList";
+import PlanOverview from "./PlanOverview";
+import SummaryStep from "./SummaryStep";
 import { usePlanDragAndDrop } from "./usePlanDragAndDrop";
-
-const COURSE_STEPS = [
-  { id: 'ge_electives', label: 'GE Electives', type: 'GE Elective' },
-  { id: 'free_electives', label: 'Free Electives', type: 'Elective' },
-  { id: 'majors', label: 'Majors', type: 'Major' },
-  { id: 'required_academic', label: 'Required Academic', type: 'Required Academic' },
-  { id: 'required_non_academic', label: 'Required Non-Academic', type: 'Required Non-Academic' },
-];
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { planToastFunctions } from "@/lib/toast";
+import toast from "react-hot-toast";
 
 // Initialize empty grid with 4 years and 3 semesters each (including midyear)
 const initializeEmptyGrid = () => {
@@ -35,46 +32,203 @@ const initializeEmptyGrid = () => {
   return grid;
 };
 
-const PlanCreationModal = ({ open, onOpenChange }) => {
+const PlanCreationModal = ({ open, onOpenChange, onPlanCreated }) => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(0);
-  const { activeId, semesterGrid, handleDragStart, handleDragEnd, handleDeleteCourse, handleClearAll } = usePlanDragAndDrop(initializeEmptyGrid());
+  const [curriculumId, setCurriculumId] = useState(null);
+  const { activeId, semesterGrid, setSemesterGrid, handleDragStart, handleDragEnd, handleDeleteCourse, handleClearAll } = usePlanDragAndDrop(initializeEmptyGrid());
+  const [courseTypeCounts, setCourseTypeCounts] = useState(null);
 
+  // Get curriculum ID and fetch all necessary data
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
+      if (!open) return;
+      
+      setLoading(true);
       try {
-        const response = await coursesAPI.getAllCourses();
-        if (response.success) {
-          setCourses(response.data);
+        // First get the curriculum ID
+        const curriculumResponse = await curriculumsAPI.getCurrentCurriculumStructure();
+        const curriculumId = curriculumResponse?.curriculum?.curriculum_id;
+        
+        if (curriculumId) {
+          setCurriculumId(curriculumId);
+          
+          // Fetch all data in parallel
+          const [coursesResponse, courseTypeCountsResponse] = await Promise.all([
+            coursesAPI.getCoursesForPlanCreation(),
+            curriculumsAPI.getCurriculumCourseTypeCounts(curriculumId)
+          ]);
+
+          if (coursesResponse.success) {
+            setCourses(coursesResponse.data);
+          }
+          if (courseTypeCountsResponse) {
+            setCourseTypeCounts(courseTypeCountsResponse);
+          }
         }
       } catch (error) {
-        console.error('Failed to fetch courses:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (open) {
-      fetchCourses();
-    }
+    fetchData();
   }, [open]);
-  
-  const currentStepType = COURSE_STEPS[currentStep].type;
-  const filteredCourses = courses.filter(course => course.course_type === currentStepType);
 
-  const handleStepChange = (newStep) => {
-    if (newStep >= 0 && newStep < COURSE_STEPS.length) {
-      setCurrentStep(newStep);
+  // Generate course steps based on courseTypeCounts
+  const courseSteps = useMemo(() => {
+    if (!courseTypeCounts) return [];
+
+    const steps = [];
+    
+    // Add GE Electives if count > 0
+    if (courseTypeCounts.totals.ge_elective > 0) {
+      steps.push({ id: 'ge_electives', label: 'GE Electives', type: 'GE Elective' });
+    }
+    
+    // Add Free Electives if count > 0
+    if (courseTypeCounts.totals.elective > 0) {
+      steps.push({ id: 'free_electives', label: 'Free Electives', type: 'Elective' });
+    }
+    
+    // Add Majors if count > 0
+    if (courseTypeCounts.totals.major > 0) {
+      steps.push({ id: 'majors', label: 'Majors', type: 'Major' });
+    }
+    
+    // Add Required Academic if count > 0
+    if (courseTypeCounts.totals.required > 0) {
+      steps.push({ id: 'required_academic', label: 'Required Academic', type: 'Required Academic' });
+    }
+    
+    // Add Required Non-Academic if count > 0
+    if (courseTypeCounts.totals.required > 0) {
+      steps.push({ id: 'required_non_academic', label: 'Required Non-Academic', type: 'Required Non-Academic' });
+    }
+    
+    // Always add Summary as the last step
+    steps.push({ id: 'summary', label: 'Summary', type: 'summary' });
+    
+    return steps;
+  }, [courseTypeCounts]);
+
+  const currentStepType = courseSteps[currentStep]?.type;
+  const filteredCourses = courses.filter(course => course.course_type === currentStepType);
+  const isSummaryStep = currentStepType === 'summary';
+
+  // Calculate if target is reached
+  const getCurrentCount = (type) => {
+    return Object.values(semesterGrid).reduce((total, semesterCourses) => {
+      return total + semesterCourses.filter(course => {
+        const courseType = course.course_type?.toLowerCase().replace(/[\s_]/g, '');
+        const targetType = type?.toLowerCase().replace(/[\s_]/g, '');
+        return courseType === targetType;
+      }).length;
+    }, 0);
+  };
+
+  const currentCount = getCurrentCount(currentStepType);
+  const isRequiredType = currentStepType === 'Required Academic' || currentStepType === 'Required Non-Academic';
+  const requiredCount = isRequiredType 
+    ? filteredCourses.length 
+    : courseTypeCounts?.totals[currentStepType?.toLowerCase().replace(' ', '_')] || 0;
+  const isTargetReached = currentCount >= requiredCount;
+
+  // Modify handleDragStart to prevent dragging when target is reached
+  const handleDragStartWithCheck = (event) => {
+    if (!isTargetReached) {
+      handleDragStart(event);
     }
   };
 
-  const activeCourse = activeId ? courses.find(course => course.course_id === activeId) : null;
+  const handleStepChange = (newStep, newGrid) => {
+    if (newStep >= 0 && newStep < courseSteps.length) {
+      setCurrentStep(newStep);
+      // If a new grid is provided, update the semester grid
+      if (newGrid) {
+        setSemesterGrid(newGrid);
+      }
+    }
+  };
+
+  const activeCourse = activeId ? courses.find(course => course.id === activeId || course.course_id === activeId) : null;
+
+  const handleCreatePlan = async () => {
+    console.log('Starting plan creation process...');
+    console.log('Current semester grid:', semesterGrid);
+
+    try {
+      // Show loading toast
+      const loadingToast = planToastFunctions.createLoading();
+      
+      // Create new plan
+      console.log('Creating new plan with curriculum ID:', curriculumId);
+      const newPlan = await plansAPI.createPlan(curriculumId);
+      if (!newPlan) {
+        console.error('Failed to create plan');
+        throw new Error('Failed to create plan');
+      }
+      console.log('Created new plan:', newPlan);
+
+      // Add each course to the plan
+      for (const [semesterKey, courses] of Object.entries(semesterGrid)) {
+        const [year, semester] = semesterKey.split('-');
+        console.log(`Processing Year ${year}, Semester ${semester}...`);
+        
+        for (const course of courses) {
+          console.log('Adding course:', {
+            course_code: course.course_code,
+            course_id: course.id || course.course_id,
+            year: parseInt(year),
+            semester: semester === 'M' ? 3 : parseInt(semester)
+          });
+          
+          try {
+            await plansAPI.addCourseToPlan(
+              newPlan.id,
+              course.id || course.course_id,
+              parseInt(year),
+              semester === 'M' ? 3 : parseInt(semester),
+              'planned'
+            );
+            console.log('Successfully added course');
+          } catch (error) {
+            // If the course already exists, that's fine - continue with the next one
+            if (error.message.includes('already exists')) {
+              console.log('Course already exists in plan, continuing...');
+              continue;
+            }
+            console.error('Error adding course:', error);
+            throw error; // Re-throw other errors
+          }
+        }
+      }
+
+      console.log('Plan creation completed successfully');
+      
+      // Dismiss loading toast and show success toast
+      toast.dismiss(loadingToast);
+      planToastFunctions.createSuccess();
+      
+      // Close the modal and refresh the plan display
+      onOpenChange(false);
+      if (typeof onPlanCreated === 'function') {
+        console.log('Calling onPlanCreated callback...');
+        onPlanCreated(newPlan);
+      }
+    } catch (error) {
+      console.error('Error creating plan:', error);
+      // Show error toast
+      planToastFunctions.createError();
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DndContext 
-        onDragStart={handleDragStart} 
+        onDragStart={handleDragStartWithCheck} 
         onDragEnd={handleDragEnd}
       >
         <DialogContent className="max-w-[90vw] h-[90vh] flex flex-col">
@@ -86,27 +240,43 @@ const PlanCreationModal = ({ open, onOpenChange }) => {
               <LoadingSpinner />
             </div>
           ) : (
-            <div className="flex-1 flex overflow-hidden">
-              <div className="w-[60%] h-full overflow-hidden">
+            <div className="flex-1 flex overflow-hidden gap-6">
+              <div className="w-[65%] h-full overflow-hidden">
                 <PlanOverview 
-                  currentStep={currentStep}
-                  totalSteps={COURSE_STEPS.length}
-                  onStepChange={handleStepChange}
-                  stepLabel={COURSE_STEPS[currentStep].label}
                   semesterGrid={semesterGrid}
                   onDeleteCourse={handleDeleteCourse}
                   onClearAll={handleClearAll}
+                  courseTypeCounts={courseTypeCounts}
+                  activeCourse={activeCourse}
+                  currentStepType={currentStepType}
+                  filteredCourses={filteredCourses}
+                  currentStep={currentStep}
+                  courseSteps={courseSteps}
                 />
               </div>
-              <div className="w-[40%] h-full overflow-hidden">
-                <CoursesList 
-                  courses={filteredCourses}
-                  loading={loading}
-                  currentStep={currentStep}
-                  totalSteps={COURSE_STEPS.length}
-                  onStepChange={handleStepChange}
-                  semesterGrid={semesterGrid}
-                />
+              <div className="w-[35%] h-full overflow-hidden">
+                {isSummaryStep ? (
+                  <SummaryStep 
+                    semesterGrid={semesterGrid}
+                    courseTypeCounts={courseTypeCounts}
+                    currentStep={currentStep}
+                    onStepChange={handleStepChange}
+                    curriculumId={curriculumId}
+                    onPlanCreated={onPlanCreated}
+                    onOpenChange={onOpenChange}
+                  />
+                ) : (
+                  <CoursesList 
+                    courses={filteredCourses}
+                    loading={loading}
+                    currentStep={currentStep}
+                    totalSteps={courseSteps.length}
+                    onStepChange={handleStepChange}
+                    semesterGrid={semesterGrid}
+                    isTargetReached={isTargetReached}
+                    courseSteps={courseSteps}
+                  />
+                )}
               </div>
             </div>
           )}

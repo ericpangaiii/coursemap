@@ -18,7 +18,7 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
       // Find the current semester of the course
       let currentSemester = null;
       Object.entries(semesterGrid).forEach(([key, courses]) => {
-        if (courses.some(c => c.course_id === course.course_id)) {
+        if (courses.some(c => c.id === course.id)) {
           currentSemester = key;
         }
       });
@@ -30,7 +30,7 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
         // If the course is already in a semester, remove it
         if (currentSemester) {
           newGrid[currentSemester] = newGrid[currentSemester].filter(
-            c => c.course_id !== course.course_id
+            c => c.id !== course.id
           );
         }
 
@@ -41,7 +41,9 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
         const courseWithLocation = {
           ...course,
           year: parseInt(year),
-          semester: semester
+          semester: semester,
+          course_id: course.course_id, // Ensure we use the original course_id
+          id: course.course_id // Set id to match course_id for consistency
         };
         
         // Always add the course at the beginning of the array
@@ -64,7 +66,7 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
       
       // Remove the course from the semester
       newGrid[semesterKey] = newGrid[semesterKey].filter(
-        c => c.course_id !== course.course_id
+        c => c.id !== course.id
       );
       
       return newGrid;
@@ -81,6 +83,7 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
   return {
     activeId,
     semesterGrid,
+    setSemesterGrid,
     handleDragStart,
     handleDragEnd,
     handleDeleteCourse,

@@ -4,7 +4,7 @@ import { Trash2 } from "lucide-react";
 
 const PlanCourse = ({ course, onDelete }) => {
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: course?.course_id || 'empty',
+    id: course?.id || course?.course_id || 'empty',
     data: course
   });
 

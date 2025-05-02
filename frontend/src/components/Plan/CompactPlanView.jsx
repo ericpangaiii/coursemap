@@ -29,7 +29,6 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
   );
 
   const handleExport = (selectedTypes) => {
-    // TODO: Implement PDF export functionality
     console.log('Exporting PDF with types:', selectedTypes);
   };
 

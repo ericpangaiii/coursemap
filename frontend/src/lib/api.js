@@ -208,6 +208,25 @@ export const curriculumsAPI = {
       return [];
     }
   },
+
+  // Get course type counts for a curriculum
+  getCurriculumCourseTypeCounts: async (curriculumId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/course-type-counts`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculum course type counts');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching curriculum course type counts:', error);
+      return null;
+    }
+  },
 };
 
 // Plans API calls
@@ -258,6 +277,7 @@ export const plansAPI = {
   // Create a new plan
   createPlan: async (curriculumId) => {
     try {
+      console.log('API: Creating plan with curriculum ID:', curriculumId);
       const response = await fetch(`${API_BASE_URL}/api/plans`, {
         method: 'POST',
         headers: {
@@ -269,14 +289,23 @@ export const plansAPI = {
         }),
       });
       
+      console.log('API: Create plan response status:', response.status);
+      const data = await response.json();
+      console.log('API: Create plan response data:', data);
+      
       if (!response.ok) {
-        throw new Error('Failed to create plan');
+        console.error('API: Create plan failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
+        throw new Error(data.error || 'Failed to create plan');
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
-      console.error('Error creating plan:', error);
-      return null;
+      console.error('API: Error creating plan:', error);
+      throw error;
     }
   },
 
@@ -483,6 +512,20 @@ export const coursesAPI = {
       return await response.json();
     } catch (error) {
       console.error('Failed to fetch all courses:', error);
+      return { success: false, error: 'Failed to fetch courses' };
+    }
+  },
+
+  // Get courses for plan creation
+  getCoursesForPlanCreation: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courses/plan-creation`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch courses for plan creation:', error);
       return { success: false, error: 'Failed to fetch courses' };
     }
   },

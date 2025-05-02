@@ -17,7 +17,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, ChevronDown, Filter, Search,
 import { useEffect, useState } from "react";
 
 const CoursesPage = () => {
-  const [activeTab, setActiveTab] = useState("all"); // "all", "plan"
+  const [activeTab, setActiveTab] = useState("all"); // "all" only now
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [courses, setCourses] = useState([]);
@@ -75,37 +75,19 @@ const CoursesPage = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        let coursesData;
-        let planResponse;
-        let allCoursesResponse;
-
-        switch (activeTab) {
-          case "plan":
-            planResponse = await plansAPI.getCurrentPlan();
-            coursesData = planResponse?.courses || [];
-            // For plan courses, we want to keep duplicates but ensure they're unique instances
-            coursesData = coursesData.map((course, index) => ({
-              ...course,
-              unique_id: `${course.course_id}_${index}` // Add a unique identifier for each instance
-            }));
-            setCourses(coursesData);
-            setTotalCourses(coursesData.length);
-            break;
-          default:
-            allCoursesResponse = await coursesAPI.getAllCourses(
-              currentPage,
-              itemsPerPage,
-              searchQuery,
-              selectedFilters,
-              sortConfig
-            );
-            if (allCoursesResponse.success) {
-              setCourses(allCoursesResponse.data);
-              setTotalCourses(allCoursesResponse.total);
-            } else {
-              setCourses([]);
-              setTotalCourses(0);
-            }
+        let allCoursesResponse = await coursesAPI.getAllCourses(
+          currentPage,
+          itemsPerPage,
+          searchQuery,
+          selectedFilters,
+          sortConfig
+        );
+        if (allCoursesResponse.success) {
+          setCourses(allCoursesResponse.data);
+          setTotalCourses(allCoursesResponse.total);
+        } else {
+          setCourses([]);
+          setTotalCourses(0);
         }
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -175,42 +157,9 @@ const CoursesPage = () => {
               {/* Tabs */}
               <div className="flex space-x-1 mb-6 border-b">
                 <button
-                  className={`px-3 py-1.5 text-xs font-medium rounded-t-md transition-colors ${
-                    activeTab === "all"
-                      ? "bg-blue-600 dark:bg-blue-500 text-white"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-[hsl(220,10%,25%)]"
-                  }`}
-                  onClick={() => {
-                    setActiveTab("all");
-                    setSearchQuery("");
-                    setFilters({
-                      type: [],
-                      semOffered: [],
-                      acadGroup: [],
-                      whenTaken: []
-                    });
-                  }}
+                  className="px-3 py-1.5 text-xs font-medium rounded-t-md transition-colors bg-blue-600 dark:bg-blue-500 text-white"
                 >
                   All Courses
-                </button>
-                <button
-                  className={`px-3 py-1.5 text-xs font-medium rounded-t-md transition-colors ${
-                    activeTab === "plan"
-                      ? "bg-blue-600 dark:bg-blue-500 text-white"
-                      : "text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-[hsl(220,10%,25%)]"
-                  }`}
-                  onClick={() => {
-                    setActiveTab("plan");
-                    setSearchQuery("");
-                    setFilters({
-                      type: [],
-                      semOffered: [],
-                      acadGroup: [],
-                      whenTaken: []
-                    });
-                  }}
-                >
-                  Plan of Coursework Courses
                 </button>
               </div>
               

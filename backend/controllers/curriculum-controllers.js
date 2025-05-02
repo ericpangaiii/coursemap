@@ -251,3 +251,95 @@ export const getCurrentUserCurriculumCourses = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch curriculum courses" });
   }
 };
+
+// Get course type counts from curriculum structures
+export const getCurriculumCourseTypeCounts = async (req, res) => {
+  try {
+    const { curriculumId } = req.params;
+    
+    // Get all curriculum structure entries for this curriculum
+    const result = await client.query(
+      `SELECT 
+        year,
+        sem,
+        major_count,
+        ge_elective_count,
+        required_count,
+        elective_count,
+        cognate_count,
+        specialized_count,
+        track_count,
+        total_count
+       FROM curriculum_structures 
+       WHERE curriculum_id = $1
+       ORDER BY year, sem`,
+      [curriculumId]
+    );
+
+    // Calculate totals for each course type
+    const totals = {
+      major: 0,
+      ge_elective: 0,
+      required: 0,
+      elective: 0,
+      cognate: 0,
+      specialized: 0,
+      track: 0,
+      total: 0
+    };
+
+    // Get semesters where each course type is required
+    const courseTypeSemesters = {
+      major: [],
+      ge_elective: [],
+      required: [],
+      elective: [],
+      cognate: [],
+      specialized: [],
+      track: []
+    };
+
+    result.rows.forEach(row => {
+      // Add to totals
+      totals.major += row.major_count;
+      totals.ge_elective += row.ge_elective_count;
+      totals.required += row.required_count;
+      totals.elective += row.elective_count;
+      totals.cognate += row.cognate_count;
+      totals.specialized += row.specialized_count;
+      totals.track += row.track_count;
+      totals.total += row.total_count;
+
+      // Add to semesters if count > 0
+      if (row.major_count > 0) {
+        courseTypeSemesters.major.push({ year: row.year, sem: row.sem, count: row.major_count });
+      }
+      if (row.ge_elective_count > 0) {
+        courseTypeSemesters.ge_elective.push({ year: row.year, sem: row.sem, count: row.ge_elective_count });
+      }
+      if (row.required_count > 0) {
+        courseTypeSemesters.required.push({ year: row.year, sem: row.sem, count: row.required_count });
+      }
+      if (row.elective_count > 0) {
+        courseTypeSemesters.elective.push({ year: row.year, sem: row.sem, count: row.elective_count });
+      }
+      if (row.cognate_count > 0) {
+        courseTypeSemesters.cognate.push({ year: row.year, sem: row.sem, count: row.cognate_count });
+      }
+      if (row.specialized_count > 0) {
+        courseTypeSemesters.specialized.push({ year: row.year, sem: row.sem, count: row.specialized_count });
+      }
+      if (row.track_count > 0) {
+        courseTypeSemesters.track.push({ year: row.year, sem: row.sem, count: row.track_count });
+      }
+    });
+
+    res.json({
+      totals,
+      courseTypeSemesters
+    });
+  } catch (error) {
+    console.error('Error in getCurriculumCourseTypeCounts:', error);
+    res.status(500).json({ error: "Failed to fetch curriculum course type counts" });
+  }
+};

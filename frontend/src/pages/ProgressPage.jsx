@@ -11,6 +11,7 @@ const ProgressPage = () => {
   const [curriculumCourses, setCurriculumCourses] = useState([]);
   const [error, setError] = useState(null);
   const [planData, setPlanData] = useState(null);
+  const [organizedCourses, setOrganizedCourses] = useState({});
   
   // Fetch curriculum and plan data on component mount
   useEffect(() => {
@@ -33,6 +34,27 @@ const ProgressPage = () => {
         // Get plan data
         const planData = await plansAPI.getCurrentPlan();
         setPlanData(planData);
+
+        // Organize courses by year and semester
+        const organized = {};
+        if (planData?.courses) {
+          planData.courses.forEach(course => {
+            const year = course.year;
+            const sem = course.sem;
+            
+            if (!organized[year]) {
+              organized[year] = {};
+            }
+            
+            if (!organized[year][sem]) {
+              organized[year][sem] = [];
+            }
+            
+            // Add the course to the organized structure
+            organized[year][sem].push(course);
+          });
+        }
+        setOrganizedCourses(organized);
 
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -483,19 +505,38 @@ const ProgressPage = () => {
     type !== 'REQUIRED_NON_ACADEMIC'
   );
 
-  // Calculate total required courses and completed courses
-  const totalRequired = Object.entries(coursesByType).reduce((total, [type, courses]) => {
-    if (type === "required_academic" || type === "required_non_academic") {
-      return total + courses.length;
-    } else {
-      const countField = `${type}_count`;
-      return total + (curriculumData?.totals?.[countField] || courses.length);
-    }
-  }, 0);
+  // Calculate total required courses
+  const calculateTotalRequired = () => {
+    if (!organizedCourses) return 0;
+    
+    let total = 0;
+    Object.values(organizedCourses).forEach(year => {
+      Object.values(year).forEach(semester => {
+        total += semester.length;
+      });
+    });
+    return total;
+  };
 
-  const completedCourses = Object.values(coursesByType).reduce((total, courses) => {
-    return total + courses.filter(course => course.status === 'completed').length;
-  }, 0);
+  // Calculate completed courses
+  const calculateCompletedCourses = () => {
+    if (!organizedCourses) return 0;
+    
+    let completed = 0;
+    Object.values(organizedCourses).forEach(year => {
+      Object.values(year).forEach(semester => {
+        semester.forEach(course => {
+          if (course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) {
+            completed++;
+          }
+        });
+      });
+    });
+    return completed;
+  };
+
+  const totalRequired = calculateTotalRequired();
+  const completedCourses = calculateCompletedCourses();
 
   if (loading) {
     return <LoadingSpinner fullPage />;
@@ -519,7 +560,7 @@ const ProgressPage = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                   {/* Overall Degree Progress Card */}
                   <Card>
                     <CardHeader>
@@ -528,31 +569,15 @@ const ProgressPage = () => {
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex justify-between mb-2 pr-1.5">
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{completedCourses}/{totalRequired}</span>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses}/${totalRequired}`}
+                          </span>
                         </div>
                         <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
                           <div 
                             className="h-3 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-1000 ease-in-out"
                             style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
                           ></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Pace Card */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Progress Pace</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                          <span className="text-sm font-medium">Calculating pace...</span>
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Pace information will be displayed here
                         </div>
                       </div>
                     </CardContent>
