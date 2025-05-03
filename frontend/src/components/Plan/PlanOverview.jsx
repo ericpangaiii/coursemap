@@ -42,15 +42,17 @@ const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll, courseTypeCoun
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold">Plan Overview</h2>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-4"
-          onClick={onClearAll}
-        >
-          <Trash2 className="h-3.5 w-3.5 mr-1" />
-          Clear All
-        </Button>
+        {currentStepType !== 'summary' && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 ml-4"
+            onClick={onClearAll}
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1" />
+            Clear All
+          </Button>
+        )}
       </div>
       <ScrollArea className="flex-1">
         <div className="grid grid-cols-4 gap-3 pr-4">
@@ -60,8 +62,8 @@ const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll, courseTypeCoun
               year={year}
               onSemesterClick={handleSemesterClick}
               semesterGrid={semesterGrid}
-              onDeleteCourse={onDeleteCourse}
-              activeCourse={activeCourse}
+              onDeleteCourse={currentStepType !== 'summary' ? onDeleteCourse : undefined}
+              activeCourse={currentStepType !== 'summary' ? activeCourse : null}
               courseTypeCounts={courseTypeCounts}
               currentStepType={currentStepType}
             />

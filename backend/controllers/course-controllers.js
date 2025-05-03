@@ -48,6 +48,14 @@ export const getCoursesByIds = async (req, res) => {
 // Update course
 export const updateCourse = async (req, res) => {
   try {
+    // Check if user is authenticated
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Not authenticated' 
+      });
+    }
+
     const { courseId } = req.params;
     const updates = req.body;
     
@@ -80,7 +88,7 @@ export const updateCourse = async (req, res) => {
       const planId = planResult.rows[0].id;
 
       // Determine if we should update the status
-      const shouldUpdateStatus = updates.grade !== '5' && 
+      const shouldUpdateStatus = updates.grade !== '5.00' && 
                                 updates.grade !== 'INC' && 
                                 updates.grade !== 'DRP' &&
                                 updates.grade !== '';

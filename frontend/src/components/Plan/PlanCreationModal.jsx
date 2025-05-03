@@ -280,7 +280,10 @@ const PlanCreationModal = ({ open, onOpenChange, onPlanCreated }) => {
               </div>
             </div>
           )}
-          <DragOverlay>
+          <DragOverlay dropAnimation={{
+            duration: 200,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+          }}>
             {activeCourse ? (
               <div className="w-[120px] px-2 py-1.5 rounded-md border border-gray-200 bg-white dark:bg-gray-800 shadow-lg flex items-center gap-2">
                 <div className={`w-1 h-4 rounded-full ${getCourseTypeColor(activeCourse.course_type?.toLowerCase())}`} />

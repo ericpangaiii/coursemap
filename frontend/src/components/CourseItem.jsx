@@ -7,7 +7,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { coursesAPI } from '@/lib/api';
 import { getCourseTypeColor } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { useState } from "react";
@@ -117,21 +116,15 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
   
   const handleGradeChange = async (newGrade) => {
     try {
-      // Update both grade and status
-      const status = newGrade && newGrade !== "" && !['INC', 'DRP'].includes(newGrade) ? 'completed' : 'planned';
-      const response = await coursesAPI.updateCourse(course.course_id, { 
-        grade: newGrade,
-        status: status,
-        plan_course_id: course.id
-      });
-      if (response.success) {
-        setGrade(newGrade);
-        onGradeChange?.(course.id, newGrade);
-      } else {
-        console.error('Failed to update grade:', response.error);
+      // Update the grade in the local state
+      setGrade(newGrade);
+      
+      // Pass the grade change up to the parent
+      if (onGradeChange) {
+        await onGradeChange(course.id, newGrade);
       }
     } catch (error) {
-      console.error('Failed to update grade:', error);
+      console.error("Error updating grade:", error);
     }
   };
 
@@ -179,7 +172,7 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
       {...attributes}
       {...listeners}
       className={`p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center justify-between relative overflow-hidden ${
-        disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
+        disabled ? 'opacity-50 cursor-not-allowed' : enableGradeSelection ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
       }`}
     >
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
@@ -269,11 +262,15 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
                     <div>
                       <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Prescribed Semesters</h5>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        {course.prescribed_semesters.map((sem, index) => (
-                          <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]">
-                            {`${sem.year}${sem.year === '1' ? 'st' : sem.year === '2' ? 'nd' : sem.year === '3' ? 'rd' : 'th'} Year ${sem.sem === '3' ? 'Mid Year' : sem.sem === '1' ? '1st Sem' : '2nd Sem'}`}
-                          </Badge>
-                        ))}
+                        {course.prescribed_semesters.map((sem, index) => {
+                          const year = Number(sem.year);
+                          const semester = Number(sem.sem);
+                          return (
+                            <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                              {`${year}${year === 1 ? 'st' : year === 2 ? 'nd' : year === 3 ? 'rd' : 'th'} Year ${semester === 3 ? 'Mid Year' : semester === 1 ? '1st Sem' : '2nd Sem'}`}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

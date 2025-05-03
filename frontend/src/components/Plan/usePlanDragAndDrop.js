@@ -46,14 +46,40 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
           id: course.course_id // Set id to match course_id for consistency
         };
         
+        // Initialize the semester array if it doesn't exist
+        if (!newGrid[semesterKey]) {
+          newGrid[semesterKey] = [];
+        }
+        
         // Always add the course at the beginning of the array
         // This ensures it's placed at the highlighted location
-        newGrid[semesterKey] = [courseWithLocation, ...newGrid[semesterKey]];
+        newGrid[semesterKey] = [courseWithLocation, ...(newGrid[semesterKey] || [])];
         
         return newGrid;
       });
       
-      console.log(`Moved course ${course.course_code} to Year ${year}, Semester ${semester}`);
+      // Get descriptive labels for year and semester
+      const getYearLabel = (year) => {
+        switch (year) {
+          case '1': return '1st Year';
+          case '2': return '2nd Year';
+          case '3': return '3rd Year';
+          case '4': return '4th Year';
+          default: return `${year} Year`;
+        }
+      };
+
+      const getSemesterLabel = (semester) => {
+        switch (semester) {
+          case '1': return '1st Sem';
+          case '2': return '2nd Sem';
+          case 'M':
+          case '3': return 'Mid Year';
+          default: return semester;
+        }
+      };
+
+      console.log(`Moved course ${course.course_code} to ${getYearLabel(year)}, ${getSemesterLabel(semester)}`);
     }
     
     setActiveId(null);
@@ -72,7 +98,28 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
       return newGrid;
     });
     
-    console.log(`Deleted course ${course.course_code} from Year ${year}, Semester ${semester}`);
+    // Get descriptive labels for year and semester
+    const getYearLabel = (year) => {
+      switch (year) {
+        case '1': return '1st Year';
+        case '2': return '2nd Year';
+        case '3': return '3rd Year';
+        case '4': return '4th Year';
+        default: return `${year} Year`;
+      }
+    };
+
+    const getSemesterLabel = (semester) => {
+      switch (semester) {
+        case '1': return '1st Sem';
+        case '2': return '2nd Sem';
+        case 'M':
+        case '3': return 'Mid Year';
+        default: return semester;
+      }
+    };
+    
+    console.log(`Deleted course ${course.course_code} from ${getYearLabel(year)}, ${getSemesterLabel(semester)}`);
   };
 
   const handleClearAll = () => {

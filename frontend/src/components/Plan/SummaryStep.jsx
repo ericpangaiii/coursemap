@@ -1,17 +1,23 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, Plus, ChevronDown, ChevronRight, BarChart3, CheckCircle2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getCourseTypeColor } from "@/lib/utils";
 import { getAllWarnings } from "@/lib/warningsTracker";
 import { AlertTriangle } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { plansAPI } from "@/lib/api";
 import { planToastFunctions } from "@/lib/toast";
+import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
 
 const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts, curriculumId, onPlanCreated, onOpenChange }) => {
+  const [confirmationText, setConfirmationText] = useState('');
+  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+  const [isWarningsExpanded, setIsWarningsExpanded] = useState(false);
+  const requiredText = "I confirm my plan";
+
   // Generate course types based on courseTypeCounts
   const courseTypes = useMemo(() => {
     if (!courseTypeCounts) return [];
@@ -220,106 +226,175 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
           <ScrollArea className="h-full mr-4">
             <div className="space-y-4 pl-4 pb-4">
               <Card className="mx-6">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Course Type Statistics
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Course Type</TableHead>
-                        <TableHead className="text-center text-xs">Courses</TableHead>
-                        <TableHead className="text-center text-xs">Units</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {courseTypes.map(({ id, label }) => (
-                        <TableRow key={id}>
-                          <TableCell className="font-medium text-xs">
-                            <div className="flex items-center gap-2">
-                              <div 
-                                className={`w-1 h-4 rounded-sm ${getCourseTypeColor(id)}`}
-                              />
-                              {label}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center text-xs">{typeStats[id]?.count || 0}</TableCell>
-                          <TableCell className="text-center text-xs">{typeStats[id]?.units || 0}</TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow className="font-semibold">
-                        <TableCell className="text-xs">Total</TableCell>
-                        <TableCell className="text-center text-xs">{totalCourses}</TableCell>
-                        <TableCell className="text-center text-xs">{totalUnits}</TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-
-              <Card className="mx-6">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
-                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Warnings
-                    </CardTitle>
-                    <div className={`${hasWarnings ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'} rounded-md w-5 h-5 flex items-center justify-center text-xs font-medium`}>
-                      {warningStats.underload.length + warningStats.overload.length + warningStats.missingPrerequisites.length + warningStats.missingCorequisites.length}
+                <CardHeader className="pb-4 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Course Type Statistics
+                      </CardTitle>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                      className="h-6 w-6 p-0"
+                    >
+                      {isStatsExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  {hasWarnings ? (
+                {isStatsExpanded && (
+                  <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="text-xs">Warning Type</TableHead>
-                          <TableHead className="text-center text-xs">Details</TableHead>
+                          <TableHead className="text-xs">Course Type</TableHead>
+                          <TableHead className="text-center text-xs">Courses</TableHead>
+                          <TableHead className="text-center text-xs">Units</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {warningStats.underload.length > 0 && warningStats.underload.map(({ semester, details }, idx) => (
-                          <TableRow key={`underload-${idx}`}>
-                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Underload</TableCell>
-                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">{semester} has {details}</TableCell>
+                        {courseTypes.map(({ id, label }) => (
+                          <TableRow key={id}>
+                            <TableCell className="font-medium text-xs">
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className={`w-1 h-4 rounded-sm ${getCourseTypeColor(id)}`}
+                                />
+                                {label}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center text-xs">{typeStats[id]?.count || 0}</TableCell>
+                            <TableCell className="text-center text-xs">{typeStats[id]?.units || 0}</TableCell>
                           </TableRow>
                         ))}
-                        {warningStats.overload.length > 0 && warningStats.overload.map(({ semester, details }, idx) => (
-                          <TableRow key={`overload-${idx}`}>
-                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Overload</TableCell>
-                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">{semester} has {details}</TableCell>
-                          </TableRow>
-                        ))}
-                        {warningStats.missingPrerequisites.length > 0 && warningStats.missingPrerequisites.map(({ courseCode, requisites, semester }, idx) => (
-                          <TableRow key={`prereq-${idx}`}>
-                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">
-                              Missing {requisites.length === 1 ? 'Prerequisite' : 'Prerequisites'}
-                            </TableCell>
-                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
-                              {courseCode} ({semester}) needs {requisites.length > 1 ? 'either ' : ''}{requisites.join(' or ')}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {warningStats.missingCorequisites.length > 0 && warningStats.missingCorequisites.map(({ courseCode, requisites, semester }, idx) => (
-                          <TableRow key={`coreq-${idx}`}>
-                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">
-                              Missing {requisites.length === 1 ? 'Corequisite' : 'Corequisites'}
-                            </TableCell>
-                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
-                              {courseCode} ({semester}) needs {requisites.join(' or ')}
-                            </TableCell>
-                          </TableRow>
-                        ))}
+                        <TableRow className="font-semibold">
+                          <TableCell className="text-xs">Total</TableCell>
+                          <TableCell className="text-center text-xs">{totalCourses}</TableCell>
+                          <TableCell className="text-center text-xs">{totalUnits}</TableCell>
+                        </TableRow>
                       </TableBody>
                     </Table>
-                  ) : (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">No issues detected in the plan.</p>
-                  )}
+                  </CardContent>
+                )}
+              </Card>
+
+              <Card className="mx-6">
+                <CardHeader className="pb-4 pt-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                      <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Warnings
+                      </CardTitle>
+                      <div className={`${hasWarnings ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'} rounded-md w-5 h-5 flex items-center justify-center text-xs font-medium`}>
+                        {warningStats.underload.length + warningStats.overload.length + warningStats.missingPrerequisites.length + warningStats.missingCorequisites.length}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsWarningsExpanded(!isWarningsExpanded)}
+                      className="h-6 w-6 p-0"
+                    >
+                      {isWarningsExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </CardHeader>
+                {isWarningsExpanded && (
+                  <CardContent>
+                    {hasWarnings ? (
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-xs">Warning Type</TableHead>
+                            <TableHead className="text-center text-xs">Details</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {warningStats.underload.length > 0 && warningStats.underload.map(({ semester, details }, idx) => (
+                            <TableRow key={`underload-${idx}`}>
+                              <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Underload</TableCell>
+                              <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">{semester} has {details}</TableCell>
+                            </TableRow>
+                          ))}
+                          {warningStats.overload.length > 0 && warningStats.overload.map(({ semester, details }, idx) => (
+                            <TableRow key={`overload-${idx}`}>
+                              <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Overload</TableCell>
+                              <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">{semester} has {details}</TableCell>
+                            </TableRow>
+                          ))}
+                          {warningStats.missingPrerequisites.length > 0 && warningStats.missingPrerequisites.map(({ courseCode, requisites, semester }, idx) => (
+                            <TableRow key={`prereq-${idx}`}>
+                              <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">
+                                Missing {requisites.length === 1 ? 'Prerequisite' : 'Prerequisites'}
+                              </TableCell>
+                              <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                                {courseCode} ({semester}) needs {requisites.length > 1 ? 'either ' : ''}{requisites.join(' or ')}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {warningStats.missingCorequisites.length > 0 && warningStats.missingCorequisites.map(({ courseCode, requisites, semester }, idx) => (
+                            <TableRow key={`coreq-${idx}`}>
+                              <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">
+                                Missing {requisites.length === 1 ? 'Corequisite' : 'Corequisites'}
+                              </TableCell>
+                              <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                                {courseCode} ({semester}) needs {requisites.join(' or ')}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-xs text-gray-500 dark:text-gray-400">No issues detected in the plan.</p>
+                    )}
+                  </CardContent>
+                )}
+              </Card>
+
+              <Card className="mx-6">
+                <CardHeader className="pb-4 pt-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-400" />
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Confirm Plan Creation
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    This will create your final Plan of Coursework. Please confirm to proceed.
+                  </p>
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Type <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded">
+                        {requiredText.split('').map((char, index) => (
+                          <span
+                            key={index}
+                            className={confirmationText[index] === char ? 'text-green-500' : ''}
+                          >
+                            {char}
+                          </span>
+                        ))}
+                      </span> to continue:
+                    </p>
+                    <Input
+                      value={confirmationText}
+                      onChange={(e) => setConfirmationText(e.target.value)}
+                      placeholder="Type the confirmation text..."
+                      className="w-full font-mono"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -338,7 +413,8 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
         </Button>
         <Button
           onClick={handleCreatePlan}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm flex items-center gap-2"
+          disabled={confirmationText !== requiredText}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus className="h-4 w-4" />
           Create Plan

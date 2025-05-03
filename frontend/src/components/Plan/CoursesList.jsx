@@ -45,7 +45,11 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
   const availableCourses = courses.filter(course => {
     // Check if the course is in any semester in the plan
     return !Object.values(semesterGrid).some(semesterCourses => 
-      semesterCourses.some(c => c.id === course.id)
+      semesterCourses.some(c => 
+        // For repeatable courses, check both id and curriculum_course_id
+        c.id === course.id || 
+        (course.is_repeatable && c.curriculum_course_id === course.curriculum_course_id)
+      )
     );
   });
 
@@ -93,7 +97,7 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
     }
     
     return true;
-  });
+  }).sort((a, b) => a.course_code.localeCompare(b.course_code));
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredCourses.length / itemsPerPage);

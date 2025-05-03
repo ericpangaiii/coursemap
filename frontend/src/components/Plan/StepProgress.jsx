@@ -62,7 +62,13 @@ const StepProgress = ({ currentStep, courseSteps }) => {
               {!isLast && (
                 <div className={cn(
                   "absolute top-[11px] left-[50%] h-[2px] overflow-hidden",
-                  isSecondToLast ? "w-[140%]" : "w-[200%]"
+                  isSecondToLast && (
+                    courseSteps.length === 6 ? "w-[110%]" :
+                    courseSteps.length === 5 ? "w-[140%]" :
+                    courseSteps.length === 4 ? "w-[160%]" :
+                    "w-[180%]"
+                  ),
+                  !isSecondToLast && "w-[200%]"
                 )}>
                   {/* Background line */}
                   <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700" />

@@ -4,14 +4,9 @@ import CompactSemesterCard from "./CompactSemesterCard";
 import { getOrdinalYear } from "@/lib/utils";
 
 const CompactYearCard = ({ year, semesters, onGradeChange, hideDetailsButton = false }) => {
-  // Filter out semesters with no courses
-  const nonEmptySemesters = Object.entries(semesters)
-    .filter(([, courses]) => courses && courses.length > 0)
+  // Sort semesters by number
+  const sortedSemesters = Object.entries(semesters)
     .sort(([semA], [semB]) => parseInt(semA) - parseInt(semB));
-
-  if (nonEmptySemesters.length === 0) {
-    return null; // Don't render the year card if there are no courses
-  }
 
   return (
     <Card className="w-full">
@@ -21,7 +16,7 @@ const CompactYearCard = ({ year, semesters, onGradeChange, hideDetailsButton = f
         </CardTitle>
       </CardHeader>
       <CardContent className="p-3 space-y-4">
-        {nonEmptySemesters.map(([sem, courses]) => (
+        {sortedSemesters.map(([sem, courses]) => (
           <CompactSemesterCard 
             key={`${year}-${sem}`}
             semester={parseInt(sem)}

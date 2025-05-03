@@ -16,8 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn, computeSemesterGWA, getCourseTypeName, getScholarshipEligibility, sortCourses, isSemesterOverloaded, isSemesterUnderloaded, getSemesterName } from "@/lib/utils";
-import { AlertTriangle, Award, BookOpen, Calendar, Check, ChevronDown, Filter, SearchX, X } from "lucide-react";
+import { AlertTriangle, Award, BookOpen, Calendar, Check, ChevronDown, ChevronRight, Filter, SearchX, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gradeToastFunctions } from "@/lib/toast";
 
@@ -31,6 +32,7 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [coursesState, setCourses] = useState(courses);
+  const [isWarningsExpanded, setIsWarningsExpanded] = useState(false);
 
   // Update local state when courses prop changes
   useEffect(() => {
@@ -101,7 +103,13 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
 
   // Generate warnings
   const generateWarnings = () => {
-    const warnings = [];
+    const warnings = {
+      underload: null,
+      overload: null,
+      failingGrades: [],
+      incompleteGrades: [],
+      droppedCourses: []
+    };
     
     // Check for failing grades (5.00, INC, DRP)
     const failingGrades = coursesState.filter(course => 
@@ -110,33 +118,31 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
 
     failingGrades.forEach(course => {
       if (course.grade === '5.00') {
-        warnings.push({
-          text: "Failed Course",
-          details: `${course.course_code} (must be retaken)`
+        warnings.failingGrades.push({
+          courseCode: course.course_code,
+          details: "must be retaken"
         });
       } else if (course.grade === 'INC') {
         const nextYear = year + 1;
         const nextYearOrdinal = formatOrdinal(nextYear);
         const semesterName = semester === 3 ? 'Mid Year' : `${formatOrdinal(semester)}`;
-        warnings.push({
-          text: "Incomplete Grade",
-          details: `${course.course_code} (must be completed before end of ${nextYearOrdinal} Year ${semesterName} Sem)`
+        warnings.incompleteGrades.push({
+          courseCode: course.course_code,
+          details: `must be completed before end of ${nextYearOrdinal} Year ${semesterName} Sem`
         });
       } else if (course.grade === 'DRP') {
-        warnings.push({
-          text: "Dropped Course",
-          details: `${course.course_code} (must be retaken)`
+        warnings.droppedCourses.push({
+          courseCode: course.course_code,
+          details: "must be retaken"
         });
       }
     });
     
     // Calculate academic units (excluding required_non_academic and DRP courses)
     const academicUnits = coursesState.reduce((total, course) => {
-      // Skip if course is dropped (DRP) and not required non-academic
       if (course.grade === 'DRP' && course.course_type !== 'required_non_academic') {
         return total;
       }
-      // Only count academic courses' units
       if (course.is_academic && !course._isCurriculumCourse) {
         return total + (parseInt(course.units) || 0);
       }
@@ -147,21 +153,23 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
     const semesterType = semester === 3 ? 'Mid Year' : semester.toString();
     if (isSemesterOverloaded(academicUnits, semesterType)) {
       const maxUnits = semesterType === "Mid Year" ? 6 : 18;
-      warnings.push({
-        text: "Overload",
+      warnings.overload = {
         details: `${academicUnits} units (max ${maxUnits} allowed, must file overload permit)`
-      });
+      };
     } else if (isSemesterUnderloaded(academicUnits, semesterType)) {
-      warnings.push({
-        text: "Underload",
+      warnings.underload = {
         details: `${academicUnits} units (min 15 required, must file underload permit)`
-      });
+      };
     }
     
     return warnings;
   };
 
   const warnings = generateWarnings();
+  const hasWarnings = warnings.overload || warnings.underload || 
+                      warnings.failingGrades.length > 0 || 
+                      warnings.incompleteGrades.length > 0 || 
+                      warnings.droppedCourses.length > 0;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -355,31 +363,100 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
 
             {/* Warnings Card */}
             <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
-                  <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Warnings
-                  </CardTitle>
-                  <div className={`${warnings.length > 0 ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'} rounded-md w-5 h-5 flex items-center justify-center text-xs font-medium`}>
-                    {warnings.length}
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                    <CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Warnings
+                    </CardTitle>
+                    <div className={`${hasWarnings ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-200' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-400'} rounded-md w-5 h-5 flex items-center justify-center text-xs font-medium`}>
+                      {[
+                        warnings.overload ? 1 : 0,
+                        warnings.underload ? 1 : 0,
+                        warnings.failingGrades.length,
+                        warnings.incompleteGrades.length,
+                        warnings.droppedCourses.length
+                      ].reduce((a, b) => a + b, 0)}
+                    </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsWarningsExpanded(!isWarningsExpanded)}
+                    className="h-6 w-6 p-0"
+                  >
+                    {isWarningsExpanded ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                {warnings.length > 0 ? (
-                  <div className="space-y-2">
-                    {warnings.map((warning, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
-                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{warning.text}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{warning.details}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">No issues detected in this semester.</p>
-                )}
-              </CardContent>
+              {isWarningsExpanded && (
+                <CardContent>
+                  {hasWarnings ? (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs">Warning Type</TableHead>
+                          <TableHead className="text-center text-xs">Details</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {/* Overload warning */}
+                        {warnings.overload && (
+                          <TableRow>
+                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Overload</TableCell>
+                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">{warnings.overload.details}</TableCell>
+                          </TableRow>
+                        )}
+
+                        {/* Underload warning */}
+                        {warnings.underload && (
+                          <TableRow>
+                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Underload</TableCell>
+                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">{warnings.underload.details}</TableCell>
+                          </TableRow>
+                        )}
+
+                        {/* Failing grades */}
+                        {warnings.failingGrades.map((course, idx) => (
+                          <TableRow key={`failed-${idx}`}>
+                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Failed Course</TableCell>
+                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                              {course.courseCode} ({course.details})
+                            </TableCell>
+                          </TableRow>
+                        ))}
+
+                        {/* Incomplete grades */}
+                        {warnings.incompleteGrades.map((course, idx) => (
+                          <TableRow key={`inc-${idx}`}>
+                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Incomplete Grade</TableCell>
+                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                              {course.courseCode} ({course.details})
+                            </TableCell>
+                          </TableRow>
+                        ))}
+
+                        {/* Dropped courses */}
+                        {warnings.droppedCourses.map((course, idx) => (
+                          <TableRow key={`dropped-${idx}`}>
+                            <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">Dropped Course</TableCell>
+                            <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                              {course.courseCode} ({course.details})
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  ) : (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">No issues detected in this semester.</p>
+                  )}
+                </CardContent>
+              )}
             </Card>
           </div>
         </ScrollArea>

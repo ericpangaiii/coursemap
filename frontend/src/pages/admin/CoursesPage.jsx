@@ -1,9 +1,8 @@
 import { useIsAdmin } from '@/lib/auth.jsx';
 import { useEffect, useState, useMemo } from 'react';
-import { usersAPI, plansAPI } from '@/lib/api';
+import { coursesAPI } from '@/lib/api';
 import { toast } from "react-hot-toast";
-import { Navigate } from 'react-router-dom';
-import { Trash2, Filter, SearchX, ChevronDown, X, ArrowUp, ArrowDown, ArrowUpDown, Eye, FileText } from "lucide-react";
+import { Trash2, Filter, SearchX, ChevronDown, X, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -25,54 +24,50 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import PageHeader from "@/components/PageHeader";
 import { LoadingSpinner } from "@/components/ui/loading";
-import CompactPlanView from "@/components/Plan/CompactPlanView";
+import { Navigate } from 'react-router-dom';
 
-const UserManagementPage = () => {
+const AdminCoursesPage = () => {
   const isAdmin = useIsAdmin();
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [courses, setCourses] = useState([]);
+  const [filteredCourses, setFilteredCourses] = useState([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState(null);
+  const [courseToDelete, setCourseToDelete] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
-    role: [],
-    program: [],
-    curriculum: [],
-    college: []
+    courseType: [],
+    college: [],
+    semester: []
   });
   const [sortConfig, setSortConfig] = useState({
     key: null,
     direction: 'ascending'
   });
-  const [viewModalOpen, setViewModalOpen] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isLoadingPlan, setIsLoadingPlan] = useState(false);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchCourses = async () => {
       try {
-        const data = await usersAPI.getAllUsers();
-        setUsers(data);
-        setFilteredUsers(data);
+        const data = await coursesAPI.getAllCourses();
+        setCourses(data);
+        setFilteredCourses(data);
       } catch (error) {
-        console.error('Error fetching users:', error);
-        toast.error('Failed to fetch users');
+        console.error('Error fetching courses:', error);
+        toast.error('Failed to fetch courses');
       } finally {
-        setIsLoadingUsers(false);
+        setIsLoadingCourses(false);
       }
     };
 
     if (isAdmin) {
-      fetchUsers();
+      fetchCourses();
     }
   }, [isAdmin]);
 
   const getUniqueValues = (key) => {
-    const values = users.map(user => user[key]);
+    if (!Array.isArray(courses)) return [];
+    const values = courses.map(course => course[key]);
     return [...new Set(values.filter(Boolean))].sort();
   };
 
@@ -93,55 +88,54 @@ const UserManagementPage = () => {
     }));
   };
 
-  // Filter users based on search and filters
+  // Filter courses based on search and filters
   useEffect(() => {
-    let filtered = [...users];
+    if (!Array.isArray(courses)) {
+      setFilteredCourses([]);
+      return;
+    }
+
+    let filtered = [...courses];
     
     // Apply search filter
     if (searchQuery) {
-      filtered = filtered.filter(user => 
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(course => 
+        course.course_code?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.title?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     
-    // Apply role filter
-    if (filters.role.length > 0) {
-      filtered = filtered.filter(user => 
-        filters.role.includes(user.role)
-      );
-    }
-    
-    // Apply program filter
-    if (filters.program.length > 0) {
-      filtered = filtered.filter(user => 
-        filters.program.includes(user.program_acronym)
-      );
-    }
-    
-    // Apply curriculum filter
-    if (filters.curriculum.length > 0) {
-      filtered = filtered.filter(user => 
-        filters.curriculum.includes(user.curriculum_name)
+    // Apply course type filter
+    if (filters.courseType.length > 0) {
+      filtered = filtered.filter(course => 
+        filters.courseType.includes(course.course_type)
       );
     }
     
     // Apply college filter
     if (filters.college.length > 0) {
-      filtered = filtered.filter(user => 
-        filters.college.includes(user.college)
+      filtered = filtered.filter(course => 
+        filters.college.includes(course.college)
       );
     }
     
-    setFilteredUsers(filtered);
+    // Apply semester filter
+    if (filters.semester.length > 0) {
+      filtered = filtered.filter(course => 
+        filters.semester.includes(course.semester)
+      );
+    }
+    
+    setFilteredCourses(filtered);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [users, searchQuery, filters]);
+  }, [courses, searchQuery, filters]);
 
-  // Sort users based on sort configuration
-  const sortedUsers = useMemo(() => {
-    if (!sortConfig.key) return filteredUsers;
+  // Sort courses based on sort configuration
+  const sortedCourses = useMemo(() => {
+    if (!Array.isArray(filteredCourses)) return [];
+    if (!sortConfig.key) return filteredCourses;
 
-    return [...filteredUsers].sort((a, b) => {
+    return [...filteredCourses].sort((a, b) => {
       if (a[sortConfig.key] < b[sortConfig.key]) {
         return sortConfig.direction === 'ascending' ? -1 : 1;
       }
@@ -150,7 +144,7 @@ const UserManagementPage = () => {
       }
       return 0;
     });
-  }, [filteredUsers, sortConfig]);
+  }, [filteredCourses, sortConfig]);
 
   const handleSort = (key, direction) => {
     if (direction === 'clear') {
@@ -169,97 +163,51 @@ const UserManagementPage = () => {
       : <ArrowDown className="w-3 h-3 ml-1 text-primary" />;
   };
 
-  const handleDeleteClick = (user) => {
-    if (user.role === 'Admin' && user.id === isAdmin.id) {
-      toast.error("You cannot delete your own admin account");
-      return;
-    }
-    setUserToDelete(user);
+  const handleDeleteClick = (course) => {
+    setCourseToDelete(course);
     setDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      const success = await usersAPI.deleteUser(userToDelete.id);
+      const success = await coursesAPI.deleteCourse(courseToDelete.id);
       if (success) {
-        setUsers(users.filter(user => user.id !== userToDelete.id));
-        toast.success(`Deleted ${userToDelete.name}`);
+        setCourses(courses.filter(course => course.id !== courseToDelete.id));
+        toast.success(`Deleted ${courseToDelete.course_code}`);
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
-      toast.error(`Failed to delete ${userToDelete.name}`);
+      console.error('Error deleting course:', error);
+      toast.error(`Failed to delete ${courseToDelete.course_code}`);
     } finally {
       setDeleteModalOpen(false);
-      setUserToDelete(null);
+      setCourseToDelete(null);
     }
   };
 
   const handleDeleteCancel = () => {
     setDeleteModalOpen(false);
-    setUserToDelete(null);
-  };
-
-  const handleViewClick = async (user) => {
-    try {
-      setIsLoadingPlan(true);
-      setSelectedUser(user);
-      setViewModalOpen(true);
-      
-      const plans = await plansAPI.getAllPlansByUserId(user.id);
-      if (plans && plans.length > 0) {
-        setSelectedPlan(plans[0]);
-      } else {
-        setSelectedPlan(null);
-      }
-    } catch (error) {
-      console.error('Error fetching plan:', error);
-      toast.error('Failed to fetch plan data');
-    } finally {
-      setIsLoadingPlan(false);
-    }
-  };
-
-  const organizeCoursesByYearAndSemester = (courses) => {
-    const organized = {};
-    
-    courses.forEach(course => {
-      const year = course.year;
-      const sem = course.sem;
-      
-      if (!organized[year]) {
-        organized[year] = {};
-      }
-      
-      if (!organized[year][sem]) {
-        organized[year][sem] = [];
-      }
-      
-      organized[year][sem].push({
-        ...course,
-        course_id: course.id
-      });
-    });
-    
-    return organized;
+    setCourseToDelete(null);
   };
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const totalPages = Math.ceil((Array.isArray(sortedCourses) ? sortedCourses.length : 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentUsers = sortedUsers.slice(startIndex, endIndex);
+  const currentCourses = Array.isArray(sortedCourses) ? sortedCourses.slice(startIndex, endIndex) : [];
 
   if (!isAdmin) {
-    return <div>Access denied. Admin privileges required.</div>;
+    return <Navigate to="/dashboard" />;
   }
 
   return (
     <div className="container mx-auto">
-      {isLoadingUsers ? (
-        <LoadingSpinner fullPage />
+      {isLoadingCourses ? (
+        <div className="flex justify-center items-center h-[calc(100vh-12rem)]">
+          <LoadingSpinner />
+        </div>
       ) : (
         <div className="container mx-auto p-2">
-          <PageHeader title="User Management" />
+          <PageHeader title="Courses Management" />
           
           {/* Main Content Card */}
           <Card className="mb-6 w-full max-w-[1300px]">
@@ -271,7 +219,7 @@ const UserManagementPage = () => {
                   {/* Search Bar - 40% width */}
                   <div className="w-2/5">
                     <Input
-                      placeholder="Search by name or email..."
+                      placeholder="Search by course code or title..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full h-8 text-xs"
@@ -334,10 +282,10 @@ const UserManagementPage = () => {
                           className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
                           <Filter className="w-4 h-4 mr-1" />
-                          Program
-                          {filters.program.length > 0 && (
+                          Course Type
+                          {filters.courseType.length > 0 && (
                             <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
-                              {filters.program.length}
+                              {filters.courseType.length}
                             </span>
                           )}
                         </Button>
@@ -346,78 +294,29 @@ const UserManagementPage = () => {
                         <ScrollArea className="h-[120px]">
                           <div 
                             className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
-                              filters.program.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                              filters.courseType.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
                             }`}
-                            onClick={() => filters.program.length > 0 && clearFilter('program')}
+                            onClick={() => filters.courseType.length > 0 && clearFilter('courseType')}
                           >
                             <X className="w-3 h-3" />
                             <span className="text-xs">Clear</span>
                           </div>
-                          {getUniqueValues('program_acronym').map(program => (
+                          {getUniqueValues('course_type').map(type => (
                             <DropdownMenuItem 
-                              key={program}
+                              key={type}
                               onClick={(e) => {
                                 e.preventDefault();
-                                handleFilterChange('program', program);
+                                handleFilterChange('courseType', type);
                               }}
                               className="flex items-center gap-2 py-1.5"
                             >
                               <input
                                 type="checkbox"
-                                checked={filters.program.includes(program)}
+                                checked={filters.courseType.includes(type)}
                                 onChange={() => {}}
                                 className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
-                              <span className="text-xs">{program}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </ScrollArea>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
-                        >
-                          <Filter className="w-4 h-4 mr-1" />
-                          Curriculum
-                          {filters.curriculum.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
-                              {filters.curriculum.length}
-                            </span>
-                          )}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
-                        <ScrollArea className="h-[120px]">
-                          <div 
-                            className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
-                              filters.curriculum.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
-                            }`}
-                            onClick={() => filters.curriculum.length > 0 && clearFilter('curriculum')}
-                          >
-                            <X className="w-3 h-3" />
-                            <span className="text-xs">Clear</span>
-                          </div>
-                          {getUniqueValues('curriculum_name').map(curriculum => (
-                            <DropdownMenuItem 
-                              key={curriculum}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handleFilterChange('curriculum', curriculum);
-                              }}
-                              className="flex items-center gap-2 py-1.5"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={filters.curriculum.includes(curriculum)}
-                                onChange={() => {}}
-                                className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="text-xs">{curriculum}</span>
+                              <span className="text-xs">{type}</span>
                             </DropdownMenuItem>
                           ))}
                         </ScrollArea>
@@ -441,33 +340,35 @@ const UserManagementPage = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
-                        <div 
-                          className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
-                            filters.college.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
-                          }`}
-                          onClick={() => filters.college.length > 0 && clearFilter('college')}
-                        >
-                          <X className="w-3 h-3" />
-                          <span className="text-xs">Clear</span>
-                        </div>
-                        {getUniqueValues('college').map(college => (
-                          <DropdownMenuItem 
-                            key={college}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleFilterChange('college', college);
-                            }}
-                            className="flex items-center gap-2 py-1.5"
+                        <ScrollArea className="h-[120px]">
+                          <div 
+                            className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                              filters.college.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                            }`}
+                            onClick={() => filters.college.length > 0 && clearFilter('college')}
                           >
-                            <input
-                              type="checkbox"
-                              checked={filters.college.includes(college)}
-                              onChange={() => {}}
-                              className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">{college}</span>
-                          </DropdownMenuItem>
-                        ))}
+                            <X className="w-3 h-3" />
+                            <span className="text-xs">Clear</span>
+                          </div>
+                          {getUniqueValues('college').map(college => (
+                            <DropdownMenuItem 
+                              key={college}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleFilterChange('college', college);
+                              }}
+                              className="flex items-center gap-2 py-1.5"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={filters.college.includes(college)}
+                                onChange={() => {}}
+                                className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-xs">{college}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </ScrollArea>
                       </DropdownMenuContent>
                     </DropdownMenu>
 
@@ -479,42 +380,44 @@ const UserManagementPage = () => {
                           className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                         >
                           <Filter className="w-4 h-4 mr-1" />
-                          Role
-                          {filters.role.length > 0 && (
+                          Semester
+                          {filters.semester.length > 0 && (
                             <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
-                              {filters.role.length}
+                              {filters.semester.length}
                             </span>
                           )}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-auto bg-white dark:bg-[hsl(220,10%,15%)] border-gray-200 dark:border-[hsl(220,10%,20%)]">
-                        <div 
-                          className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
-                            filters.role.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
-                          }`}
-                          onClick={() => filters.role.length > 0 && clearFilter('role')}
-                        >
-                          <X className="w-3 h-3" />
-                          <span className="text-xs">Clear</span>
-                        </div>
-                        {getUniqueValues('role').map(role => (
-                          <DropdownMenuItem 
-                            key={role}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleFilterChange('role', role);
-                            }}
-                            className="flex items-center gap-2 py-1.5"
+                        <ScrollArea className="h-[120px]">
+                          <div 
+                            className={`flex items-center gap-2 py-1.5 pl-2 rounded-md ${
+                              filters.semester.length === 0 ? 'text-gray-400 dark:text-gray-500 cursor-default' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,25%)]'
+                            }`}
+                            onClick={() => filters.semester.length > 0 && clearFilter('semester')}
                           >
-                            <input
-                              type="checkbox"
-                              checked={filters.role.includes(role)}
-                              onChange={() => {}}
-                              className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="text-xs">{role}</span>
-                          </DropdownMenuItem>
-                        ))}
+                            <X className="w-3 h-3" />
+                            <span className="text-xs">Clear</span>
+                          </div>
+                          {getUniqueValues('semester').map(semester => (
+                            <DropdownMenuItem 
+                              key={semester}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleFilterChange('semester', semester);
+                              }}
+                              className="flex items-center gap-2 py-1.5"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={filters.semester.includes(semester)}
+                                onChange={() => {}}
+                                className="h-3 w-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-xs">{semester}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </ScrollArea>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -523,12 +426,12 @@ const UserManagementPage = () => {
             </CardContent>
           </Card>
 
-          {/* User List Card */}
+          {/* Courses List Card */}
           <Card className="mb-6 w-full max-w-[1300px]">
             <CardHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
-                  {filteredUsers.length} {filteredUsers.length === 1 ? 'user' : 'users'} found
+                  {filteredCourses.length} {filteredCourses.length === 1 ? 'course' : 'courses'} found
                 </span>
               </div>
             </CardHeader>
@@ -538,22 +441,21 @@ const UserManagementPage = () => {
                   <thead>
                     <tr className="text-xs text-gray-500 dark:text-gray-400">
                       <th className="text-left py-2 px-2 w-12">#</th>
-                      <th className="text-left py-2 px-2 w-16">Photo</th>
-                      <th className={`text-left py-2 px-2 w-56 ${
-                        sortConfig.key === 'name' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
-                      } rounded-md`}>
+                      <th className={`text-left py-2 px-2 w-32 ${
+                        sortConfig.key === 'course_code' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
-                              Name
-                              {getSortIcon('name')}
+                              Course Code
+                              {getSortIcon('course_code')}
                             </div>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[140px]">
                             <DropdownMenuItem 
-                              onClick={() => handleSort('name', 'ascending')}
+                              onClick={() => handleSort('course_code', 'ascending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'name' && sortConfig.direction === 'ascending' 
+                                sortConfig.key === 'course_code' && sortConfig.direction === 'ascending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -562,9 +464,9 @@ const UserManagementPage = () => {
                               <span className="text-xs">Ascending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('name', 'descending')}
+                              onClick={() => handleSort('course_code', 'descending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'name' && sortConfig.direction === 'descending' 
+                                sortConfig.key === 'course_code' && sortConfig.direction === 'descending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -573,7 +475,7 @@ const UserManagementPage = () => {
                               <span className="text-xs">Descending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('name', 'clear')}
+                              onClick={() => handleSort('course_code', 'clear')}
                               disabled={!sortConfig.key}
                               className={`flex items-center gap-2 py-1.5 ${
                                 !sortConfig.key 
@@ -588,20 +490,20 @@ const UserManagementPage = () => {
                         </DropdownMenu>
                       </th>
                       <th className={`text-left py-2 px-2 w-64 ${
-                        sortConfig.key === 'email' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
-                      } rounded-md`}>
+                        sortConfig.key === 'title' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
-                              Email
-                              {getSortIcon('email')}
+                              Title
+                              {getSortIcon('title')}
                             </div>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[140px]">
                             <DropdownMenuItem 
-                              onClick={() => handleSort('email', 'ascending')}
+                              onClick={() => handleSort('title', 'ascending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'email' && sortConfig.direction === 'ascending' 
+                                sortConfig.key === 'title' && sortConfig.direction === 'ascending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -610,9 +512,9 @@ const UserManagementPage = () => {
                               <span className="text-xs">Ascending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('email', 'descending')}
+                              onClick={() => handleSort('title', 'descending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'email' && sortConfig.direction === 'descending' 
+                                sortConfig.key === 'title' && sortConfig.direction === 'descending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -621,7 +523,55 @@ const UserManagementPage = () => {
                               <span className="text-xs">Descending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('email', 'clear')}
+                              onClick={() => handleSort('title', 'clear')}
+                              disabled={!sortConfig.key}
+                              className={`flex items-center gap-2 py-1.5 ${
+                                !sortConfig.key 
+                                  ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
+                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
+                              }`}
+                            >
+                              <X className="w-3 h-3" />
+                              <span className="text-xs">Clear</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </th>
+                      <th className={`text-left py-2 px-2 w-24 ${
+                        sortConfig.key === 'units' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
+                              Units
+                              {getSortIcon('units')}
+                            </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-[140px]">
+                            <DropdownMenuItem 
+                              onClick={() => handleSort('units', 'ascending')}
+                              className={`flex items-center gap-2 py-1.5 ${
+                                sortConfig.key === 'units' && sortConfig.direction === 'ascending' 
+                                  ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
+                              }`}
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                              <span className="text-xs">Ascending</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleSort('units', 'descending')}
+                              className={`flex items-center gap-2 py-1.5 ${
+                                sortConfig.key === 'units' && sortConfig.direction === 'descending' 
+                                  ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
+                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
+                              }`}
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                              <span className="text-xs">Descending</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleSort('units', 'clear')}
                               disabled={!sortConfig.key}
                               className={`flex items-center gap-2 py-1.5 ${
                                 !sortConfig.key 
@@ -636,20 +586,20 @@ const UserManagementPage = () => {
                         </DropdownMenu>
                       </th>
                       <th className={`text-left py-2 px-2 w-32 ${
-                        sortConfig.key === 'program_acronym' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
-                      } rounded-md`}>
+                        sortConfig.key === 'course_type' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
-                              Program
-                              {getSortIcon('program_acronym')}
+                              Type
+                              {getSortIcon('course_type')}
                             </div>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[140px]">
                             <DropdownMenuItem 
-                              onClick={() => handleSort('program_acronym', 'ascending')}
+                              onClick={() => handleSort('course_type', 'ascending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'program_acronym' && sortConfig.direction === 'ascending' 
+                                sortConfig.key === 'course_type' && sortConfig.direction === 'ascending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -658,9 +608,9 @@ const UserManagementPage = () => {
                               <span className="text-xs">Ascending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('program_acronym', 'descending')}
+                              onClick={() => handleSort('course_type', 'descending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'program_acronym' && sortConfig.direction === 'descending' 
+                                sortConfig.key === 'course_type' && sortConfig.direction === 'descending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -669,55 +619,7 @@ const UserManagementPage = () => {
                               <span className="text-xs">Descending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('program_acronym', 'clear')}
-                              disabled={!sortConfig.key}
-                              className={`flex items-center gap-2 py-1.5 ${
-                                !sortConfig.key 
-                                  ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
-                              }`}
-                            >
-                              <X className="w-3 h-3" />
-                              <span className="text-xs">Clear</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </th>
-                      <th className={`text-left py-2 px-2 w-40 ${
-                        sortConfig.key === 'curriculum_name' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
-                      } rounded-md`}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
-                              Curriculum
-                              {getSortIcon('curriculum_name')}
-                            </div>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-[140px]">
-                            <DropdownMenuItem 
-                              onClick={() => handleSort('curriculum_name', 'ascending')}
-                              className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'curriculum_name' && sortConfig.direction === 'ascending' 
-                                  ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
-                              }`}
-                            >
-                              <ArrowUp className="w-3 h-3" />
-                              <span className="text-xs">Ascending</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleSort('curriculum_name', 'descending')}
-                              className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'curriculum_name' && sortConfig.direction === 'descending' 
-                                  ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
-                              }`}
-                            >
-                              <ArrowDown className="w-3 h-3" />
-                              <span className="text-xs">Descending</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleSort('curriculum_name', 'clear')}
+                              onClick={() => handleSort('course_type', 'clear')}
                               disabled={!sortConfig.key}
                               className={`flex items-center gap-2 py-1.5 ${
                                 !sortConfig.key 
@@ -733,7 +635,7 @@ const UserManagementPage = () => {
                       </th>
                       <th className={`text-left py-2 px-2 w-32 ${
                         sortConfig.key === 'college' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
-                      } rounded-md`}>
+                      }`}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
@@ -779,62 +681,14 @@ const UserManagementPage = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </th>
-                      <th className={`text-left py-2 px-2 w-24 ${
-                        sortConfig.key === 'role' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
-                      } rounded-md`}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
-                              Role
-                              {getSortIcon('role')}
-                            </div>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-[140px]">
-                            <DropdownMenuItem 
-                              onClick={() => handleSort('role', 'ascending')}
-                              className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'role' && sortConfig.direction === 'ascending' 
-                                  ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
-                              }`}
-                            >
-                              <ArrowUp className="w-3 h-3" />
-                              <span className="text-xs">Ascending</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleSort('role', 'descending')}
-                              className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'role' && sortConfig.direction === 'descending' 
-                                  ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
-                              }`}
-                            >
-                              <ArrowDown className="w-3 h-3" />
-                              <span className="text-xs">Descending</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleSort('role', 'clear')}
-                              disabled={!sortConfig.key}
-                              className={`flex items-center gap-2 py-1.5 ${
-                                !sortConfig.key 
-                                  ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed' 
-                                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
-                              }`}
-                            >
-                              <X className="w-3 h-3" />
-                              <span className="text-xs">Clear</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </th>
                       <th className="text-left py-2 px-2 w-20">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentUsers.length > 0 ? (
-                      currentUsers.map((user, index) => (
+                    {currentCourses.length > 0 ? (
+                      currentCourses.map((course, index) => (
                         <tr 
-                          key={user.id} 
+                          key={course.id} 
                           className={`${
                             index % 2 === 1 
                               ? 'bg-gray-50 dark:bg-[hsl(220,10%,11%)]' 
@@ -842,34 +696,19 @@ const UserManagementPage = () => {
                           } hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,14%)] transition-colors`}
                         >
                           <td className="py-2 px-2 text-sm text-gray-500 dark:text-gray-400">{index + 1}</td>
-                          <td className="py-2 px-2">
-                            {user.photo && (
-                              <img
-                                className="h-8 w-8 rounded-full"
-                                src={user.photo}
-                                alt={user.name}
-                              />
-                            )}
+                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{course.course_code}</td>
+                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{course.title}</td>
+                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{course.units}</td>
+                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">
+                            <Badge variant="outline">{course.course_type}</Badge>
                           </td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.name}</td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.email}</td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.program_acronym || 'N/A'}</td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.curriculum_name || 'N/A'}</td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.college || 'N/A'}</td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.role}</td>
+                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{course.college}</td>
                           <td className="py-2 px-2">
                             <div className="flex items-center space-x-4">
                               <button
-                                onClick={() => handleViewClick(user)}
-                                className="text-blue-600 hover:text-blue-900"
-                                title="View plan"
-                              >
-                                <FileText className="h-5 w-5" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(user)}
+                                onClick={() => handleDeleteClick(course)}
                                 className="text-red-600 hover:text-red-900"
-                                title="Delete user"
+                                title="Delete course"
                               >
                                 <Trash2 className="h-5 w-5" />
                               </button>
@@ -882,7 +721,7 @@ const UserManagementPage = () => {
                         <td colSpan="7" className="py-8">
                           <div className="flex flex-col items-center justify-center text-gray-500">
                             <SearchX className="h-12 w-12 mb-3" />
-                            <p className="text-sm font-medium">No users found</p>
+                            <p className="text-sm font-medium">No courses found</p>
                             <p className="text-sm">Try adjusting your search query or filters</p>
                           </div>
                         </td>
@@ -921,12 +760,13 @@ const UserManagementPage = () => {
             </div>
           )}
 
+          {/* Delete Confirmation Modal */}
           <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="mb-3">Confirm Deletion</DialogTitle>
                 <DialogDescription>
-                  Delete {userToDelete?.name}'s account? This will remove all their data permanently.
+                  Delete {courseToDelete?.course_code}? This action cannot be undone.
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -939,48 +779,10 @@ const UserManagementPage = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-
-          {/* View Plan Dialog */}
-          <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-            <DialogContent className={`${
-              selectedPlan?.courses && selectedPlan.courses.length > 0
-                ? 'sm:max-w-[1000px] lg:max-w-[1200px] h-[90vh]' 
-                : 'sm:max-w-[600px] h-auto'
-            }`}>
-              <DialogHeader>
-                <DialogTitle>{selectedUser?.name}'s Plan of Coursework</DialogTitle>
-              </DialogHeader>
-              <ScrollArea className={`${
-                selectedPlan?.courses && selectedPlan.courses.length > 0
-                  ? 'h-[calc(90vh-6rem)]' 
-                  : 'h-auto'
-              }`}>
-                {isLoadingPlan ? (
-                  <div className="flex justify-center items-center h-[calc(90vh-6rem)]">
-                    <LoadingSpinner />
-                  </div>
-                ) : selectedPlan?.courses && selectedPlan.courses.length > 0 ? (
-                  <CompactPlanView
-                    organizedCourses={organizeCoursesByYearAndSemester(selectedPlan.courses)}
-                    onGradeChange={() => {}}
-                    hideHeader={true}
-                    hideExport={true}
-                    hideCard={true}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                    <FileText className="h-12 w-12 mb-3" />
-                    <p className="text-sm font-medium">No courses in this plan</p>
-                    <p className="text-xs mt-1">This plan has not been populated with courses yet</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
         </div>
       )}
     </div>
   );
 };
 
-export default UserManagementPage;
+export default AdminCoursesPage; 

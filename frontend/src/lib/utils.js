@@ -214,15 +214,15 @@ export const getSemesterName = (semester) => {
   switch (semStr) {
     case "1":
     case "1s":
-      return "1st Semester";
+      return "1st Sem";
     case "2":
     case "2s":
-      return "2nd Semester";
+      return "2nd Sem";
     case "m":
     case "3":
       return "Mid Year";
     default:
-      return `Semester ${semester}`;
+      return `Sem ${semester}`;
   }
 };
 

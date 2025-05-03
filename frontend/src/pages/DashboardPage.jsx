@@ -197,7 +197,7 @@ const DashboardPage = () => {
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course Completion</div>
                   <div className="flex justify-between mb-2">
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses}/${totalRequired}`}
+                      {totalRequired > 0 ? `${completedCourses}/${totalRequired}` : ''}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
@@ -212,7 +212,7 @@ const DashboardPage = () => {
                 <div className="w-[30%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Running CWA</div>
                   <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                    {currentCWA?.toFixed(2) || '0.00'}
+                    {currentCWA ? currentCWA.toFixed(2) : ''}
                   </div>
                 </div>
               </div>
