@@ -193,7 +193,8 @@ export const getAllCourses = async (req, res) => {
       semOffered: req.query.semOffered ? req.query.semOffered.split(',') : [],
       acadGroup: req.query.acadGroup ? req.query.acadGroup.split(',') : [],
       units: req.query.units ? req.query.units.split(',') : [],
-      whenTaken: req.query.whenTaken ? req.query.whenTaken.split(',') : []
+      whenTaken: req.query.whenTaken ? req.query.whenTaken.split(',') : [],
+      requisites: req.query.requisites ? req.query.requisites.split(',') : []
     };
     const sortKey = req.query.sortKey || 'course_code';
     const sortDirection = req.query.sortDirection || 'ascending';
@@ -203,7 +204,10 @@ export const getAllCourses = async (req, res) => {
       SELECT 
         c.course_id,
         c.course_code,
-        c.title,
+        CASE 
+          WHEN c.title LIKE '(GE)%' THEN REPLACE(REPLACE(c.title, '(GE). ', ''), '(GE) ', '')
+          ELSE c.title
+        END as title,
         c.description,
         c.units,
         c.sem_offered,
@@ -221,17 +225,51 @@ export const getAllCourses = async (req, res) => {
           WHEN cc.course_type = 'FOUNDATION' THEN 'Foundation'
           WHEN c.title LIKE '(GE)%' THEN 'GE Elective'
           ELSE 'Elective'
-        END AS course_type
+        END AS course_type,
+        CASE 
+          WHEN COALESCE(string_agg(r.req_courses, ', ' ORDER BY r.req_type), '') = '' 
+              OR TRIM(string_agg(r.req_courses, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+          ELSE string_agg(REPLACE(REPLACE(r.req_courses, '(', ''), ')', ''), ', ' ORDER BY r.req_type)
+        END AS requisites,
+        CASE 
+          WHEN COALESCE(string_agg(
+            CASE 
+              WHEN r.req_type = 'PRE' THEN 'Prerequisite'
+              WHEN r.req_type = 'CO' THEN 'Corequisite'
+              ELSE r.req_type
+            END, ', ' ORDER BY r.req_type), '') = ''
+              OR TRIM(string_agg(r.req_type, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+          ELSE string_agg(
+            CASE 
+              WHEN r.req_type = 'PRE' THEN 'Prerequisite'
+              WHEN r.req_type = 'CO' THEN 'Corequisite'
+              ELSE r.req_type
+            END, ', ' ORDER BY r.req_type)
+        END AS requisite_types,
+        CASE 
+          WHEN COALESCE(string_agg(r.course_id_req, ', ' ORDER BY r.req_type), '') = ''
+              OR TRIM(string_agg(r.course_id_req, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+          ELSE string_agg(r.course_id_req, ', ' ORDER BY r.req_type)
+        END AS requisite_course_ids
       FROM 
         courses c
       LEFT JOIN 
         curriculum_courses cc 
         ON c.course_id = cc.course_id AND cc.curriculum_id = $1
+      LEFT JOIN 
+        requisites r
+        ON c.course_id = r.course_id AND r.is_active = true
       WHERE 
         c.career != 'GRD'
         AND c.sem_offered NOT IN ('--', '"1s,2s"')
         AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
         AND c.units != '--'
+        AND (c.is_active = true OR cc.course_id IS NOT NULL)
+      GROUP BY
+        c.course_id, c.course_code, c.title, c.description, c.units,
+        c.sem_offered, c.acad_group, c.is_academic, c.is_repeatable,
+        cc.course_type, cc.year, cc.sem, cc.id
+      ORDER BY c.course_code ASC
     `;
 
     const result = await client.query(query, [curriculum_id]);
@@ -312,6 +350,14 @@ export const getAllCourses = async (req, res) => {
       filteredCourses = filteredCourses.filter(course => 
         filters.units.includes(course.units)
       );
+    }
+
+    // Apply requisites filter
+    if (filters.requisites.includes('NONE')) {
+      filteredCourses = filteredCourses.filter(course => {
+        // Check if the course has no prerequisites or corequisites
+        return course.requisites === 'None';
+      });
     }
 
     // Apply sorting

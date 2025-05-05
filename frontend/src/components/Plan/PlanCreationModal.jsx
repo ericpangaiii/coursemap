@@ -5,7 +5,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LoadingSpinner } from "@/components/ui/loading";
-import { coursesAPI, curriculumsAPI, plansAPI } from "@/lib/api";
+import { coursesAPI, curriculumsAPI } from "@/lib/api";
 import { getCourseTypeColor } from "@/lib/utils";
 import { DndContext, DragOverlay } from '@dnd-kit/core';
 import { useEffect, useMemo, useState } from "react";
@@ -13,10 +13,6 @@ import CoursesList from "./CoursesList";
 import PlanOverview from "./PlanOverview";
 import SummaryStep from "./SummaryStep";
 import { usePlanDragAndDrop } from "./usePlanDragAndDrop";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { planToastFunctions } from "@/lib/toast";
-import toast from "react-hot-toast";
 
 // Initialize empty grid with 4 years and 3 semesters each (including midyear)
 const initializeEmptyGrid = () => {
@@ -154,76 +150,6 @@ const PlanCreationModal = ({ open, onOpenChange, onPlanCreated }) => {
   };
 
   const activeCourse = activeId ? courses.find(course => course.id === activeId || course.course_id === activeId) : null;
-
-  const handleCreatePlan = async () => {
-    console.log('Starting plan creation process...');
-    console.log('Current semester grid:', semesterGrid);
-
-    try {
-      // Show loading toast
-      const loadingToast = planToastFunctions.createLoading();
-      
-      // Create new plan
-      console.log('Creating new plan with curriculum ID:', curriculumId);
-      const newPlan = await plansAPI.createPlan(curriculumId);
-      if (!newPlan) {
-        console.error('Failed to create plan');
-        throw new Error('Failed to create plan');
-      }
-      console.log('Created new plan:', newPlan);
-
-      // Add each course to the plan
-      for (const [semesterKey, courses] of Object.entries(semesterGrid)) {
-        const [year, semester] = semesterKey.split('-');
-        console.log(`Processing Year ${year}, Semester ${semester}...`);
-        
-        for (const course of courses) {
-          console.log('Adding course:', {
-            course_code: course.course_code,
-            course_id: course.id || course.course_id,
-            year: parseInt(year),
-            semester: semester === 'M' ? 3 : parseInt(semester)
-          });
-          
-          try {
-            await plansAPI.addCourseToPlan(
-              newPlan.id,
-              course.id || course.course_id,
-              parseInt(year),
-              semester === 'M' ? 3 : parseInt(semester),
-              'planned'
-            );
-            console.log('Successfully added course');
-          } catch (error) {
-            // If the course already exists, that's fine - continue with the next one
-            if (error.message.includes('already exists')) {
-              console.log('Course already exists in plan, continuing...');
-              continue;
-            }
-            console.error('Error adding course:', error);
-            throw error; // Re-throw other errors
-          }
-        }
-      }
-
-      console.log('Plan creation completed successfully');
-      
-      // Dismiss loading toast and show success toast
-      toast.dismiss(loadingToast);
-      planToastFunctions.createSuccess();
-      
-      // Close the modal and refresh the plan display
-      onOpenChange(false);
-      if (typeof onPlanCreated === 'function') {
-        console.log('Calling onPlanCreated callback...');
-        onPlanCreated(newPlan);
-      }
-    } catch (error) {
-      console.error('Error creating plan:', error);
-      // Show error toast
-      planToastFunctions.createError();
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

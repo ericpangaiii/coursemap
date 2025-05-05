@@ -193,12 +193,16 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                      className={`h-8 px-2 ${
+                        selectedTypes.length > 0 
+                          ? 'text-blue-600 dark:text-blue-400' 
+                          : 'text-gray-500 dark:text-gray-400'
+                      } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                     >
                       <Filter className="w-4 h-4 mr-1" />
                       Course Type
                       {selectedTypes.length > 0 && (
-                        <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                        <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                           {selectedTypes.length}
                         </span>
                       )}
@@ -247,12 +251,16 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                      className={`h-8 px-2 ${
+                        selectedStatuses.length > 0 
+                          ? 'text-blue-600 dark:text-blue-400' 
+                          : 'text-gray-500 dark:text-gray-400'
+                      } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                     >
                       <Filter className="w-4 h-4 mr-1" />
                       Status
                       {selectedStatuses.length > 0 && (
-                        <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                        <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                           {selectedStatuses.length}
                         </span>
                       )}

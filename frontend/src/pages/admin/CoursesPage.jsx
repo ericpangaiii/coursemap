@@ -279,12 +279,16 @@ const AdminCoursesPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.courseType.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Course Type
                           {filters.courseType.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.courseType.length}
                             </span>
                           )}
@@ -328,12 +332,16 @@ const AdminCoursesPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.college.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           College
                           {filters.college.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.college.length}
                             </span>
                           )}
@@ -377,12 +385,16 @@ const AdminCoursesPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.semester.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Semester
                           {filters.semester.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.semester.length}
                             </span>
                           )}
@@ -441,7 +453,7 @@ const AdminCoursesPage = () => {
                   <thead>
                     <tr className="text-xs text-gray-500 dark:text-gray-400">
                       <th className="text-left py-2 px-2 w-12">#</th>
-                      <th className={`text-left py-2 px-2 w-32 ${
+                      <th className={`text-left py-2 px-2 w-48 ${
                         sortConfig.key === 'course_code' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                       }`}>
                         <DropdownMenu>
@@ -489,7 +501,7 @@ const AdminCoursesPage = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </th>
-                      <th className={`text-left py-2 px-2 w-64 ${
+                      <th className={`text-left py-2 px-2 w-[500px] ${
                         sortConfig.key === 'title' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                       }`}>
                         <DropdownMenu>
@@ -537,21 +549,21 @@ const AdminCoursesPage = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </th>
-                      <th className={`text-left py-2 px-2 w-24 ${
-                        sortConfig.key === 'units' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
+                      <th className={`text-left py-2 px-2 w-32 ${
+                        sortConfig.key === 'requisites' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                       }`}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <div className="flex items-center cursor-pointer hover:text-gray-900 dark:hover:text-gray-100">
-                              Units
-                              {getSortIcon('units')}
+                              Requisites
+                              {getSortIcon('requisites')}
                             </div>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[140px]">
                             <DropdownMenuItem 
-                              onClick={() => handleSort('units', 'ascending')}
+                              onClick={() => handleSort('requisites', 'ascending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'units' && sortConfig.direction === 'ascending' 
+                                sortConfig.key === 'requisites' && sortConfig.direction === 'ascending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -560,9 +572,9 @@ const AdminCoursesPage = () => {
                               <span className="text-xs">Ascending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('units', 'descending')}
+                              onClick={() => handleSort('requisites', 'descending')}
                               className={`flex items-center gap-2 py-1.5 ${
-                                sortConfig.key === 'units' && sortConfig.direction === 'descending' 
+                                sortConfig.key === 'requisites' && sortConfig.direction === 'descending' 
                                   ? 'bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100' 
                                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[hsl(220,10%,20%)]'
                               }`}
@@ -571,7 +583,7 @@ const AdminCoursesPage = () => {
                               <span className="text-xs">Descending</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleSort('units', 'clear')}
+                              onClick={() => handleSort('requisites', 'clear')}
                               disabled={!sortConfig.key}
                               className={`flex items-center gap-2 py-1.5 ${
                                 !sortConfig.key 

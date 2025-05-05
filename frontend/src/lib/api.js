@@ -501,6 +501,7 @@ export const coursesAPI = {
         ...(filters.acadGroup?.length && { acadGroup: filters.acadGroup.join(',') }),
         ...(filters.units?.length && { units: filters.units.join(',') }),
         ...(filters.whenTaken?.length && { whenTaken: filters.whenTaken.join(',') }),
+        ...(filters.requisites?.length && { requisites: filters.requisites.join(',') }),
         ...(sortConfig.key && { sortKey: sortConfig.key }),
         ...(sortConfig.direction && { sortDirection: sortConfig.direction })
       });

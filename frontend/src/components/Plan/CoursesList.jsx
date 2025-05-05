@@ -174,12 +174,16 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                    className={`h-8 px-2 ${
+                      selectedRequisites 
+                        ? 'text-blue-600 dark:text-blue-400' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                   >
                     <Filter className="w-4 h-4 mr-0.5" />
                     Requisites
                     {selectedRequisites && (
-                      <span className="ml-0.5 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                      <span className="ml-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                         1
                       </span>
                     )}
@@ -218,12 +222,16 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                    className={`h-8 px-2 ${
+                      selectedColleges.length > 0 
+                        ? 'text-blue-600 dark:text-blue-400' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                   >
                     <Filter className="w-4 h-4 mr-0.5" />
                     College
                     {selectedColleges.length > 0 && (
-                      <span className="ml-0.5 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                      <span className="ml-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                         {selectedColleges.length}
                       </span>
                     )}
@@ -271,12 +279,16 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                    className={`h-8 px-2 ${
+                      selectedSemesters.length > 0 
+                        ? 'text-blue-600 dark:text-blue-400' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                   >
                     <Filter className="w-4 h-4 mr-0.5" />
                     Sems Offered
                     {selectedSemesters.length > 0 && (
-                      <span className="ml-0.5 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                      <span className="ml-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                         {selectedSemesters.length}
                       </span>
                     )}

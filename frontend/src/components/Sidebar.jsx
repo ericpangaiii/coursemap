@@ -35,16 +35,6 @@ const Sidebar = () => {
     { name: "Programs", path: "/admin/programs", icon: Settings },
   ];
 
-  // Helper to get initials from name
-  const getInitials = (name) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map(part => part[0])
-      .join("")
-      .toUpperCase();
-  };
-
   const handleLogout = async () => {
     await logout();
     navigate('/sign-in');
@@ -57,29 +47,24 @@ const Sidebar = () => {
   return (
     <div className="flex flex-col h-full">
       <ShadcnSidebar collapsible="icon" className="h-screen w-[240px] border-r dark:border-gray-800">
-        {/* User profile section */}
+        {/* App logo and name section */}
         <SidebarHeader className={cn(
           "p-4 border-b dark:border-gray-800",
           state === "collapsed" ? "flex justify-center items-center p-2" : ""
         )}>
           {state === "collapsed" ? (
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.photo} alt={user?.name} />
-              <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
-            </Avatar>
+            <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-white font-bold text-lg">CM</span>
+            </div>
           ) : (
-            <>
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 shrink-0">
-                  <AvatarImage src={user?.photo} alt={user?.name} />
-                  <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0 overflow-hidden">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name || "Guest"}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email || ""}</p>
-                </div>
+              <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center shrink-0">
+                <span className="text-white font-bold text-lg">CM</span>
               </div>
-            </>
+                <div className="flex-1 min-w-0 overflow-hidden">
+                <p className="text-l font-medium text-gray-900 dark:text-gray-100 truncate">CourseMap</p>
+              </div>
+            </div>
           )}
         </SidebarHeader>
 
