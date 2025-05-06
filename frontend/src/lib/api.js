@@ -310,7 +310,7 @@ export const plansAPI = {
   },
 
   // Add a course to the plan
-  addCourseToPlan: async (planId, courseId, year, semester, status = 'planned') => {
+  addCourseToPlan: async (planId, courseId, year, semester, status = 'planned', units = null) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/plans/courses`, {
         method: 'POST',
@@ -323,7 +323,8 @@ export const plansAPI = {
           courseId, 
           year, 
           semester, 
-          status 
+          status,
+          units
         }),
       });
       

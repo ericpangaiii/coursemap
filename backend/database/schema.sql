@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS plan_courses (
   sem INTEGER NOT NULL,
   status VARCHAR(50) DEFAULT 'planned', -- planned, in_progress, completed, dropped
   grade VARCHAR(10),
+  units VARCHAR(10),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_plan_courses_plans FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE,

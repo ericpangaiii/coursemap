@@ -78,13 +78,31 @@ export const createPlan = async (req, res) => {
 
 // Add a course to a plan
 export const addCourseToPlan = async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
   try {
-    const { planId, courseId, year, semester, status } = req.body;
+    const { planId, courseId, year, semester, status, units } = req.body;
     
+    if (!planId || !courseId || !year || !semester) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Verify the plan belongs to the user
+    const planResult = await client.query(
+      'SELECT * FROM plans WHERE id = $1 AND user_id = $2',
+      [planId, req.user.id]
+    );
+
+    if (planResult.rows.length === 0) {
+      return res.status(403).json({ error: "Not authorized to modify this plan" });
+    }
+
     // Add the course to the plan
     const result = await client.query(
-      'INSERT INTO plan_courses (plan_id, course_id, year, sem, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [planId, courseId, year, semester, status || 'planned']
+      'INSERT INTO plan_courses (plan_id, course_id, year, sem, status, units) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [planId, courseId, year, semester, status || 'planned', units]
     );
     
     res.status(201).json(result.rows[0]);
@@ -195,12 +213,12 @@ export const getCurrentUserPlan = async (req, res) => {
           pc.sem,
           pc.status,
           pc.grade,
+          pc.units,
           pc.created_at,
           pc.updated_at,
           c.title,
           c.course_code,
           c.description,
-          c.units,
           c.sem_offered,
           c.acad_group,
           c.is_academic,
@@ -389,7 +407,6 @@ export const getAllPlansByUserId = async (req, res) => {
           pc.*,
           c.title,
           c.course_code,
-          c.units,
           c.description,
           c.sem_offered,
           c.acad_group,

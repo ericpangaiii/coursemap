@@ -171,6 +171,9 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
         throw new Error('No existing plan found');
       }
 
+      // Track occurrences of thesis/special problem courses
+      const courseOccurrences = {};
+
       // Add each course to the plan
       for (const [semesterKey, courses] of Object.entries(semesterGrid)) {
         const [year, semester] = semesterKey.split('-');
@@ -178,12 +181,36 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
         for (const course of courses) {
           console.log('Adding course:', course);
           try {
+            // Handle units for thesis/special problem courses
+            let units = course.units;
+            const isSpecialCourse = course.title === 'Special Problems' || 
+                                  course.title === 'Undergraduate Thesis' || 
+                                  course.title === 'Undergraduate Thesis in Biology';
+
+            if (isSpecialCourse) {
+              // Initialize occurrence count if not exists
+              if (!courseOccurrences[course.course_code]) {
+                courseOccurrences[course.course_code] = 0;
+              }
+              courseOccurrences[course.course_code]++;
+
+              // Set units based on occurrence
+              if (courseOccurrences[course.course_code] === 1) {
+                units = '1';
+              } else if (courseOccurrences[course.course_code] === 2) {
+                units = '2';
+              } else {
+                units = '3';
+              }
+            }
+
             await plansAPI.addCourseToPlan(
               existingPlan.id,
               course.course_id,
               parseInt(year),
               semester,
-              'pending'
+              'pending',
+              units
             );
           } catch (error) {
             console.error(`Error adding course ${course.course_id} to plan:`, error);
