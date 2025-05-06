@@ -100,12 +100,21 @@ export const updatePlanCourse = async (req, res) => {
     const { id } = req.params;
     const { year, semester, status, grade } = req.body;
     
+    // Determine if we should update the status based on grade
+    const shouldUpdateStatus = grade !== '5.00' && 
+                             grade !== 'INC' && 
+                             grade !== 'DRP' &&
+                             grade !== '';
+    
+    const newStatus = shouldUpdateStatus ? 'completed' : 
+                     (grade && ['5.00', 'INC', 'DRP'].includes(grade) ? 'taken' : 'planned');
+    
     // Update the plan course
     const result = await client.query(
       `UPDATE plan_courses 
-       SET year = $1, semester = $2, status = $3, grade = $4, updated_at = CURRENT_TIMESTAMP 
+       SET year = $1, sem = $2, status = $3, grade = $4, updated_at = CURRENT_TIMESTAMP 
        WHERE id = $5 RETURNING *`,
-      [year, semester, status, grade, id]
+      [year, semester, newStatus, grade, id]
     );
     
     if (result.rows.length === 0) {
@@ -179,7 +188,15 @@ export const getCurrentUserPlan = async (req, res) => {
       )
 
       SELECT 
-          pc.*,
+          pc.id as plan_course_id,
+          pc.plan_id,
+          pc.course_id,
+          pc.year,
+          pc.sem,
+          pc.status,
+          pc.grade,
+          pc.created_at,
+          pc.updated_at,
           c.title,
           c.course_code,
           c.description,

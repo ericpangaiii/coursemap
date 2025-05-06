@@ -116,12 +116,19 @@ const CourseItem = ({ course, type = "course", enableGradeSelection = false, onG
   
   const handleGradeChange = async (newGrade) => {
     try {
+      console.log('CourseItem - Grade Change:', {
+        courseCode: course.course_code,
+        planCourseId: course.plan_course_id,
+        newGrade,
+        course
+      });
+      
       // Update the grade in the local state
       setGrade(newGrade);
       
       // Pass the grade change up to the parent
       if (onGradeChange) {
-        await onGradeChange(course.id, newGrade);
+        await onGradeChange(course.plan_course_id, newGrade);
       }
     } catch (error) {
       console.error("Error updating grade:", error);

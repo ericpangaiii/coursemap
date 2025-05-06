@@ -59,6 +59,13 @@ export const updateCourse = async (req, res) => {
     const { courseId } = req.params;
     const updates = req.body;
     
+    console.log('updateCourse - Request:', {
+      courseId,
+      updates,
+      planCourseId: updates.plan_course_id,
+      user: req.user.id
+    });
+    
     if (!courseId) {
       return res.status(400).json({ 
         success: false, 
@@ -79,6 +86,7 @@ export const updateCourse = async (req, res) => {
       const planResult = await client.query(planQuery, [req.user.id]);
       
       if (planResult.rows.length === 0) {
+        console.log('updateCourse - No active plan found for user:', req.user.id);
         return res.status(404).json({
           success: false,
           error: 'No active plan found'
@@ -86,6 +94,7 @@ export const updateCourse = async (req, res) => {
       }
 
       const planId = planResult.rows[0].id;
+      console.log('updateCourse - Found active plan:', { planId });
 
       // Determine if we should update the status
       const shouldUpdateStatus = updates.grade !== '5.00' && 
@@ -109,14 +118,26 @@ export const updateCourse = async (req, res) => {
         updates.plan_course_id
       ];
 
+      console.log('updateCourse - Executing update query:', {
+        query: updateQuery,
+        params: queryParams
+      });
+
       const result = await client.query(updateQuery, queryParams);
       
       if (result.rows.length === 0) {
+        console.log('updateCourse - Course not found in plan:', { planCourseId: updates.plan_course_id });
         return res.status(404).json({
           success: false,
           error: 'Course not found in plan'
         });
       }
+      
+      console.log('updateCourse - Successfully updated course:', {
+        planCourseId: updates.plan_course_id,
+        newGrade: updates.grade,
+        updatedCourse: result.rows[0]
+      });
       
       return res.json({
         success: true,
@@ -475,7 +496,15 @@ export const getCoursesForPlanCreation = async (req, res) => {
             ELSE c.title
           END as title,
           c.description,
-          c.units,
+          CASE 
+            WHEN (c.title = 'Special Problems' OR c.title = 'Undergraduate Thesis' OR c.title = 'Undergraduate Thesis in Biology')
+            AND ROW_NUMBER() OVER (PARTITION BY c.course_code ORDER BY cc.id) = 1 THEN '1'
+            WHEN (c.title = 'Special Problems' OR c.title = 'Undergraduate Thesis' OR c.title = 'Undergraduate Thesis in Biology')
+            AND ROW_NUMBER() OVER (PARTITION BY c.course_code ORDER BY cc.id) = 2 THEN '2'
+            WHEN (c.title = 'Special Problems' OR c.title = 'Undergraduate Thesis' OR c.title = 'Undergraduate Thesis in Biology')
+            AND c.units LIKE '%,%' THEN '3'
+            ELSE c.units
+          END as units,
           c.sem_offered,
           c.acad_group,
           c.is_academic,
@@ -530,7 +559,8 @@ export const getCoursesForPlanCreation = async (req, res) => {
                 OR TRIM(string_agg(r.course_id_req, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
             ELSE string_agg(r.course_id_req, ', ' ORDER BY r.req_type)
           END AS requisite_course_ids,
-          cc.id as curriculum_course_id
+          cc.id as curriculum_course_id,
+          ROW_NUMBER() OVER (PARTITION BY c.course_code ORDER BY cc.id) as course_occurrence
         FROM 
           courses c
         LEFT JOIN 
@@ -636,14 +666,32 @@ export const getCoursesForPlanCreation = async (req, res) => {
           .join(', '); // Join back with comma and space
       }
 
-      // Clean units values
+      // Handle special cases for Special Problems and Undergraduate Thesis
       let cleanedUnits = course.units;
       if (cleanedUnits) {
-        cleanedUnits = cleanedUnits
-          .replace(/\s+/g, '') // Remove spaces
-          .split(',') // Split into array
-          .filter(unit => unit !== '--') // Remove invalid values
-          .join(', '); // Join back with comma and space
+        const isSpecialCourse = course.title === 'Special Problems' || course.title === 'Undergraduate Thesis' || course.title === 'Undergraduate Thesis in Biology';
+        
+        if (isSpecialCourse) {
+          // If the course appears multiple times in the curriculum
+          if (course.course_occurrence === 1) {
+            cleanedUnits = '1';
+          } else if (course.course_occurrence === 2) {
+            cleanedUnits = '2';
+          } else {
+            // For any other occurrence, set to 3 units if multiple units are available
+            const unitValues = cleanedUnits.split(',').map(u => u.trim());
+            if (unitValues.length > 1) {
+              cleanedUnits = '3';
+            }
+          }
+        } else {
+          // For non-special courses, clean units normally
+          cleanedUnits = cleanedUnits
+            .replace(/\s+/g, '') // Remove spaces
+            .split(',') // Split into array
+            .filter(unit => unit !== '--') // Remove invalid values
+            .join(', '); // Join back with comma and space
+        }
       }
 
       // Clean description

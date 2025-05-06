@@ -31,13 +31,13 @@ const App = () => {
         <Routes>
           {/* Public routes */}
           <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/degree-select" element={<ProtectedRoute><DegreeSelectPage /></ProtectedRoute>} />
           
           {/* Protected routes */}
           <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
             <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
             <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
-            <Route path="/degree-select" element={<ProtectedRoute><DegreeSelectPage /></ProtectedRoute>} />
             
             {/* Admin routes */}
             <Route path="/admin">

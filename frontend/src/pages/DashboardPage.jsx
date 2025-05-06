@@ -18,29 +18,59 @@ const DashboardPage = () => {
   const [organizedCourses, setOrganizedCourses] = useState({});
   const [currentCWA, setCurrentCWA] = useState(null);
 
-  // Add this function to handle grade updates
-  const handleGradeChange = (planCourseId, newGrade) => {
-    setOrganizedCourses(prevCourses => {
-      const updatedCourses = { ...prevCourses };
+  // Add a course to the plan
+  const handleGradeChange = async (planCourseId, newGrade) => {
+    try {
+      // Find the course in the organized courses to get its year and semester
+      let courseYear = null;
+      let courseSem = null;
       
-      // Find and update the course with the new grade
-      Object.keys(updatedCourses).forEach(year => {
-        Object.keys(updatedCourses[year]).forEach(sem => {
-          updatedCourses[year][sem] = updatedCourses[year][sem].map(course => {
-            if (course.id === planCourseId) {
-              return { ...course, grade: newGrade };
-            }
-            return course;
-          });
+      Object.entries(organizedCourses).forEach(([year, semesters]) => {
+        Object.entries(semesters).forEach(([sem, courses]) => {
+          const course = courses.find(c => c.plan_course_id === planCourseId);
+          if (course) {
+            courseYear = parseInt(year);
+            courseSem = sem;
+          }
         });
       });
+
+      if (!courseYear || !courseSem) {
+        throw new Error('Could not find course year and semester');
+      }
+
+      // Update the grade in the backend
+      const result = await plansAPI.updatePlanCourse(planCourseId, courseYear, courseSem, null, newGrade);
       
-      // Update CWA immediately
-      const newCWA = computeCumulativeGWA(updatedCourses);
-      setCurrentCWA(newCWA);
-      
-      return updatedCourses;
-    });
+      if (!result) {
+        throw new Error('Failed to update grade');
+      }
+
+      // Update the local state
+      setOrganizedCourses(prevCourses => {
+        const updatedCourses = { ...prevCourses };
+        
+        // Find and update the course with the new grade
+        Object.keys(updatedCourses).forEach(year => {
+          Object.keys(updatedCourses[year]).forEach(sem => {
+            updatedCourses[year][sem] = updatedCourses[year][sem].map(course => {
+              if (course.plan_course_id === planCourseId) {
+                return { ...course, grade: newGrade };
+              }
+              return course;
+            });
+          });
+        });
+        
+        // Update CWA immediately
+        const newCWA = computeCumulativeGWA(updatedCourses);
+        setCurrentCWA(newCWA);
+        
+        return updatedCourses;
+      });
+    } catch (error) {
+      console.error('Error updating grade:', error);
+    }
   };
 
   // Function to fetch and organize plan data

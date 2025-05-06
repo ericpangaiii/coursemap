@@ -39,17 +39,17 @@ const SemesterDetailsModal = ({ isOpen, onClose, year, semester, courses, onGrad
     setCourses(courses);
   }, [courses]);
 
-  const handleGradeChange = async (courseId, newGrade) => {
+  const handleGradeChange = async (planCourseId, newGrade) => {
     try {
       // Update the grade in the local state
       const updatedCourses = coursesState.map(course => 
-        course.course_id === courseId ? { ...course, grade: newGrade } : course
+        course.plan_course_id === planCourseId ? { ...course, grade: newGrade } : course
       );
       setCourses(updatedCourses);
       
       // Pass the grade change up to the parent
       if (onGradeChange) {
-        await onGradeChange(courseId, newGrade);
+        await onGradeChange(planCourseId, newGrade);
       }
       
       // Show success toast
