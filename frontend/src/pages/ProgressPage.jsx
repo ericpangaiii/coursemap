@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { curriculumsAPI, plansAPI } from "@/lib/api";
 import { useEffect, useState } from "react";
+import { LineChart } from '@mui/x-charts/LineChart';
 
 const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
@@ -12,7 +13,59 @@ const ProgressPage = () => {
   const [error, setError] = useState(null);
   const [planData, setPlanData] = useState(null);
   const [organizedCourses, setOrganizedCourses] = useState({});
+  const [gwasData, setGwasData] = useState({ xAxis: [], series: [] });
   
+  // Calculate GWAS for each semester
+  const calculateGWAS = (courses) => {
+    if (!courses) return { xAxis: [], series: [] };
+
+    // Group courses by year and semester
+    const semesterGroups = {};
+    courses.forEach(course => {
+      // Filter out non-academic courses and courses without grades
+      if (course.course_type !== 'Required Non-Academic' && 
+          course.grade && 
+          !['INC', 'DRP'].includes(course.grade)) {
+        const key = `${course.year}-${course.sem}`;
+        if (!semesterGroups[key]) {
+          semesterGroups[key] = {
+            totalUnits: 0,
+            weightedSum: 0,
+            year: course.year,
+            sem: course.sem
+          };
+        }
+        
+        const units = Number(course.units || 0);
+        const grade = Number(course.grade);
+        
+        semesterGroups[key].totalUnits += units;
+        semesterGroups[key].weightedSum += (units * grade);
+      }
+    });
+
+    // Calculate GWAS for each semester
+    const semesters = Object.values(semesterGroups)
+      .sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.sem - b.sem;
+      });
+
+    const xAxis = semesters.map(sem => `${sem.year}-${sem.sem}`);
+    const series = semesters.map(sem => 
+      sem.totalUnits > 0 ? Number((sem.weightedSum / sem.totalUnits).toFixed(2)) : 0
+    );
+
+    return { xAxis, series };
+  };
+
+  // Update GWAS data when plan data changes
+  useEffect(() => {
+    if (planData?.courses) {
+      setGwasData(calculateGWAS(planData.courses));
+    }
+  }, [planData]);
+
   // Fetch curriculum and plan data on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -560,9 +613,10 @@ const ProgressPage = () => {
           <div className="space-y-6">
             <div className="grid grid-cols-1 gap-6">
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                {/* Top cards container */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Overall Degree Progress Card */}
-                  <Card>
+                  <Card className="w-full">
                     <CardHeader>
                       <CardTitle>Overall Degree Progress</CardTitle>
                     </CardHeader>
@@ -570,7 +624,7 @@ const ProgressPage = () => {
                       <div className="space-y-4">
                         <div className="flex justify-between mb-2 pr-1.5">
                           <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                            {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses}/${totalRequired}`}
+                            {totalRequired > 0 ? `${completedCourses}/${totalRequired}` : ''}
                           </span>
                         </div>
                         <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
@@ -582,10 +636,50 @@ const ProgressPage = () => {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Course Status Cards */}
+                  <Card className="w-full">
+                    <CardHeader>
+                      <CardTitle>Course Status</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-2">
+                        {/* Planned Courses Card */}
+                        <div className="text-center py-2 px-1 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-500">
+                            {planData?.courses?.filter(course => course.status === 'planned').length || 0}
+                          </div>
+                          <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                            Planned
+                          </p>
+                        </div>
+
+                        {/* Completed Courses Card */}
+                        <div className="text-center py-2 px-1 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                          <div className="text-2xl font-bold text-green-600 dark:text-green-500">
+                            {planData?.courses?.filter(course => course.status === 'completed').length || 0}
+                          </div>
+                          <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                            Completed
+                          </p>
+                        </div>
+
+                        {/* Taken Courses Card */}
+                        <div className="text-center py-2 px-1 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                          <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">
+                            {planData?.courses?.filter(course => course.status === 'taken').length || 0}
+                          </div>
+                          <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                            Taken
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                {/* Course type cards */}
-                <Card>
+                {/* Course Requirements Card */}
+                <Card className="w-full">
                   <CardHeader>
                     <CardTitle>Course Requirements</CardTitle>
                   </CardHeader>
@@ -615,6 +709,54 @@ const ProgressPage = () => {
                 </Card>
               </div>
             </div>
+
+            {/* GWAS Chart Card */}
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle>General Weighted Average by Semester</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px]">
+                  <LineChart
+                    xAxis={[{ 
+                      data: gwasData.xAxis.length > 0 ? gwasData.xAxis : ['1-1', '1-2', '2-1', '2-2', '3-1', '3-2', '4-1', '4-2'],
+                      scaleType: 'band',
+                      label: 'Semester',
+                      labelStyle: {
+                        fontFamily: 'Poppins'
+                      },
+                      tickLabelStyle: {
+                        fontFamily: 'Poppins'
+                      }
+                    }]}
+                    yAxis={[{
+                      label: 'GWA',
+                      min: 0,
+                      max: 4,
+                      labelStyle: {
+                        fontFamily: 'Poppins'
+                      },
+                      tickLabelStyle: {
+                        fontFamily: 'Poppins'
+                      }
+                    }]}
+                    series={[{
+                      data: gwasData.series.length > 0 ? gwasData.series : [0, 0, 0, 0, 0, 0, 0, 0],
+                      color: '#3b82f6'
+                    }]}
+                    height={300}
+                    sx={{
+                      '& .MuiChartsAxis-label': {
+                        fontFamily: 'Poppins'
+                      },
+                      '& .MuiChartsAxis-tickLabel': {
+                        fontFamily: 'Poppins'
+                      }
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
       </div>
