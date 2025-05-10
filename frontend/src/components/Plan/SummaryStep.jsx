@@ -157,6 +157,13 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
       return;
     }
 
+    // Check for requisite warnings
+    const hasRequisiteWarnings = warningStats.missingPrerequisites.length > 0 || warningStats.missingCorequisites.length > 0;
+    if (hasRequisiteWarnings) {
+      toast.error('Cannot create plan: Please resolve all requisite restrictions first');
+      return;
+    }
+
     try {
       // Show loading toast
       const loadingToast = planToastFunctions.createLoading();
@@ -362,20 +369,20 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
                           ))}
                           {warningStats.missingPrerequisites.length > 0 && warningStats.missingPrerequisites.map(({ courseCode, requisites, semester }, idx) => (
                             <TableRow key={`prereq-${idx}`}>
-                              <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">
-                                Missing {requisites.length === 1 ? 'Prerequisite' : 'Prerequisites'}
+                              <TableCell className="text-xs font-medium text-red-700 dark:text-red-400 w-1/2">
+                                Missing {requisites.length === 1 ? 'Prerequisite' : 'Prerequisites'} (Restriction)
                               </TableCell>
-                              <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                              <TableCell className="text-xs text-red-500 dark:text-red-400 text-center w-1/2">
                                 {courseCode} ({semester}) needs {requisites.length > 1 ? 'either ' : ''}{requisites.join(' or ')}
                               </TableCell>
                             </TableRow>
                           ))}
                           {warningStats.missingCorequisites.length > 0 && warningStats.missingCorequisites.map(({ courseCode, requisites, semester }, idx) => (
                             <TableRow key={`coreq-${idx}`}>
-                              <TableCell className="text-xs font-medium text-gray-700 dark:text-gray-300 w-1/2">
-                                Missing {requisites.length === 1 ? 'Corequisite' : 'Corequisites'}
+                              <TableCell className="text-xs font-medium text-red-700 dark:text-red-400 w-1/2">
+                                Missing {requisites.length === 1 ? 'Corequisite' : 'Corequisites'} (Restriction)
                               </TableCell>
-                              <TableCell className="text-xs text-gray-500 dark:text-gray-400 text-center w-1/2">
+                              <TableCell className="text-xs text-red-500 dark:text-red-400 text-center w-1/2">
                                 {courseCode} ({semester}) needs {requisites.join(' or ')}
                               </TableCell>
                             </TableRow>

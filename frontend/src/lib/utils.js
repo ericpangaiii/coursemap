@@ -96,7 +96,7 @@ export const getCourseTypeColor = (type) => {
     case "elective":
       return "bg-purple-500";
     case "major":
-      return "bg-red-500";
+      return "bg-green-500";
     case "academic":
       return "bg-blue-500";
     case "non_academic":
@@ -126,7 +126,7 @@ export const getCourseTypeTextColor = (type) => {
     case "elective":
       return "text-purple-500";
     case "major":
-      return "text-red-500";
+      return "text-green-500";
     case "academic":
       return "text-blue-500";
     case "non_academic":
@@ -156,7 +156,7 @@ export const getCourseTypeBorderColor = (type) => {
     case "elective":
       return "border-purple-500";
     case "major":
-      return "border-red-500";
+      return "border-green-500";
     case "academic":
       return "border-blue-500";
     case "non_academic":
@@ -654,7 +654,7 @@ export const getCourseTypeBadgeColor = (type) => {
     case "elective":
       return "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-700";
     case "major":
-      return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700";
+      return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
     case "academic":
       return "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700";
     case "non_academic":
