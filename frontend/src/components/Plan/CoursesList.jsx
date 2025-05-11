@@ -67,14 +67,25 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
     // Apply semester filter
     if (selectedSemesters.length > 0) {
       const courseSemester = course.sem_offered?.toUpperCase() || '';
-      // Check if the course is offered in ANY of the selected semesters
-      const isOfferedInSelectedSemester = selectedSemesters.some(sem => {
-        // Convert semester codes to match the format in course.sem_offered
-        const semesterCode = sem === '1' ? '1S' : sem === '2' ? '2S' : 'M';
-        return courseSemester === semesterCode;
-      });
+      // Split the course's semester offerings into an array
+      const courseSemesters = courseSemester.split(',').map(sem => sem.trim());
       
-      if (!isOfferedInSelectedSemester) {
+      // Check if the course is offered EXCLUSIVELY during the selected semester(s)
+      const isExclusivelyOfferedInSelectedSemesters = 
+        // The course must be offered in ALL selected semesters
+        selectedSemesters.every(sem => {
+          const semesterCode = sem === '1' ? '1S' : sem === '2' ? '2S' : 'M';
+          return courseSemesters.includes(semesterCode);
+        }) &&
+        // AND the course must not be offered in any other semesters
+        courseSemesters.every(sem => {
+          const selectedSemesterCodes = selectedSemesters.map(s => 
+            s === '1' ? '1S' : s === '2' ? '2S' : 'M'
+          );
+          return selectedSemesterCodes.includes(sem);
+        });
+      
+      if (!isExclusivelyOfferedInSelectedSemesters) {
         return false;
       }
     }
@@ -82,8 +93,10 @@ const CoursesList = ({ courses, currentStep, totalSteps, onStepChange, semesterG
     // Apply college filter
     if (selectedColleges.length > 0) {
       const courseCollege = course.acad_group?.toUpperCase() || '';
-      // Check if the course belongs to ANY of the selected colleges
-      if (!selectedColleges.includes(courseCollege)) {
+      // Check if the course belongs to EXACTLY the selected college(s)
+      const isExclusivelyInSelectedColleges = selectedColleges.includes(courseCollege);
+      
+      if (!isExclusivelyInSelectedColleges) {
         return false;
       }
     }

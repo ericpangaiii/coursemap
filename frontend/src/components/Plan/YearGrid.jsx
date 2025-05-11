@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDroppable } from '@dnd-kit/core';
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, AlertTriangle, Check } from "lucide-react";
+import { X, AlertTriangle, Check, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCurrentTypeCount, getPrescribedCount, isPrescribedSemester } from "@/lib/courseCounts";
 import PlanCourse from "./PlanCourse";
@@ -14,8 +14,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getSemesterWarnings } from "@/lib/warningsTracker";
+import CurriculumPlaceholders from "./CurriculumPlaceholders";
 
-const SemesterButton = ({ year, semester, courses = [], onDeleteCourse, activeCourse, courseTypeCounts, currentStepType, semesterGrid }) => {
+const SemesterButton = ({ year, semester, courses = [], onDeleteCourse, activeCourse, courseTypeCounts, currentStepType, semesterGrid, showCurriculum, allCourses }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: `${year}-${semester.id}`,
     data: {
@@ -38,6 +39,8 @@ const SemesterButton = ({ year, semester, courses = [], onDeleteCourse, activeCo
     warnings.missingPrerequisites.length > 0 || 
     warnings.missingCorequisites.length > 0
   );
+
+  const placeholders = CurriculumPlaceholders({ courseTypeCounts, showCurriculum, semesterGrid, courses: allCourses });
 
   return (
     <div
@@ -133,6 +136,11 @@ const SemesterButton = ({ year, semester, courses = [], onDeleteCourse, activeCo
             currentStepType={currentStepType}
           />
         ))}
+        {showCurriculum && placeholders[year]?.[semester.id]?.map((placeholder, index) => (
+          <div key={index}>
+            {placeholder}
+          </div>
+        ))}
       </div>
       <div className="absolute bottom-2 right-2">
         <UnitsCounter courses={courses} />
@@ -141,7 +149,7 @@ const SemesterButton = ({ year, semester, courses = [], onDeleteCourse, activeCo
   );
 };
 
-const YearGrid = ({ year, semesterGrid, onDeleteCourse, activeCourse, courseTypeCounts, currentStepType }) => {
+const YearGrid = ({ year, semesterGrid, onDeleteCourse, activeCourse, courseTypeCounts, currentStepType, showCurriculum, courses }) => {
   const semesters = [
     { id: '1', label: '1st Sem' },
     { id: '2', label: '2nd Sem' },
@@ -175,6 +183,8 @@ const YearGrid = ({ year, semesterGrid, onDeleteCourse, activeCourse, courseType
             courseTypeCounts={courseTypeCounts}
             currentStepType={currentStepType}
             semesterGrid={semesterGrid}
+            showCurriculum={showCurriculum}
+            allCourses={courses}
           />
         ))}
       </CardContent>

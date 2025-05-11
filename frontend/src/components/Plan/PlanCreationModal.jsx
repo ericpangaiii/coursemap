@@ -178,6 +178,7 @@ const PlanCreationModal = ({ open, onOpenChange, onPlanCreated }) => {
                   filteredCourses={filteredCourses}
                   currentStep={currentStep}
                   courseSteps={courseSteps}
+                  courses={courses}
                 />
               </div>
               <div className="w-[35%] h-full overflow-hidden">

@@ -1,5 +1,14 @@
 import { useState } from 'react';
 
+// Define the order of course types
+const courseTypeOrder = {
+  'Required Academic': 1,
+  'GE Elective': 2,
+  'Elective': 3,
+  'Major': 4,
+  'Required Non-Academic': 5
+};
+
 export const usePlanDragAndDrop = (initialGrid = {}) => {
   const [activeId, setActiveId] = useState(null);
   const [semesterGrid, setSemesterGrid] = useState(initialGrid);
@@ -51,9 +60,19 @@ export const usePlanDragAndDrop = (initialGrid = {}) => {
           newGrid[semesterKey] = [];
         }
         
-        // Always add the course at the beginning of the array
-        // This ensures it's placed at the highlighted location
-        newGrid[semesterKey] = [courseWithLocation, ...(newGrid[semesterKey] || [])];
+        // Add the course to the semester
+        newGrid[semesterKey] = [...newGrid[semesterKey], courseWithLocation];
+        
+        // Sort the courses in the semester by type
+        newGrid[semesterKey].sort((a, b) => {
+          const typeA = courseTypeOrder[a.course_type] || 99;
+          const typeB = courseTypeOrder[b.course_type] || 99;
+          if (typeA !== typeB) {
+            return typeA - typeB;
+          }
+          // If same type, sort by course code
+          return a.course_code.localeCompare(b.course_code);
+        });
         
         return newGrid;
       });
