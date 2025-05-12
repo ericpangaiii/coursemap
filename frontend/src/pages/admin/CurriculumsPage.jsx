@@ -803,7 +803,7 @@ const AdminCurriculumsPage = () => {
                                yearIndex + 1 === 3 ? '3rd Year' : 
                                '4th Year'}
                             </CardTitle>
-                          </CardHeader>
+        </CardHeader>
                           <CardContent className="flex flex-col gap-3 px-3 py-2 pb-4">
                             {['1', '2', '3'].map((sem) => {
                               const year = (yearIndex + 1).toString();
@@ -907,8 +907,8 @@ const AdminCurriculumsPage = () => {
                                 </div>
                               );
                             })}
-                          </CardContent>
-                        </Card>
+        </CardContent>
+      </Card>
                       ))}
                     </div>
                   </div>

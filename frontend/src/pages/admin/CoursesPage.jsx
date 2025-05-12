@@ -325,7 +325,7 @@ const AdminCoursesPage = () => {
                           } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
-                          Semester
+                          Sems Offered
                           {filters.semester.length > 0 && (
                             <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.semester.length}

@@ -52,34 +52,36 @@ const PageHeader = ({ title }) => {
   return (
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-xl font-bold">{title}</h1>
-      <Popover>
-        <PopoverTrigger asChild>
-          <button className="focus:outline-none">
-            <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
-              <AvatarImage src={user?.photo} alt={user?.name} />
-              <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
-            </Avatar>
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="p-4" side="left" align="start" sideOffset={5} alignOffset={-30}>
-          <div className="space-y-3">
-            <div>
-              <h3 className="text-s font-medium text-gray-900 dark:text-gray-100">{user?.name || "Guest"}</h3>
-              <p className="text-s text-gray-500 dark:text-gray-400">{user?.email || ""}</p>
-            </div>
-            <div className="space-y-1.5">
+      {!user?.isAdmin && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="focus:outline-none">
+              <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
+                <AvatarImage src={user?.photo} alt={user?.name} />
+                <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
+              </Avatar>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="p-4" side="left" align="start" sideOffset={5} alignOffset={-30}>
+            <div className="space-y-3">
               <div>
-                <p className="text-s font-medium text-gray-500 dark:text-gray-400">Degree Program</p>
-                <p className="text-s text-gray-900 dark:text-gray-100">{programTitle}</p>
+                <h3 className="text-s font-medium text-gray-900 dark:text-gray-100">{user?.name || "Guest"}</h3>
+                <p className="text-s text-gray-500 dark:text-gray-400">{user?.email || ""}</p>
               </div>
-              <div>
-                <p className="text-s font-medium text-gray-500 dark:text-gray-400">Curriculum</p>
-                <p className="text-s text-gray-900 dark:text-gray-100">{curriculumName}</p>
+              <div className="space-y-1.5">
+                <div>
+                  <p className="text-s font-medium text-gray-500 dark:text-gray-400">Degree Program</p>
+                  <p className="text-s text-gray-900 dark:text-gray-100">{programTitle}</p>
+                </div>
+                <div>
+                  <p className="text-s font-medium text-gray-500 dark:text-gray-400">Curriculum</p>
+                  <p className="text-s text-gray-900 dark:text-gray-100">{curriculumName}</p>
+                </div>
               </div>
             </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          </PopoverContent>
+        </Popover>
+      )}
     </div>
   );
 };

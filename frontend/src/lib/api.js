@@ -57,9 +57,9 @@ export const authAPI = {
 // Programs API calls
 export const programsAPI = {
   // Get all programs
-  getAllPrograms: async () => {
+  getAllPrograms: async (page = 1, limit = 10) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/programs`);
+      const response = await fetch(`${API_BASE_URL}/api/programs?page=${page}&limit=${limit}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch programs');
@@ -69,13 +69,19 @@ export const programsAPI = {
     } catch (error) {
       console.error('Error fetching programs:', error);
       // Return dummy data as fallback
-      return [
-        { program_id: '1', acronym: 'BSCS', title: 'BS Computer Science' },
-        { program_id: '2', acronym: 'BSIT', title: 'BS Information Technology' },
-        { program_id: '3', acronym: 'BSCS-ST', title: 'BS Computer Science - Software Technology' },
-        { program_id: '4', acronym: 'BBA', title: 'Business Administration' },
-        { program_id: '5', acronym: 'BSPSY', title: 'Psychology' }
-      ];
+      return {
+        data: [
+          { program_id: '1', acronym: 'BSCS', title: 'BS Computer Science' },
+          { program_id: '2', acronym: 'BSIT', title: 'BS Information Technology' },
+          { program_id: '3', acronym: 'BSCS-ST', title: 'BS Computer Science - Software Technology' },
+          { program_id: '4', acronym: 'BBA', title: 'Business Administration' },
+          { program_id: '5', acronym: 'BSPSY', title: 'Psychology' }
+        ],
+        total: 5,
+        page: 1,
+        limit: 10,
+        totalPages: 1
+      };
     }
   },
 

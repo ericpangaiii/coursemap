@@ -24,6 +24,7 @@ import { useIsAdmin } from '@/lib/auth.jsx';
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, FileText, Filter, SearchX, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from "react-hot-toast";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 
 const UserManagementPage = () => {
   const isAdmin = useIsAdmin();
@@ -257,7 +258,7 @@ const UserManagementPage = () => {
         <LoadingSpinner fullPage />
       ) : (
         <div className="container mx-auto p-2">
-          <PageHeader title="User Management" />
+          <PageHeader title="Users Management" />
           
           {/* Main Content Card */}
           <Card className="mb-6 w-full max-w-[1300px]">
@@ -910,28 +911,97 @@ const UserManagementPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent className="text-xs">
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className={currentPage === 1 ? "pointer-events-none text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"}
+                    />
+                  </PaginationItem>
+                  
+                  {/* First page */}
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(1)}
+                      className={`${
+                        currentPage === 1 
+                          ? "bg-blue-600 text-white pointer-events-none" 
+                          : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                      }`}
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  {/* Show first ellipsis if current page is beyond 3 */}
+                  {currentPage > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {/* Middle pages */}
+                  {Array.from(
+                    { length: Math.min(3, totalPages - 2) },
+                    (_, i) => {
+                      if (currentPage <= 3) {
+                        return i + 2; // Show 2,3,4 when on first pages
+                      } else if (currentPage >= totalPages - 2) {
+                        return totalPages - 3 + i; // Show last pages when near end
+                      } else {
+                        return currentPage - 1 + i; // Show current page and neighbors
+                      }
+                    }
+                  ).map(page => 
+                    page > 1 && page < totalPages && (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          className={`${
+                            currentPage === page 
+                              ? "bg-blue-600 text-white pointer-events-none" 
+                              : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          }`}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
+
+                  {/* Show second ellipsis if current page is not near the end */}
+                  {currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {/* Last page */}
+                  {totalPages > 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(totalPages)}
+                        className={`${
+                          currentPage === totalPages 
+                            ? "bg-blue-600 text-white pointer-events-none" 
+                            : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                        }`}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
 
