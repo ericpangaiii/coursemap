@@ -1,7 +1,7 @@
 import { getAllPrograms, getProgramById, createProgram, updateProgram, deleteProgram } from './controllers/program-controllers.js';
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './controllers/user-controllers.js';
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
-import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses, getCurriculumCourseTypeCounts } from './controllers/curriculum-controllers.js';
+import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses, getCurriculumCourseTypeCounts, getCurriculumRequiredCourses } from './controllers/curriculum-controllers.js';
 import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId, getAllPlans } from './controllers/plan-controllers.js';
 import { getCoursesByIds, updateCourse, getAllCourses, getCoursesForPlanCreation, getAllAdminCourses } from './controllers/course-controllers.js';
 import { authMiddleware, isAuthenticated } from './middlewares/auth-middleware.js';
@@ -30,6 +30,7 @@ const router = (app) => {
     app.get("/api/curriculums/:id", getCurriculumById);
     app.get("/api/programs/:programId/curriculums", getCurriculumsByProgramId);
     app.get("/api/curriculums/:curriculumId/structure", getCurriculumStructure);
+    app.get("/api/curriculums/:curriculumId/required-courses", getCurriculumRequiredCourses);
     app.get("/api/my/curriculum/structure", getCurrentUserCurriculumStructure);
     app.get("/api/my/curriculum/courses", getCurrentUserCurriculumCourses);
     app.get("/api/curriculums/:curriculumId/course-type-counts", getCurriculumCourseTypeCounts);

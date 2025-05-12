@@ -158,10 +158,17 @@ export const curriculumsAPI = {
         throw new Error('Failed to fetch curriculum structure');
       }
       
-      return await response.json();
+      const data = await response.json();
+      return {
+        success: true,
+        data: data.structures || []
+      };
     } catch (error) {
-      console.error(`Error fetching curriculum structure:`, error);
-      return null;
+      console.error('Error fetching curriculum structure:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Failed to fetch curriculum structure' 
+      };
     }
   },
   
@@ -225,6 +232,23 @@ export const curriculumsAPI = {
     } catch (error) {
       console.error('Error fetching curriculum course type counts:', error);
       return null;
+    }
+  },
+
+  getCurriculumRequiredCourses: async (curriculumId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/required-courses`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch required courses');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching required courses:', error);
+      return { success: false, error: 'Failed to fetch required courses' };
     }
   },
 };

@@ -652,7 +652,7 @@ const AdminCoursesPage = () => {
                           ? "bg-blue-600 text-white pointer-events-none" 
                           : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
                       }`}
-                    >
+                >
                       1
                     </PaginationLink>
                   </PaginationItem>

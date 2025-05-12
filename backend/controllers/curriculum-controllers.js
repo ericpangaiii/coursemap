@@ -4,7 +4,14 @@ import client from '../database/index.js';
 export const getAllCurriculums = async (req, res) => {
   try {
     const result = await client.query(
-      'SELECT * FROM curriculums ORDER BY name ASC'
+      `SELECT 
+        c.*,
+        p.title as program_title,
+        p.acronym as program_acronym
+      FROM curriculums c
+      JOIN programs p ON c.program_id = p.program_id
+      WHERE p.college = 'CAS'
+      ORDER BY c.name ASC`
     );
     res.json(result.rows);
   } catch (error) {
@@ -341,5 +348,182 @@ export const getCurriculumCourseTypeCounts = async (req, res) => {
   } catch (error) {
     console.error('Error in getCurriculumCourseTypeCounts:', error);
     res.status(500).json({ error: "Failed to fetch curriculum course type counts" });
+  }
+};
+
+export const getCurriculumRequiredCourses = async (req, res) => {
+  try {
+    const { curriculumId } = req.params;
+
+    // First query to get required courses
+    const coursesQuery = `
+      WITH combined_courses AS (
+        SELECT 
+          c.course_id,
+          CASE 
+            WHEN c.course_code IN ('HIST 1', 'KAS 1') THEN 'HIST 1 / KAS 1'
+            ELSE c.course_code
+          END as course_code,
+          CASE 
+            WHEN c.course_code IN ('HIST 1', 'KAS 1') THEN 'Philippine History / Kasaysayan ng Pilipinas'
+            ELSE c.title
+          END as course_name,
+          CASE 
+            WHEN (c.title = 'Special Problems' OR c.title = 'Undergraduate Thesis' OR c.title = 'Undergraduate Thesis in Biology')
+            AND ROW_NUMBER() OVER (PARTITION BY c.course_code ORDER BY cc.id) = 1 THEN '1'
+            WHEN (c.title = 'Special Problems' OR c.title = 'Undergraduate Thesis' OR c.title = 'Undergraduate Thesis in Biology')
+            AND ROW_NUMBER() OVER (PARTITION BY c.course_code ORDER BY cc.id) = 2 THEN '2'
+            WHEN (c.title = 'Special Problems' OR c.title = 'Undergraduate Thesis' OR c.title = 'Undergraduate Thesis in Biology')
+            AND c.units LIKE '%,%' THEN '3'
+            ELSE c.units
+          END as units,
+          c.sem_offered,
+          c.acad_group as academic_group,
+          c.is_active,
+          c.description as course_description,
+          c.created_at,
+          c.updated_at,
+          CASE 
+            WHEN cc.course_type = 'REQUIRED' AND c.is_academic = true THEN 'Required Academic'
+            WHEN cc.course_type = 'REQUIRED' AND c.is_academic = false THEN 'Required Non-Academic'
+            ELSE cc.course_type
+          END AS course_type,
+          cc.year,
+          cc.sem,
+          ROW_NUMBER() OVER (
+            PARTITION BY 
+              CASE 
+                WHEN c.course_code IN ('HIST 1', 'KAS 1') THEN 'HIST 1 / KAS 1'
+                ELSE c.course_code
+              END,
+              CASE 
+                WHEN cc.course_type = 'REQUIRED' AND c.is_academic = true THEN 'Required Academic'
+                WHEN cc.course_type = 'REQUIRED' AND c.is_academic = false THEN 'Required Non-Academic'
+                ELSE cc.course_type
+              END,
+              cc.year,
+              cc.sem
+            ORDER BY c.course_id
+          ) as rn
+        FROM courses c
+        JOIN curriculum_courses cc ON c.course_id = cc.course_id
+        WHERE cc.curriculum_id = $1
+        AND cc.course_type = 'REQUIRED'
+        AND c.career != 'GRD'
+        AND c.sem_offered NOT IN ('--', '"1s,2s"')
+        AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
+      )
+      SELECT *
+      FROM combined_courses
+      WHERE rn = 1
+      ORDER BY course_code, course_id
+    `;
+
+    // Second query to get prescribed semesters from curriculum_structures
+    const prescribedSemestersQuery = `
+      SELECT 
+        'Required Academic' as course_type,
+        year,
+        sem
+      FROM curriculum_structures
+      WHERE curriculum_id = $1 AND required_count > 0
+      ORDER BY year, sem;
+    `;
+
+    const [coursesResult, prescribedSemestersResult] = await Promise.all([
+      client.query(coursesQuery, [curriculumId]),
+      client.query(prescribedSemestersQuery, [curriculumId])
+    ]);
+
+    // Create a map of course types to their prescribed semesters
+    const prescribedSemestersMap = prescribedSemestersResult.rows.reduce((acc, row) => {
+      if (!acc[row.course_type]) {
+        acc[row.course_type] = [];
+      }
+      acc[row.course_type].push({ year: row.year, sem: row.sem });
+      return acc;
+    }, {});
+
+    // Clean up the data and apply prescribed semesters
+    const cleanedData = coursesResult.rows.map(course => {
+      // Clean semester offered values
+      let cleanedSemOffered = course.sem_offered;
+      if (cleanedSemOffered) {
+        cleanedSemOffered = cleanedSemOffered
+          .replace(/"/g, '') // Remove quotes
+          .replace(/\s+/g, '') // Remove spaces
+          .toUpperCase() // Convert to uppercase
+          .split(',') // Split into array
+          .filter(sem => ['1S', '2S', 'M'].includes(sem)) // Keep only valid values
+          .join(', '); // Join back with comma and space
+      }
+
+      // Clean units values
+      let cleanedUnits = course.units;
+      if (cleanedUnits) {
+        const isSpecialCourse = course.course_name === 'Special Problems' || 
+                               course.course_name === 'Undergraduate Thesis' || 
+                               course.course_name === 'Undergraduate Thesis in Biology';
+        
+        if (isSpecialCourse) {
+          // If the course appears multiple times in the curriculum
+          if (course.course_occurrence === 1) {
+            cleanedUnits = '1';
+          } else if (course.course_occurrence === 2) {
+            cleanedUnits = '2';
+          } else {
+            // For any other occurrence, set to 3 units if multiple units are available
+            const unitValues = cleanedUnits.split(',').map(u => u.trim());
+            if (unitValues.length > 1) {
+              cleanedUnits = '3';
+            }
+          }
+        } else {
+          // For non-special courses, clean units normally
+          cleanedUnits = cleanedUnits
+            .replace(/\s+/g, '') // Remove spaces
+            .split(',') // Split into array
+            .filter(unit => unit !== '--') // Remove invalid values
+            .join(', '); // Join back with comma and space
+        }
+      }
+
+      // Clean description
+      let cleanedDescription = course.course_description;
+      if (cleanedDescription === 'No Available DATA') {
+        cleanedDescription = 'No description available.';
+      }
+
+      // Apply prescribed semesters based on course type
+      let prescribed_semesters = [];
+      if (course.course_type === 'Required Academic' || course.course_type === 'Required Non-Academic') {
+        // For required courses, use their fixed year/sem as the single prescribed semester
+        if (course.year && course.sem) {
+          prescribed_semesters = [{ year: course.year, sem: course.sem }];
+        }
+      } else {
+        // For other course types, use the prescribed semesters from curriculum_structures
+        prescribed_semesters = prescribedSemestersMap[course.course_type] || [];
+      }
+
+      return {
+        ...course,
+        sem_offered: cleanedSemOffered,
+        units: cleanedUnits,
+        course_description: cleanedDescription,
+        prescribed_semesters
+      };
+    });
+
+    res.json({
+      success: true,
+      data: cleanedData
+    });
+  } catch (error) {
+    console.error('Error fetching required courses:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch required courses' 
+    });
   }
 };
