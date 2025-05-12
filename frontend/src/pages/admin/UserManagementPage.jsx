@@ -1,10 +1,6 @@
-import { useIsAdmin } from '@/lib/auth.jsx';
-import { useEffect, useState, useMemo } from 'react';
-import { usersAPI, plansAPI } from '@/lib/api';
-import { toast } from "react-hot-toast";
-import { Navigate } from 'react-router-dom';
-import { Trash2, Filter, SearchX, ChevronDown, X, ArrowUp, ArrowDown, ArrowUpDown, Eye, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import PageHeader from "@/components/PageHeader";
+import CompactPlanView from "@/components/Plan/CompactPlanView";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -14,18 +10,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import PageHeader from "@/components/PageHeader";
+import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/loading";
-import CompactPlanView from "@/components/Plan/CompactPlanView";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { plansAPI, usersAPI } from '@/lib/api';
+import { useIsAdmin } from '@/lib/auth.jsx';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, FileText, Filter, SearchX, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from "react-hot-toast";
 
 const UserManagementPage = () => {
   const isAdmin = useIsAdmin();

@@ -567,4 +567,28 @@ export const coursesAPI = {
       return { success: false, error: 'Failed to update course' };
     }
   },
+
+  // Get all courses for admin
+  getAllAdminCourses: async (page = 1, limit = 10, searchQuery = '', filters = {}, sortConfig = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(searchQuery && { search: searchQuery }),
+        ...(filters.college?.length && { college: filters.college.join(',') }),
+        ...(filters.semester?.length && { semester: filters.semester.join(',') }),
+        ...(sortConfig.key && { sortKey: sortConfig.key }),
+        ...(sortConfig.direction && { sortDirection: sortConfig.direction })
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/courses/admin?${queryParams}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch admin courses:', error);
+      return { success: false, error: 'Failed to fetch courses' };
+    }
+  },
 }; 

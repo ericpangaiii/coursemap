@@ -736,4 +736,215 @@ export const getCoursesForPlanCreation = async (req, res) => {
       error: 'Failed to fetch courses' 
     });
   }
-}; 
+};
+
+// Get all courses for admin
+export const getAllAdminCourses = async (req, res) => {
+  try {
+    // Get pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    // Get search and filter parameters
+    const searchQuery = req.query.search || '';
+    const filters = {
+      college: req.query.college ? req.query.college.split(',') : [],
+      semester: req.query.semester ? req.query.semester.split(',') : []
+    };
+    const sortKey = req.query.sortKey || 'course_code';
+    const sortDirection = req.query.sortDirection || 'ascending';
+
+    // Base query
+    let query = `
+      SELECT 
+        c.course_id,
+        c.course_code,
+        c.title,
+        c.description,
+        c.units,
+        c.sem_offered,
+        c.acad_group,
+        c.is_academic,
+        CASE 
+          WHEN COALESCE(string_agg(r.req_courses, ', ' ORDER BY r.req_type), '') = '' 
+              OR TRIM(string_agg(r.req_courses, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+          ELSE string_agg(REPLACE(REPLACE(r.req_courses, '(', ''), ')', ''), ', ' ORDER BY r.req_type)
+        END AS requisites,
+        CASE 
+          WHEN COALESCE(string_agg(
+            CASE 
+              WHEN r.req_type = 'PRE' THEN 'Prerequisite'
+              WHEN r.req_type = 'CO' THEN 'Corequisite'
+              ELSE r.req_type
+            END, ', ' ORDER BY r.req_type), '') = ''
+              OR TRIM(string_agg(r.req_type, ', ' ORDER BY r.req_type)) = '-' THEN 'None'
+          ELSE string_agg(
+            CASE 
+              WHEN r.req_type = 'PRE' THEN 'Prerequisite'
+              WHEN r.req_type = 'CO' THEN 'Corequisite'
+              ELSE r.req_type
+            END, ', ' ORDER BY r.req_type)
+        END AS requisite_types
+      FROM 
+        courses c
+      LEFT JOIN 
+        requisites r
+        ON c.course_id = r.course_id AND r.is_active = true
+      WHERE 
+        c.career != 'GRD'
+        AND c.sem_offered NOT IN ('--', '"1s,2s"')
+        AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
+        AND c.units != '--'
+        AND c.is_active = true
+    `;
+
+    const queryParams = [];
+    let paramIndex = 1;
+
+    // Add search condition
+    if (searchQuery) {
+      query += ` AND (LOWER(c.course_code) LIKE LOWER($${paramIndex}) OR LOWER(c.title) LIKE LOWER($${paramIndex}))`;
+      queryParams.push(`%${searchQuery}%`);
+      paramIndex++;
+    }
+
+    // Add college filter
+    if (filters.college.length > 0) {
+      query += ` AND c.acad_group = ANY($${paramIndex})`;
+      queryParams.push(filters.college);
+      paramIndex++;
+    }
+
+    // Add semester filter
+    if (filters.semester.length > 0) {
+      query += ` AND (
+        SELECT array_length(array_agg(DISTINCT sem), 1)
+        FROM unnest(string_to_array(REPLACE(REPLACE(c.sem_offered, '"', ''), ' ', ''), ',')) AS sem
+        WHERE sem = ANY($${paramIndex})
+      ) = array_length($${paramIndex}, 1)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM unnest(string_to_array(REPLACE(REPLACE(c.sem_offered, '"', ''), ' ', ''), ',')) AS sem
+          WHERE sem != ALL($${paramIndex})
+        )`;
+      queryParams.push(filters.semester);
+      paramIndex++;
+    }
+
+    // Add group by clause
+    query += `
+      GROUP BY
+        c.course_id, c.course_code, c.title, c.description, c.units,
+        c.sem_offered, c.acad_group, c.is_academic
+    `;
+
+    // Add sorting
+    if (sortKey) {
+      query += ` ORDER BY c.${sortKey} ${sortDirection === 'ascending' ? 'ASC' : 'DESC'}`;
+    }
+
+    // Add pagination
+    query += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    queryParams.push(limit, offset);
+
+    // Get total count
+    let countQuery = `
+      SELECT COUNT(DISTINCT c.course_id) as total
+      FROM courses c
+      LEFT JOIN requisites r ON c.course_id = r.course_id AND r.is_active = true
+      WHERE 
+        c.career != 'GRD'
+        AND c.sem_offered NOT IN ('--', '"1s,2s"')
+        AND c.acad_group NOT IN ('GS', 'DX', 'SESAM', 'na', 'LBDBVS')
+        AND c.units != '--'
+    `;
+
+    const countParams = [];
+    let countParamIndex = 1;
+
+    if (searchQuery) {
+      countQuery += ` AND (LOWER(c.course_code) LIKE LOWER($${countParamIndex}) OR LOWER(c.title) LIKE LOWER($${countParamIndex}))`;
+      countParams.push(`%${searchQuery}%`);
+      countParamIndex++;
+    }
+
+    if (filters.college.length > 0) {
+      countQuery += ` AND c.acad_group = ANY($${countParamIndex})`;
+      countParams.push(filters.college);
+      countParamIndex++;
+    }
+
+    if (filters.semester.length > 0) {
+      countQuery += ` AND (
+        SELECT array_length(array_agg(DISTINCT sem), 1)
+        FROM unnest(string_to_array(REPLACE(REPLACE(c.sem_offered, '"', ''), ' ', ''), ',')) AS sem
+        WHERE sem = ANY($${countParamIndex})
+      ) = array_length($${countParamIndex}, 1)
+        AND NOT EXISTS (
+          SELECT 1
+          FROM unnest(string_to_array(REPLACE(REPLACE(c.sem_offered, '"', ''), ' ', ''), ',')) AS sem
+          WHERE sem != ALL($${countParamIndex})
+        )`;
+      countParams.push(filters.semester);
+      countParamIndex++;
+    }
+
+    const [result, countResult] = await Promise.all([
+      client.query(query, queryParams),
+      client.query(countQuery, countParams)
+    ]);
+
+    // Clean up the data before sending
+    const cleanedData = result.rows.map(course => {
+      // Clean semester offered values
+      let cleanedSemOffered = course.sem_offered;
+      if (cleanedSemOffered) {
+        cleanedSemOffered = cleanedSemOffered
+          .replace(/"/g, '')
+          .replace(/\s+/g, '')
+          .toUpperCase()
+          .split(',')
+          .filter(sem => ['1S', '2S', 'M'].includes(sem))
+          .join(', ');
+      }
+
+      // Clean units values
+      let cleanedUnits = course.units;
+      if (cleanedUnits) {
+        cleanedUnits = cleanedUnits
+          .replace(/\s+/g, '')
+          .split(',')
+          .filter(unit => unit !== '--')
+          .join(', ');
+      }
+
+      // Clean description
+      let cleanedDescription = course.description;
+      if (cleanedDescription === 'No Available DATA') {
+        cleanedDescription = 'No description available.';
+      }
+
+      return {
+        ...course,
+        sem_offered: cleanedSemOffered,
+        units: cleanedUnits,
+        description: cleanedDescription
+      };
+    });
+
+    res.json({
+      success: true,
+      data: cleanedData,
+      total: parseInt(countResult.rows[0].total),
+      page,
+      limit
+    });
+  } catch (error) {
+    console.error('Error fetching admin courses:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch courses' 
+    });
+  }
+};

@@ -3,7 +3,7 @@ import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './
 import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
 import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses, getCurriculumCourseTypeCounts } from './controllers/curriculum-controllers.js';
 import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId, getAllPlans } from './controllers/plan-controllers.js';
-import { getCoursesByIds, updateCourse, getAllCourses, getCoursesForPlanCreation } from './controllers/course-controllers.js';
+import { getCoursesByIds, updateCourse, getAllCourses, getCoursesForPlanCreation, getAllAdminCourses } from './controllers/course-controllers.js';
 import { authMiddleware, isAuthenticated } from './middlewares/auth-middleware.js';
 
 const router = (app) => {
@@ -47,6 +47,7 @@ const router = (app) => {
 
     // Course Routes
     app.get("/api/courses", getAllCourses);
+    app.get("/api/courses/admin", authMiddleware, getAllAdminCourses);
     app.get("/api/courses/plan-creation", isAuthenticated, getCoursesForPlanCreation);
     app.post("/api/courses/batch", getCoursesByIds);
     app.put("/api/courses/:courseId", updateCourse);
