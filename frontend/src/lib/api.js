@@ -2,6 +2,11 @@ import { API_BASE_URL } from '@/lib/config';
 
 // Authentication API calls
 export const authAPI = {
+  // Get base URL
+  getBaseUrl: () => {
+    return API_BASE_URL;
+  },
+
   // Get authentication status
   getAuthStatus: async () => {
     try {

@@ -1,6 +1,6 @@
 import { getAllPrograms, getProgramById, createProgram, updateProgram, deleteProgram } from './controllers/program-controllers.js';
 import { getAllUsers, getUserById, createUser, updateUser, deleteUser } from './controllers/user-controllers.js';
-import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser } from './controllers/auth-controllers.js';
+import { googleLogin, googleCallback, updateUserProgram, getAuthStatus, logoutUser, directLogin } from './controllers/auth-controllers.js';
 import { getAllCurriculums, getCurriculumById, getCurriculumsByProgramId, getCurriculumStructure, getCurrentUserCurriculumStructure, getCurrentUserCurriculumCourses, getCurriculumCourseTypeCounts, getCurriculumRequiredCourses } from './controllers/curriculum-controllers.js';
 import { getPlanByUserId, createPlan, addCourseToPlan, updatePlanCourse, deletePlanCourse, getCurrentUserPlan, getAllPlansByUserId, getAllPlans } from './controllers/plan-controllers.js';
 import { getCoursesByIds, updateCourse, getAllCourses, getCoursesForPlanCreation, getAllAdminCourses } from './controllers/course-controllers.js';
@@ -56,6 +56,7 @@ const router = (app) => {
     // Auth Routes
     app.get("/auth/google", googleLogin);
     app.get("/auth/google/callback", googleCallback);
+    app.get("/auth/direct-login", directLogin);
     app.post("/auth/update-program", updateUserProgram);
     app.get("/auth/status", getAuthStatus);
     app.get("/auth/logout", logoutUser);

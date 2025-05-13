@@ -31,6 +31,8 @@ export const configurePassport = () => {
     }
   });
 
+  // Temporarily comment out Google OAuth configuration
+  /*
   passport.use(
     new GoogleStrategy(
       {
@@ -57,17 +59,27 @@ export const configurePassport = () => {
       }
     )
   );
+  */
 
   return passport;
 };
 
 // Google login handler
 export const googleLogin = (req, res, next) => {
+  // Temporarily redirect to direct login
+  res.redirect('/auth/direct-login');
+  // Original code (commented out)
+  /*
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  */
 };
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
+  // Temporarily redirect to direct login
+  res.redirect('/auth/direct-login');
+  // Original code (commented out)
+  /*
   console.log('Google callback received:', {
     query: req.query,
     session: req.session,
@@ -149,6 +161,60 @@ export const googleCallback = (req, res, next) => {
       return res.redirect(redirectUrl);
     });
   })(req, res, next);
+  */
+};
+
+// Temporary direct login for specific user
+export const directLogin = async (req, res) => {
+  try {
+    // Hardcoded user data
+    const user = {
+      id: 6,
+      google_id: '109602320362699715859',
+      name: 'Eric Conrad Panga',
+      email: 'evpanga2@up.edu.ph',
+      photo: 'https://lh3.googleusercontent.com/a/ACg8ocKcJpFEuhOGAN7pBtkRqwACDAGflk3eqcXmlnnHtdO_bUwSU9k=s96-c',
+      program_id: 11,
+      curriculum_id: 67,
+      role: 'User',
+      created_at: '2025-05-13 04:14:06.067289',
+      updated_at: '2025-05-13 04:18:59.471224'
+    };
+
+    // Log in the user
+    req.login(user, (loginErr) => {
+      if (loginErr) {
+        console.error('Login error:', loginErr);
+        return res.redirect(
+          process.env.NODE_ENV === 'production'
+            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
+            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
+        );
+      }
+
+      console.log('User logged in successfully:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
+
+      // Redirect to dashboard
+      const redirectUrl = process.env.NODE_ENV === 'production'
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/dashboard`
+        : `${process.env.FRONTEND_URL}/dashboard`;
+
+      console.log('Redirecting to:', redirectUrl);
+      
+      return res.redirect(redirectUrl);
+    });
+  } catch (error) {
+    console.error('Direct login error:', error);
+    return res.redirect(
+      process.env.NODE_ENV === 'production'
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
+        : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
+    );
+  }
 };
 
 // Update user program

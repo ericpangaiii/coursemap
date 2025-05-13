@@ -6,10 +6,20 @@ import { authToastFunctions } from "@/lib/toast";
 import appLogo from "@/assets/app-logo.png";
 
 const SignInPage = () => {
-  const handleGoogleSignIn = () => {
+  // const handleGoogleSignIn = () => {
+  //   try {
+  //     // Redirect to the backend's Google auth route
+  //     window.location.href = authAPI.getGoogleAuthUrl();
+  //   } catch (error) {
+  //     console.error('Failed to connect to authentication service:', error);
+  //     authToastFunctions.signInError();
+  //   }
+  // };
+
+  const handleSignIn = () => {
     try {
-      // Redirect to the backend's Google auth route
-      window.location.href = authAPI.getGoogleAuthUrl();
+      // Redirect to the direct login route
+      window.location.href = `${authAPI.getBaseUrl()}/auth/direct-login`;
     } catch (error) {
       console.error('Failed to connect to authentication service:', error);
       authToastFunctions.signInError();
@@ -28,9 +38,16 @@ const SignInPage = () => {
       <Card className="w-full max-w-md bg-[#7b1113] dark:bg-[#4a0a0b] text-white shadow-lg">
         <CardHeader>
           <CardTitle className="text-xl text-white">Welcome!</CardTitle>
-          <CardDescription className="text-white">Sign in using your UP Mail account.</CardDescription>
+          <CardDescription className="text-white">Click below to sign in.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Button 
+            onClick={handleSignIn} 
+            className="w-full flex items-center justify-center gap-2 bg-white text-[#7b1113] hover:bg-gray-100 border-none"
+          >
+            Sign In
+          </Button>
+          {/* Google Sign In Button (temporarily disabled)
           <Button 
             onClick={handleGoogleSignIn} 
             className="w-full flex items-center justify-center gap-2 bg-white text-[#7b1113] hover:bg-gray-100 border-none"
@@ -43,6 +60,7 @@ const SignInPage = () => {
             </svg>
             Google
           </Button>
+          */}
         </CardContent>
       </Card>
     </div>
