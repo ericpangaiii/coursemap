@@ -6,6 +6,7 @@ import pgSession from 'connect-pg-simple';
 import { configurePassport } from './controllers/auth-controllers.js';
 import router from "./routes.js";
 import { connectDatabase } from './database/index.js';
+import pool from './database/index.js';  // This will now impor
 
 // load port number from .env file
 dotenv.config();

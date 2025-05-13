@@ -1,12 +1,12 @@
 import pkg from 'pg';
-const { Client } = pkg;
+const { Pool } = pkg;  // Change this line to use Pool instead of Client
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
-// Create the client with connection string
-const client = new Client({
+// Create the pool with connection string
+const pool = new Pool({
   connectionString: process.env.SUPABASE_URI,
   ssl: process.env.SUPABASE_URI?.includes('sslmode=require') 
     ? { rejectUnauthorized: false } 
@@ -16,7 +16,9 @@ const client = new Client({
 // Function to connect to the database
 export const connectDatabase = async () => {
   try {
-    await client.connect();
+    // Test the connection
+    const client = await pool.connect();
+    client.release();
     console.log('Connected to PostgreSQL database on Supabase');
     return true;
   } catch (err) {
@@ -25,4 +27,4 @@ export const connectDatabase = async () => {
   }
 };
 
-export default client;
+export default pool;  // Export the pool instead of client
