@@ -6,25 +6,25 @@ import { authToastFunctions } from "@/lib/toast";
 import appLogo from "@/assets/app-logo.png";
 
 const SignInPage = () => {
-  // const handleGoogleSignIn = () => {
-  //   try {
-  //     // Redirect to the backend's Google auth route
-  //     window.location.href = authAPI.getGoogleAuthUrl();
-  //   } catch (error) {
-  //     console.error('Failed to connect to authentication service:', error);
-  //     authToastFunctions.signInError();
-  //   }
-  // };
-
   const handleSignIn = () => {
     try {
-      // Redirect to the direct login route
-      window.location.href = `${authAPI.getBaseUrl()}/auth/direct-login`;
+      // Redirect to the backend's Google auth route
+      window.location.href = authAPI.getGoogleAuthUrl();
     } catch (error) {
       console.error('Failed to connect to authentication service:', error);
       authToastFunctions.signInError();
     }
   };
+
+  // const handleSignIn = () => {
+  //   try {
+  //     // Redirect to the direct login routewindow.location.href = authAPI.getGoogleAuthUrl();
+  //     window.location.href = `${authAPI.getBaseUrl()}/auth/direct-login`;
+  //   } catch (error) {
+  //     console.error('Failed to connect to authentication service:', error);
+  //     authToastFunctions.signInError();
+  //   }
+  // };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-[hsl(220,10%,15%)] p-4">
