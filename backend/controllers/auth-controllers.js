@@ -15,10 +15,10 @@ export const configurePassport = () => {
     process.exit(1);
   }
 
-  // Add these serialization functions
+  // CRITICAL: Fix serialization - store only user ID
   passport.serializeUser((user, done) => {
-    console.log('Serializing user:', user);
-    // Store only the user ID in the session
+    console.log('Serializing user:', { id: user.id, email: user.email });
+    // Only store the user ID, nothing else
     done(null, user.id);
   });
 
@@ -50,12 +50,12 @@ export const configurePassport = () => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          // Log the profile for debugging
-          console.log('Google Profile:', JSON.stringify(profile, null, 2));
+          console.log('Google Profile received:', JSON.stringify(profile, null, 2));
           
           // Find or create user with PostgreSQL
           const user = await findOrCreateUserByGoogleId(profile.id, profile);
           
+          // IMPORTANT: Return the user object, not profile
           return done(null, user);
         } catch (error) {
           console.error('Error creating/updating user:', error);
@@ -75,56 +75,35 @@ export const googleLogin = (req, res, next) => {
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
-  console.log('Google callback received:', {
-    query: req.query,
-    sessionID: req.sessionID,
-  });
-
-  // Verify environment variables are set
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.PRODUCTION_BACKEND_URL) {
-      console.error('Error: PRODUCTION_BACKEND_URL must be set in production');
-      return res.status(500).send('Server configuration error: PRODUCTION_BACKEND_URL not set');
-    }
-    if (!process.env.PRODUCTION_FRONTEND_URL) {
-      console.error('Error: PRODUCTION_FRONTEND_URL must be set in production');
-      return res.status(500).send('Server configuration error: PRODUCTION_FRONTEND_URL not set');
-    }
-  } else {
-    if (!process.env.FRONTEND_URL) {
-      console.error('Error: FRONTEND_URL must be set in development');
-      return res.status(500).send('Server configuration error: FRONTEND_URL not set');
-    }
-  }
-
+  console.log('Google callback received');
+  console.log('Session at start:', JSON.stringify(req.session, null, 2));
+  
   passport.authenticate('google', (err, user, info) => {
+    console.log('=== Passport Authenticate Result ===');
+    console.log('Error:', err);
+    console.log('User:', user ? { id: user.id, email: user.email } : 'null');
+    console.log('Info:', info);
+    
     if (err) {
       console.error('Authentication error:', err);
-      return res.redirect(
-        process.env.NODE_ENV === 'production'
-          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_error`
-          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_error`
-      );
+      return res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=authentication_error`);
     }
     
     if (!user) {
       console.error('Authentication failed, no user returned');
-      return res.redirect(
-        process.env.NODE_ENV === 'production'
-          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_failed`
-          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_failed`
-      );
+      return res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=authentication_failed`);
     }
     
     // Log in the user
     req.login(user, (loginErr) => {
+      console.log('=== Login Process ===');
+      console.log('Login error:', loginErr);
+      console.log('Session after login:', JSON.stringify(req.session, null, 2));
+      console.log('Is authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'N/A');
+      
       if (loginErr) {
         console.error('Login error:', loginErr);
-        return res.redirect(
-          process.env.NODE_ENV === 'production'
-            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
-            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
-        );
+        return res.redirect(`${process.env.FRONTEND_URL}/sign-in?error=login_failed`);
       }
 
       console.log('User logged in successfully:', {
@@ -133,26 +112,30 @@ export const googleCallback = (req, res, next) => {
         role: user.role
       });
       
-      // Check if user has a program_id
-      const isNewUserWithoutProgram = !user.program_id;
-      
-      // Redirect based on user role and program status
-      let redirectPath;
-      if (user.role === 'Admin') {
-        redirectPath = 'admin';
-      } else if (isNewUserWithoutProgram) {
-        redirectPath = 'degree-select';
-      } else {
-        redirectPath = 'dashboard';
-      }
-      
-      const redirectUrl = process.env.NODE_ENV === 'production'
-        ? `${process.env.PRODUCTION_FRONTEND_URL}/${redirectPath}`
-        : `${process.env.FRONTEND_URL}/${redirectPath}`;
-
-      console.log('Redirecting to:', redirectUrl);
-      
-      return res.redirect(redirectUrl);
+      // Force save the session
+      req.session.save((saveErr) => {
+        console.log('=== Session Save ===');
+        console.log('Save error:', saveErr);
+        console.log('Session after save:', JSON.stringify(req.session, null, 2));
+        
+        // Check if user has a program_id
+        const isNewUserWithoutProgram = !user.program_id;
+        
+        // Redirect based on user role and program status
+        let redirectPath;
+        if (user.role === 'Admin') {
+          redirectPath = 'admin';
+        } else if (isNewUserWithoutProgram) {
+          redirectPath = 'degree-select';
+        } else {
+          redirectPath = 'dashboard';
+        }
+        
+        const redirectUrl = `${process.env.FRONTEND_URL}/${redirectPath}`;
+        console.log('Redirecting to:', redirectUrl);
+        
+        return res.redirect(redirectUrl);
+      });
     });
   })(req, res, next);
 };

@@ -100,24 +100,36 @@ export const updateUser = async (req, res) => {
 // Get or create user by Google ID (for OAuth)
 export const findOrCreateUserByGoogleId = async (googleId, profile) => {
   try {
-    // Check if user exists
-    const userResult = await pool.query(
-      'SELECT * FROM users WHERE google_id = $1',
-      [googleId]
-    );
+    console.log('Finding/creating user with Google ID:', googleId);
     
-    // If user exists, return user
-    if (userResult.rows.length > 0) {
-      return userResult.rows[0];
+    // First, try to find existing user
+    const existingUserQuery = 'SELECT * FROM users WHERE google_id = $1';
+    const existingUserResult = await pool.query(existingUserQuery, [googleId]);
+    
+    if (existingUserResult.rows.length > 0) {
+      console.log('Found existing user:', existingUserResult.rows[0]);
+      return existingUserResult.rows[0];
     }
     
     // If user doesn't exist, create new user
-    const newUserResult = await pool.query(
-      'INSERT INTO users (google_id, name, email, photo, role) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [googleId, profile.displayName, profile.emails[0].value, profile.photos[0].value, 'User']
-    );
+    const insertQuery = `
+      INSERT INTO users (google_id, name, email, photo, role)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `;
     
-    return newUserResult.rows[0];
+    const values = [
+      googleId,
+      profile.displayName,
+      profile.emails[0].value,
+      profile.photos[0].value,
+      'User' // Default role
+    ];
+    
+    const insertResult = await pool.query(insertQuery, values);
+    console.log('Created new user:', insertResult.rows[0]);
+    
+    return insertResult.rows[0];
   } catch (error) {
     console.error('Error in findOrCreateUserByGoogleId:', error);
     throw error;
