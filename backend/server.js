@@ -24,7 +24,7 @@ const corsOptions = {
     : process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cookie"],
   exposedHeaders: ["Set-Cookie"],
   preflightContinue: false,
   optionsSuccessStatus: 204
@@ -61,13 +61,23 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    path: '/'
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined
   },
   name: 'connect.sid'
 }));
 
 // Add this before passport initialization
 app.use((req, res, next) => {
+  // Set CORS headers for all responses
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
+    ? process.env.PRODUCTION_FRONTEND_URL 
+    : process.env.FRONTEND_URL);
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Cookie');
+  res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+  
   console.log('Session ID:', req.sessionID);
   next();
 });

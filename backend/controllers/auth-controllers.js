@@ -255,8 +255,16 @@ export const getAuthStatus = (req, res) => {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
+      domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined,
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     });
+    
+    // Set CORS headers explicitly
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
+      ? process.env.PRODUCTION_FRONTEND_URL 
+      : process.env.FRONTEND_URL);
+    res.header('Access-Control-Expose-Headers', 'Set-Cookie');
     
     return res.status(200).json({
       authenticated: true,
