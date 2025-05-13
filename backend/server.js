@@ -6,7 +6,7 @@ import pgSession from 'connect-pg-simple';
 import { configurePassport } from './controllers/auth-controllers.js';
 import router from "./routes.js";
 import { connectDatabase } from './database/index.js';
-import pool from './database/index.js';  // This will now impor
+import pool from './database/index.js';
 
 // load port number from .env file
 dotenv.config();
@@ -43,16 +43,16 @@ app.use(session({
     pool: pool,
     tableName: 'session',
     createTableIfMissing: true,
-    pruneSessionInterval: 60 // Remove expired sessions every 60 minutes
+    pruneSessionInterval: 60
   }),
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     path: '/'
   },
