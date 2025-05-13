@@ -31,6 +31,8 @@ export const configurePassport = () => {
     }
   });
 
+  // Temporarily comment out Google OAuth configuration
+  /*
   passport.use(
     new GoogleStrategy(
       {
@@ -57,13 +59,19 @@ export const configurePassport = () => {
       }
     )
   );
+  */
 
   return passport;
 };
 
 // Google login handler
 export const googleLogin = (req, res, next) => {
+  // Temporarily redirect to direct login
+  res.redirect('/auth/direct-login');
+  // Original code (commented out)
+  /*
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  */
 };
 
 // Google callback handler
@@ -123,6 +131,71 @@ export const googleCallback = (req, res, next) => {
       return res.redirect(`${frontendUrl}/${redirectPath}`);
     });
   })(req, res, next);
+  */
+};
+
+// Direct login handler
+export const directLogin = async (req, res) => {
+  try {
+    console.log('Direct login attempt:', {
+      env: process.env.NODE_ENV,
+      frontendUrl: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL,
+      backendUrl: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_BACKEND_URL : process.env.BACKEND_URL,
+      cookies: req.cookies,
+      session: req.session
+    });
+
+    // Hardcoded user data for direct login
+    const user = {
+      id: 6,
+      name: 'Eric Conrad Panga',
+      email: 'evpanga2@up.edu.ph',
+      role: 'Student',
+      program_id: 1,
+      curriculum_id: 1
+    };
+
+    // Log in the user
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Login error:', err);
+        return res.redirect(
+          process.env.NODE_ENV === 'production'
+            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
+            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
+        );
+      }
+
+      console.log('User logged in successfully:', {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        session: req.session
+      });
+
+      // Set session cookie options for production
+      if (process.env.NODE_ENV === 'production') {
+        req.session.cookie.secure = true;
+        req.session.cookie.sameSite = 'none';
+        req.session.cookie.domain = '.vercel.app';
+      }
+
+      // Redirect to dashboard
+      const redirectUrl = process.env.NODE_ENV === 'production'
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/dashboard`
+        : `${process.env.FRONTEND_URL}/dashboard`;
+
+      console.log('Redirecting to:', redirectUrl);
+      res.redirect(redirectUrl);
+    });
+  } catch (error) {
+    console.error('Direct login error:', error);
+    res.redirect(
+      process.env.NODE_ENV === 'production'
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=server_error`
+        : `${process.env.FRONTEND_URL}/sign-in?error=server_error`
+    );
+  }
 };
 
 // Update user program

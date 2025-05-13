@@ -29,9 +29,24 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
   );
 
   const handleExport = (selectedTypes) => {
-    // TODO: Implement PDF export functionality
     console.log('Exporting PDF with types:', selectedTypes);
   };
+
+  // Generate empty year structure if no courses exist
+  const getEmptyYearStructure = () => {
+    const emptyStructure = {};
+    for (let year = 1; year <= 4; year++) {
+      emptyStructure[year] = {
+        1: [], // First semester
+        2: [], // Second semester
+        3: []  // Midyear semester
+      };
+    }
+    return emptyStructure;
+  };
+
+  // Use empty structure if no courses exist
+  const displayCourses = hasCourses ? localOrganizedCourses : getEmptyYearStructure();
 
   const content = (
     <>
@@ -39,13 +54,13 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <CardTitle>Plan of Coursework</CardTitle>
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               {!hideExport && (
                 <Button 
                   size="sm" 
-                  className={`flex items-center gap-1.5 ${
+                  className={`flex items-center gap-1.5 text-sm ${
                     hasCourses 
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white text-sm' 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                   }`}
                   onClick={() => setPdfModalOpen(true)}
@@ -70,25 +85,17 @@ const CompactPlanView = ({ organizedCourses, onGradeChange, hideHeader = false, 
         </CardHeader>
       )}
       <CardContent className={`${hideCard ? 'p-0' : 'p-4'}`}>
-        {Object.keys(localOrganizedCourses).length > 0 ? (
-          <div className="grid grid-cols-4 gap-4">
-            {Object.entries(localOrganizedCourses).map(([year, semesters]) => (
-              <CompactYearCard 
-                key={year}
-                year={parseInt(year)}
-                semesters={semesters}
-                onGradeChange={onGradeChange}
-                hideDetailsButton={hideCard}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-500 min-h-[300px]">
-            <FileText className="h-12 w-12 mb-3" />
-            <p className="text-sm font-medium">No courses in plan yet</p>
-            <p className="text-sm">Click "Create Plan" to get started</p>
-          </div>
-        )}
+        <div className="grid grid-cols-4 gap-4">
+          {Object.entries(displayCourses).map(([year, semesters]) => (
+            <CompactYearCard 
+              key={year}
+              year={parseInt(year)}
+              semesters={semesters}
+              onGradeChange={onGradeChange}
+              hideDetailsButton={hideCard}
+            />
+          ))}
+        </div>
       </CardContent>
 
       {/* PDF Preview Modal */}

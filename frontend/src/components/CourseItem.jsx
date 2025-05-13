@@ -1,23 +1,28 @@
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { coursesAPI } from '@/lib/api';
 import { getCourseTypeColor } from "@/lib/utils";
 import { Info } from "lucide-react";
 import { useState } from "react";
+import { useDraggable } from '@dnd-kit/core';
 
-const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, inPlanCreation = false, yearPlaceholder = "Year", semesterPlaceholder = "Semester", enableGradeSelection = false, onGradeChange }) => {
+const CourseItem = ({ course, type = "course", enableGradeSelection = false, onGradeChange, compact = false, disabled = false, isInCoursesList = false }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [grade, setGrade] = useState(course.grade || "");
   const [isSelectOpen, setIsSelectOpen] = useState(false);
   
+  const {attributes, listeners, setNodeRef} = useDraggable({
+    id: course.id || course.course_id,
+    data: course,
+    disabled: disabled || !isInCoursesList
+  });
+
   // UP Grading System
   const gradeOptions = [
     { value: "", label: "No grade" },
@@ -47,22 +52,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   const semOffered = course.sem_offered;
   const isCombinedCourse = courseCode === "HK 12/13" || !!course.combined_courses;
   
-  // Year options
-  const yearOptions = [
-    { value: "1", label: "1st Year" },
-    { value: "2", label: "2nd Year" },
-    { value: "3", label: "3rd Year" },
-    { value: "4", label: "4th Year" },
-    { value: "5", label: "5th Year" }
-  ];
-
-  // Semester options
-  const semesterOptions = [
-    { value: "1", label: "1st Semester" },
-    { value: "2", label: "2nd Semester" },
-    { value: "M", label: "Mid Year" }
-  ];
-  
   // Normalize course type for color determination
   const normalizedType = (type && type !== "course") ? type.toLowerCase() : 
                          (course.course_type ? course.course_type.toLowerCase() : "course");
@@ -83,60 +72,6 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     });
   }
   
-  // Get prescribed year and semester directly from the course data
-  // In the API response, the fields are 'year' and 'sem'
-  // Fallback chain: year > prescribed_year, sem > semester > prescribed_semester
-  const prescribedYear = course.year !== undefined ? course.year : (course.prescribed_year || null);
-  const prescribedSemester = course.sem !== undefined ? course.sem : 
-                           (course.semester !== undefined ? course.semester : (course.prescribed_semester || null));
-  
-  // Format prescribed semester for display
-  const formatSemester = (sem) => {
-    if (!sem && sem !== 0 && sem !== '0') return null;
-    
-    // Convert to string in case it's a number
-    const semStr = String(sem);
-    
-    if (semStr === "1") return "1st Sem";
-    if (semStr === "2") return "2nd Sem";
-    if (semStr.toLowerCase() === "m" || semStr === "3") return "Mid Year";
-    if (semStr === "0") return "Any";
-    return semStr; // Return as is if it doesn't match known formats
-  };
-  
-  // Format year for display
-  const formatYear = (year) => {
-    if (!year && year !== 0 && year !== '0') return null;
-    
-    // Convert to string in case it's a number
-    const yearStr = String(year);
-    
-    if (yearStr === "0") return "Any Year";
-    if (yearStr === "1") return "1st Year";
-    if (yearStr === "2") return "2nd Year";
-    if (yearStr === "3") return "3rd Year";
-    if (yearStr === "4") return "4th Year";
-    if (yearStr === "5") return "5th Year";
-    return `${yearStr}th Year`; // Fallback for other numbers
-  };
-  
-  // Build the prescribed information text
-  let prescribedText = "";
-  
-  // Process prescribed semester information from course data
-  if (prescribedYear || prescribedSemester) {
-    const yearText = formatYear(prescribedYear);
-    const semText = formatSemester(prescribedSemester);
-    
-    if (yearText && semText) {
-      prescribedText = `${yearText} ${semText}`;
-    } else if (yearText) {
-      prescribedText = `${yearText}`;
-    } else if (semText) {
-      prescribedText = `${semText}`;
-    }
-  }
-  
   // Get course description with fallback
   const courseDescription = course.description || "No description available.";
   
@@ -147,15 +82,15 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     return (
       <div className="space-y-4">
         <div>
-          <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Description</h5>
-          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{courseDescription}</p>
+          <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1.5">Description</h5>
+          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">{courseDescription}</p>
         </div>
         
         <div>
-          <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Components</h5>
+          <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1.5">Components</h5>
           <div className="space-y-2">
             {course.combined_courses.map((component, index) => (
-              <div key={index} className="text-sm text-gray-700 dark:text-gray-300">
+              <div key={index} className="text-xs text-gray-700 dark:text-gray-300">
                 <p className="font-medium">{component.course_code}</p>
                 <p className="text-gray-600 dark:text-gray-400">{component.title}</p>
               </div>
@@ -165,10 +100,10 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
         
         {formattedSemOffered.length > 0 && (
           <div>
-            <h5 className="font-medium text-sm text-gray-700 dark:text-gray-300 mb-1.5">Semesters Offered</h5>
+            <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1.5">Semesters Offered</h5>
             <div className="flex flex-wrap gap-1.5 mt-1.5">
               {formattedSemOffered.map((sem, index) => (
-                <Badge key={index} variant="outline" className="text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-200 dark:border-gray-700">
+                <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border-gray-200 dark:border-gray-700">
                   {sem}
                 </Badge>
               ))}
@@ -181,21 +116,22 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
   
   const handleGradeChange = async (newGrade) => {
     try {
-      // Update both grade and status
-      const status = newGrade && newGrade !== "" && !['INC', 'DRP'].includes(newGrade) ? 'completed' : 'planned';
-      const response = await coursesAPI.updateCourse(course.course_id, { 
-        grade: newGrade,
-        status: status,
-        plan_course_id: course.id
+      console.log('CourseItem - Grade Change:', {
+        courseCode: course.course_code,
+        planCourseId: course.plan_course_id,
+        newGrade,
+        course
       });
-      if (response.success) {
-        setGrade(newGrade);
-        onGradeChange?.(course.id, newGrade);
-      } else {
-        console.error('Failed to update grade:', response.error);
+      
+      // Update the grade in the local state
+      setGrade(newGrade);
+      
+      // Pass the grade change up to the parent
+      if (onGradeChange) {
+        await onGradeChange(course.plan_course_id, newGrade);
       }
     } catch (error) {
-      console.error('Failed to update grade:', error);
+      console.error("Error updating grade:", error);
     }
   };
 
@@ -228,8 +164,24 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
     return "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-700"; // 5.00
   };
 
+  if (compact) {
+    return (
+      <div className="px-2 py-1.5 rounded-md border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center gap-2">
+        <div className={`w-1 h-4 rounded-full ${getCourseColor()}`} />
+        <span className="font-medium text-sm text-gray-900 dark:text-gray-100">{courseCode}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-gray-200 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all flex items-center justify-between relative overflow-hidden">
+    <div 
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={`p-3 rounded border border-gray-100 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md transition-all flex items-center justify-between relative overflow-hidden ${
+        disabled ? 'opacity-50 cursor-not-allowed' : enableGradeSelection ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
+      }`}
+    >
       <div className={`absolute left-0 top-0 w-1.5 h-full ${getCourseColor()}`}></div>
       
       <div className="flex-1 min-w-0 pl-2">
@@ -289,7 +241,7 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
             </TooltipTrigger>
             <TooltipContent 
               side="right" 
-              className="max-w-md p-4 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,20%)] shadow-lg dark:shadow-[hsl(220,10%,10%)]/20 rounded-lg"
+              className="w-[370px] p-4 bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,20%)] shadow-lg dark:shadow-[hsl(220,10%,10%)]/20 rounded-lg"
             >
               {isCombinedCourse ? (
                 getCombinedCourseTooltipContent()
@@ -312,54 +264,97 @@ const CourseItem = ({ course, type = "course", onYearChange, onSemesterChange, i
                       </div>
                     </div>
                   )}
-                  
-                  {prescribedText && (
+
+                  {course.prescribed_semesters && course.prescribed_semesters.length > 0 && (
                     <div>
-                      <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Prescribed Schedule</h5>
-                      <p className="text-xs text-gray-700 dark:text-gray-300">{prescribedText}</p>
+                      <h5 className="font-medium text-xs text-gray-700 dark:text-gray-300 mb-1">Prescribed Semesters</h5>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {course.prescribed_semesters.map((sem, index) => {
+                          const year = Number(sem.year);
+                          const semester = Number(sem.sem);
+                          return (
+                            <Badge key={index} variant="outline" className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                              {`${year}${year === 1 ? 'st' : year === 2 ? 'nd' : year === 3 ? 'rd' : 'th'} Year ${semester === 3 ? 'Mid Year' : semester === 1 ? '1st Sem' : '2nd Sem'}`}
+                            </Badge>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    {(() => {
+                      // Check if there are any prerequisites or corequisites
+                      const hasPrerequisites = course.requisite_types?.includes('Prerequisite');
+                      const hasCorequisites = course.requisite_types?.includes('Corequisite');
+
+                      if (!hasPrerequisites && !hasCorequisites) {
+                        return (
+                          <div>
+                            <h6 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                              Requisites
+                            </h6>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">None</span>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <>
+                          {hasPrerequisites && (
+                            <div>
+                              <h6 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                Prerequisites
+                              </h6>
+                              <div className="flex flex-wrap gap-1">
+                                {course.requisites === 'None' ? (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">None</span>
+                                ) : (
+                                  course.requisites.split(',').map((req, index) => (
+                                    <Badge 
+                                      key={index}
+                                      variant="outline" 
+                                      className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]"
+                                    >
+                                      {req.trim()}
+                                    </Badge>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {hasCorequisites && (
+                            <div>
+                              <h6 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                Corequisites
+                              </h6>
+                              <div className="flex flex-wrap gap-1">
+                                {course.requisites === 'None' ? (
+                                  <span className="text-xs text-gray-500 dark:text-gray-400">None</span>
+                                ) : (
+                                  course.requisites.split(',').map((req, index) => (
+                                    <Badge 
+                                      key={index}
+                                      variant="outline" 
+                                      className="text-[10px] bg-white dark:bg-[hsl(220,10%,15%)] text-gray-900 dark:text-gray-100 border-gray-200 dark:border-[hsl(220,10%,20%)]"
+                                    >
+                                      {req.trim()}
+                                    </Badge>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      {inPlanCreation && (
-        <div className="flex flex-col gap-2">
-          <Select
-            value={course.year || ""}
-            onValueChange={(value) => onYearChange?.(course.id, value)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder={yearPlaceholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {yearOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={course.semester || ""}
-            onValueChange={(value) => onSemesterChange?.(course.id, value)}
-          >
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder={semesterPlaceholder} />
-            </SelectTrigger>
-            <SelectContent>
-              {semesterOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
     </div>
   );
 };

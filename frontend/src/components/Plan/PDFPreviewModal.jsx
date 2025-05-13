@@ -14,6 +14,7 @@ import { PDFViewer, pdf } from '@react-pdf/renderer';
 import { ChevronDown, FileDown, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FreeElectivesTemplate, GEPlanTemplate, PlanOfCourseworkTemplate } from './PDFTemplates';
+import { LoadingSpinner } from "@/components/ui/loading";
 
 const PDFPreviewModal = ({ open, onOpenChange }) => {
   const { user } = useAuth();
@@ -101,7 +102,7 @@ const PDFPreviewModal = ({ open, onOpenChange }) => {
       case 'full':
         return 'Plan of Coursework';
       default:
-        return 'Select Template';
+        return 'Select Document';
     }
   };
 
@@ -156,7 +157,7 @@ const PDFPreviewModal = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-[800px] h-[90vh] max-h-[800px] flex flex-col p-0">
+      <DialogContent className="w-[90vw] max-w-[800px] h-[85vh] max-h-[750px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle>PDF Preview</DialogTitle>
         </DialogHeader>
@@ -202,24 +203,28 @@ const PDFPreviewModal = ({ open, onOpenChange }) => {
         </div>
 
         {/* PDF Preview */}
-        <ScrollArea className="flex-1 px-6">
-          <div className="flex justify-center">
+        <ScrollArea className="flex-1 px-6" style={{ height: 'calc(100% - 40px)' }}>
+          <div className="flex justify-center h-full">
             {loading ? (
-              <div className="w-full max-w-[210mm] aspect-[1/1.4142] bg-white dark:bg-[hsl(220,10%,15%)] border border-gray-200 dark:border-[hsl(220,10%,20%)] rounded-lg shadow-sm dark:shadow-[hsl(220,10%,10%)]/20 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent border-blue-500"></div>
+              <div className="w-full max-w-[210mm] aspect-[1/1.3] max-h-[520px] bg-white dark:bg-[hsl(220,10%,15%)] border border-gray-200 dark:border-[hsl(220,10%,20%)] rounded-lg shadow-sm dark:shadow-[hsl(220,10%,10%)]/20">
+                <LoadingSpinner />
               </div>
             ) : selectedType ? (
               <PDFViewer 
                 key={selectedType}
-                style={{ width: '100%', height: '100%', minHeight: '500px' }}
+                style={{ 
+                  width: '100%', 
+                  height: '100%',
+                  minHeight: '500px'
+                }}
               >
                 {getTemplate()}
               </PDFViewer>
             ) : (
-              <div className="w-full max-w-[210mm] aspect-[1/1.4142] bg-white dark:bg-[hsl(220,10%,15%)] border border-gray-200 dark:border-[hsl(220,10%,20%)] rounded-lg shadow-sm dark:shadow-[hsl(220,10%,10%)]/20">
+              <div className="w-full max-w-[210mm] aspect-[1/1.3] max-h-[520px] bg-white dark:bg-[hsl(220,10%,15%)] border border-gray-200 dark:border-[hsl(220,10%,20%)] rounded-lg shadow-sm dark:shadow-[hsl(220,10%,10%)]/20 flex items-center justify-center">
                 <div className="p-4">
                   <div className="text-center text-gray-500">
-                    <p className="text-sm">Select a template to preview</p>
+                    <p className="text-sm">Select a document to preview</p>
                   </div>
                 </div>
               </div>
@@ -228,7 +233,7 @@ const PDFPreviewModal = ({ open, onOpenChange }) => {
         </ScrollArea>
 
         {/* Action Buttons */}
-        <div className="flex justify-end gap-2 p-6 border-t dark:border-[hsl(220,10%,20%)]">
+        <div className="flex justify-end gap-3 p-6 border-t dark:border-[hsl(220,10%,20%)]">
           <Button
             variant="outline" 
             onClick={() => onOpenChange(false)}

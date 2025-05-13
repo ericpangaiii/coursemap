@@ -8,11 +8,11 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/context/AuthContext";
-import { themeToastFunctions } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 import { BarChart2, BookOpen, FileText, Home, LogOut, Moon, Settings, Sun, Users } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "./ThemeProvider";
+import appLogo from "@/assets/app-logo.png";
 
 const Sidebar = () => {
   const { user, logout } = useAuth();
@@ -31,17 +31,10 @@ const Sidebar = () => {
   // Admin navigation items
   const adminNavItems = [
     { name: "Users", path: "/admin/users", icon: Users },
+    { name: "Courses", path: "/admin/courses", icon: BookOpen },
+    { name: "Curriculums", path: "/admin/curriculums", icon: FileText },
+    { name: "Programs", path: "/admin/programs", icon: Settings },
   ];
-
-  // Helper to get initials from name
-  const getInitials = (name) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map(part => part[0])
-      .join("")
-      .toUpperCase();
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -50,47 +43,43 @@ const Sidebar = () => {
 
   const handleThemeToggle = () => {
     toggleTheme();
-    if (theme === "light") {
-      themeToastFunctions.darkMode();
-    } else {
-      themeToastFunctions.lightMode();
-    }
   };
 
   return (
     <div className="flex flex-col h-full">
-      <ShadcnSidebar collapsible="icon" className="h-screen w-[240px] border-r dark:border-gray-800">
-        {/* User profile section */}
+      <ShadcnSidebar 
+        collapsible="icon" 
+        className="h-screen w-[240px] border-r border-[#a32c2e] dark:border-[#6b1a1b] bg-[#7b1113] dark:bg-[#4a0a0b]">
+        {/* App logo and name section */}
         <SidebarHeader className={cn(
-          "p-4 border-b dark:border-gray-800",
+          "p-4 border-b border-[#a32c2e] dark:border-[#6b1a1b] bg-[#7b1113] dark:bg-[#4a0a0b]",
           state === "collapsed" ? "flex justify-center items-center p-2" : ""
         )}>
           {state === "collapsed" ? (
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.photo} alt={user?.name} />
-              <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
-            </Avatar>
+            <img
+              src={appLogo}
+              alt="App Logo"
+              className="h-10 w-10"
+            />
           ) : (
-            <>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 shrink-0">
-                  <AvatarImage src={user?.photo} alt={user?.name} />
-                  <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0 overflow-hidden">
-                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{user?.name || "Guest"}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email || ""}</p>
-                </div>
+            <div className="flex items-center gap-3">
+              <img
+                src={appLogo}
+                alt="App Logo"
+                className="h-10 w-10 shrink-0"
+              />
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <p className="text-l font-medium text-white truncate">CourseMap</p>
               </div>
-            </>
+            </div>
           )}
         </SidebarHeader>
 
         {/* Navigation section */}
-        <SidebarContent className="flex-1 overflow-auto py-2">
+        <SidebarContent className="flex-1 overflow-auto py-2 bg-[#7b1113] dark:bg-[#4a0a0b] text-white dark:text-gray-100">
           <div className="px-1 py-2">
             {state === "expanded" && (
-              <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+              <h2 className="mb-2 px-2 text-lg font-semibold tracking-tight text-white">
                 Menu
               </h2>
             )}
@@ -101,11 +90,11 @@ const Sidebar = () => {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors",
+                    "flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors text-white dark:text-gray-100",
                     state === "collapsed" ? "justify-center px-2 w-10" : "mx-3",
                     location.pathname === item.path
-                      ? "bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100"
-                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,20%)] hover:text-gray-900 dark:hover:text-gray-100"
+                      ? "bg-[#a32c2e] dark:bg-[#6b1a1b] text-white dark:text-gray-100 pointer-events-none"
+                      : "hover:bg-[#a32c2e] dark:hover:bg-[#6b1a1b] hover:text-white dark:hover:text-gray-100"
                   )}
                 >
                   <item.icon className={cn("h-5 w-5 flex-shrink-0", state === "expanded" ? "mr-2" : "")} />
@@ -119,11 +108,11 @@ const Sidebar = () => {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors",
+                    "flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-colors text-white dark:text-gray-100",
                     state === "collapsed" ? "justify-center px-2 w-10" : "mx-3",
                     location.pathname === item.path
-                      ? "bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-900 dark:text-gray-100"
-                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,20%)] hover:text-gray-900 dark:hover:text-gray-100"
+                      ? "bg-[#a32c2e] dark:bg-[#6b1a1b] text-white dark:text-gray-100 pointer-events-none"
+                      : "hover:bg-[#a32c2e] dark:hover:bg-[#6b1a1b] hover:text-white dark:hover:text-gray-100"
                   )}
                 >
                   <item.icon className={cn("h-5 w-5 flex-shrink-0", state === "expanded" ? "mr-2" : "")} />
@@ -135,16 +124,13 @@ const Sidebar = () => {
         </SidebarContent>
 
         {/* Logout button and theme toggle */}
-        <SidebarFooter className={cn("p-4 border-t dark:border-gray-800", state === "collapsed" ? "p-2" : "")}>
+        <SidebarFooter className={cn("p-4 border-t border-[#a32c2e] dark:border-[#6b1a1b] bg-[#7b1113] dark:bg-[#4a0a0b]", state === "collapsed" ? "p-2" : "")}>
           <div className={cn("flex items-center gap-2", state === "collapsed" ? "flex-col-reverse gap-1" : "")}>
             <Button
               variant="ghost"
               className={cn(
-                "justify-start gap-2",
-                state === "collapsed" ? "w-10 h-10 p-0 flex items-center justify-center" : "flex-1",
-                location.pathname === "/sign-out"
-                  ? "bg-accent text-accent-foreground dark:bg-[hsl(220,10%,25%)] dark:text-accent-foreground"
-                  : "hover:bg-accent/50 dark:hover:bg-[hsl(220,10%,20%)]"
+                "justify-start gap-2 text-white dark:text-gray-100 hover:bg-[#a32c2e] dark:hover:bg-[#6b1a1b] focus:bg-[#a32c2e] dark:focus:bg-[#6b1a1b] active:bg-[#a32c2e] dark:active:bg-[#6b1a1b] border-none",
+                state === "collapsed" ? "w-10 h-10 p-0 flex items-center justify-center" : "flex-1"
               )}
               onClick={handleLogout}
             >
@@ -155,7 +141,7 @@ const Sidebar = () => {
               variant="ghost"
               size="icon"
               className={cn(
-                "h-10 w-10 hover:bg-accent/50 dark:hover:bg-[hsl(220,10%,20%)]",
+                "h-10 w-10 text-white dark:text-gray-100 hover:bg-[#a32c2e] dark:hover:bg-[#6b1a1b] focus:bg-[#a32c2e] dark:focus:bg-[#6b1a1b] active:bg-[#a32c2e] dark:active:bg-[#6b1a1b] border-none",
                 state === "collapsed" ? "mt-0" : ""
               )}
               onClick={handleThemeToggle}

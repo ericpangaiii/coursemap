@@ -32,8 +32,8 @@ const DegreeSelectPage = () => {
     const fetchPrograms = async () => {
       try {
         setProgramLoading(true);
-        const data = await programsAPI.getAllPrograms();
-        setPrograms(data);
+        const response = await programsAPI.getAllPrograms();
+        setPrograms(response.data || []);
       } catch (err) {
         console.error('Error fetching programs:', err);
         authToastFunctions.accountCreationError();

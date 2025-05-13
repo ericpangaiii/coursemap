@@ -3,15 +3,37 @@ import client from '../database/index.js';
 // Get all programs
 export const getAllPrograms = async (req, res) => {
   try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const countResult = await client.query(
+      `SELECT COUNT(*) FROM programs 
+       WHERE college = $1 
+       AND is_visible = $2 
+       AND acronym NOT IN ($3, $4, $5, $6, $7, $8, $9)`,
+      ['CAS', 'YES', 'CRCAS', 'DCS', 'DPE', 'NDCAS', 'SPCAS', 'EXCAS', 'AASS']
+    );
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    // Get paginated data
     const result = await client.query(
       `SELECT * FROM programs 
        WHERE college = $1 
        AND is_visible = $2 
        AND acronym NOT IN ($3, $4, $5, $6, $7, $8, $9)
-       ORDER BY title ASC`,
-      ['CAS', 'YES', 'CRCAS', 'DCS', 'DPE', 'NDCAS', 'SPCAS', 'EXCAS', 'AASS']
+       ORDER BY title ASC
+       LIMIT $10 OFFSET $11`,
+      ['CAS', 'YES', 'CRCAS', 'DCS', 'DPE', 'NDCAS', 'SPCAS', 'EXCAS', 'AASS', limit, offset]
     );
-    res.json(result.rows);
+
+    res.json({
+      data: result.rows,
+      total: totalCount,
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalPages: Math.ceil(totalCount / limit)
+    });
   } catch (error) {
     console.error('Error in getAllPrograms:', error);
     res.status(500).json({ error: "Failed to fetch programs" });

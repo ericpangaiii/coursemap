@@ -21,8 +21,9 @@ const corsOptions = {
     ? process.env.PRODUCTION_FRONTEND_URL 
     : process.env.FRONTEND_URL,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  exposedHeaders: ["Set-Cookie"]
 };
 
 // Apply CORS middleware with proper options
@@ -39,7 +40,8 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL?.replace('https://', '') : undefined
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+    path: '/'
   }
 }));
 

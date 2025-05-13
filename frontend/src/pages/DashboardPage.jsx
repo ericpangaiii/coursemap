@@ -18,29 +18,59 @@ const DashboardPage = () => {
   const [organizedCourses, setOrganizedCourses] = useState({});
   const [currentCWA, setCurrentCWA] = useState(null);
 
-  // Add this function to handle grade updates
-  const handleGradeChange = (planCourseId, newGrade) => {
-    setOrganizedCourses(prevCourses => {
-      const updatedCourses = { ...prevCourses };
+  // Add a course to the plan
+  const handleGradeChange = async (planCourseId, newGrade) => {
+    try {
+      // Find the course in the organized courses to get its year and semester
+      let courseYear = null;
+      let courseSem = null;
       
-      // Find and update the course with the new grade
-      Object.keys(updatedCourses).forEach(year => {
-        Object.keys(updatedCourses[year]).forEach(sem => {
-          updatedCourses[year][sem] = updatedCourses[year][sem].map(course => {
-            if (course.id === planCourseId) {
-              return { ...course, grade: newGrade };
-            }
-            return course;
-          });
+      Object.entries(organizedCourses).forEach(([year, semesters]) => {
+        Object.entries(semesters).forEach(([sem, courses]) => {
+          const course = courses.find(c => c.plan_course_id === planCourseId);
+          if (course) {
+            courseYear = parseInt(year);
+            courseSem = sem;
+          }
         });
       });
+
+      if (!courseYear || !courseSem) {
+        throw new Error('Could not find course year and semester');
+      }
+
+      // Update the grade in the backend
+      const result = await plansAPI.updatePlanCourse(planCourseId, courseYear, courseSem, null, newGrade);
       
-      // Update CWA immediately
-      const newCWA = computeCumulativeGWA(updatedCourses);
-      setCurrentCWA(newCWA);
-      
-      return updatedCourses;
-    });
+      if (!result) {
+        throw new Error('Failed to update grade');
+      }
+
+      // Update the local state
+      setOrganizedCourses(prevCourses => {
+        const updatedCourses = { ...prevCourses };
+        
+        // Find and update the course with the new grade
+        Object.keys(updatedCourses).forEach(year => {
+          Object.keys(updatedCourses[year]).forEach(sem => {
+            updatedCourses[year][sem] = updatedCourses[year][sem].map(course => {
+              if (course.plan_course_id === planCourseId) {
+                return { ...course, grade: newGrade };
+              }
+              return course;
+            });
+          });
+        });
+        
+        // Update CWA immediately
+        const newCWA = computeCumulativeGWA(updatedCourses);
+        setCurrentCWA(newCWA);
+        
+        return updatedCourses;
+      });
+    } catch (error) {
+      console.error('Error updating grade:', error);
+    }
   };
 
   // Function to fetch and organize plan data
@@ -197,7 +227,7 @@ const DashboardPage = () => {
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course Completion</div>
                   <div className="flex justify-between mb-2">
                     <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                      {totalRequired === 0 ? 'No courses in plan yet' : `${completedCourses}/${totalRequired}`}
+                      {totalRequired > 0 ? `${completedCourses}/${totalRequired}` : ''}
                     </span>
                   </div>
                   <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
@@ -212,7 +242,7 @@ const DashboardPage = () => {
                 <div className="w-[30%] p-4 border dark:border-gray-700 rounded-lg shadow-md">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-4">Running CWA</div>
                   <div className="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                    {currentCWA?.toFixed(2) || '0.00'}
+                    {currentCWA ? currentCWA.toFixed(2) : ''}
                   </div>
                 </div>
               </div>

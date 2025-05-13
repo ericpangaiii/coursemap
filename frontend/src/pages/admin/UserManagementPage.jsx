@@ -1,10 +1,6 @@
-import { useIsAdmin } from '@/lib/auth.jsx';
-import { useEffect, useState, useMemo } from 'react';
-import { usersAPI, plansAPI } from '@/lib/api';
-import { toast } from "react-hot-toast";
-import { Navigate } from 'react-router-dom';
-import { Trash2, Filter, SearchX, ChevronDown, X, ArrowUp, ArrowDown, ArrowUpDown, Eye, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import PageHeader from "@/components/PageHeader";
+import CompactPlanView from "@/components/Plan/CompactPlanView";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Dialog,
@@ -14,18 +10,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import PageHeader from "@/components/PageHeader";
+import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/loading";
-import CompactPlanView from "@/components/Plan/CompactPlanView";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { plansAPI, usersAPI } from '@/lib/api';
+import { useIsAdmin } from '@/lib/auth.jsx';
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, FileText, Filter, SearchX, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from "react-hot-toast";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/components/ui/pagination";
 
 const UserManagementPage = () => {
   const isAdmin = useIsAdmin();
@@ -256,12 +255,10 @@ const UserManagementPage = () => {
   return (
     <div className="container mx-auto">
       {isLoadingUsers ? (
-        <div className="flex justify-center items-center h-[calc(100vh-12rem)]">
-          <LoadingSpinner />
-        </div>
+        <LoadingSpinner fullPage />
       ) : (
         <div className="container mx-auto p-2">
-          <PageHeader title="User Management" />
+          <PageHeader title="Users Management" />
           
           {/* Main Content Card */}
           <Card className="mb-6 w-full max-w-[1300px]">
@@ -333,12 +330,16 @@ const UserManagementPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.program.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Program
                           {filters.program.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.program.length}
                             </span>
                           )}
@@ -382,12 +383,16 @@ const UserManagementPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.curriculum.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Curriculum
                           {filters.curriculum.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.curriculum.length}
                             </span>
                           )}
@@ -431,12 +436,16 @@ const UserManagementPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.college.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           College
                           {filters.college.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.college.length}
                             </span>
                           )}
@@ -478,12 +487,16 @@ const UserManagementPage = () => {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 px-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          className={`h-8 px-2 ${
+                            filters.role.length > 0 
+                              ? 'text-blue-600 dark:text-blue-400' 
+                              : 'text-gray-500 dark:text-gray-400'
+                          } hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]`}
                         >
                           <Filter className="w-4 h-4 mr-1" />
                           Role
                           {filters.role.length > 0 && (
-                            <span className="ml-1 text-xs bg-gray-100 dark:bg-[hsl(220,10%,25%)] px-1.5 py-0.5 rounded text-gray-700 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
+                            <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                               {filters.role.length}
                             </span>
                           )}
@@ -898,28 +911,97 @@ const UserManagementPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
+            <div className="mt-6 flex justify-center">
+              <Pagination>
+                <PaginationContent className="text-xs">
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className={currentPage === 1 ? "pointer-events-none text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"}
+                    />
+                  </PaginationItem>
+                  
+                  {/* First page */}
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(1)}
+                      className={`${
+                        currentPage === 1 
+                          ? "bg-blue-600 text-white pointer-events-none" 
+                          : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                      }`}
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+
+                  {/* Show first ellipsis if current page is beyond 3 */}
+                  {currentPage > 3 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {/* Middle pages */}
+                  {Array.from(
+                    { length: Math.min(3, totalPages - 2) },
+                    (_, i) => {
+                      if (currentPage <= 3) {
+                        return i + 2; // Show 2,3,4 when on first pages
+                      } else if (currentPage >= totalPages - 2) {
+                        return totalPages - 3 + i; // Show last pages when near end
+                      } else {
+                        return currentPage - 1 + i; // Show current page and neighbors
+                      }
+                    }
+                  ).map(page => 
+                    page > 1 && page < totalPages && (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          className={`${
+                            currentPage === page 
+                              ? "bg-blue-600 text-white pointer-events-none" 
+                              : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                          }`}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
+
+                  {/* Show second ellipsis if current page is not near the end */}
+                  {currentPage < totalPages - 2 && (
+                    <PaginationItem>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )}
+
+                  {/* Last page */}
+                  {totalPages > 1 && (
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(totalPages)}
+                        className={`${
+                          currentPage === totalPages 
+                            ? "bg-blue-600 text-white pointer-events-none" 
+                            : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"
+                        }`}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )}
+                  
+                  <PaginationItem>
+                    <PaginationNext 
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none text-gray-400 dark:text-gray-500" : "text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,25%)]"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
 

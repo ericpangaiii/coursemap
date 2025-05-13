@@ -1,186 +1,102 @@
-import { useState } from 'react';
-import { Card, Button } from '@/components/ui';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
-import { getMergedData, isPrescribedSchedule } from './utils/planUtils';
-import { calculateSemesterUnits, getSemesterStatus, getSemesterStatusColor } from '@/lib/planUtils';
-import { generatePlanWarnings, getWarningIcon, getWarningColor } from '@/lib/planUtils';
-import { getCourseItemClass, getCourseIndicatorClass } from '@/lib/planUtils';
-import CourseItemWithPlacement from './CourseItemWithPlacement';
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Trash2 } from "lucide-react";
+import YearGrid from "./YearGrid";
+import StepProgress from "./StepProgress";
+import InfoMessage from "./InfoMessage";
+import { useState } from "react";
+import CurriculumViewToggle from "./CurriculumViewToggle";
 
-const PlanOverview = ({ planData, coursesByType, getPrescribedSemestersForType, showFullCurriculum, selectedCourse }) => {
-  const [expandedWarnings, setExpandedWarnings] = useState(false);
-  const [viewByType, setViewByType] = useState(false);
-  
-  // Get merged data of user plan and curriculum courses
-  const displayData = getMergedData(planData, coursesByType, getPrescribedSemestersForType, showFullCurriculum);
-  
-  // Generate warnings for the entire plan
-  const warnings = generatePlanWarnings(planData);
-  
-  // Calculate statistics for each course type
-  const courseTypeStats = {
-    required_academic: 0,
-    required_non_academic: 0,
-    ge_elective: 0,
-    elective: 0,
-    major: 0
+const COURSE_STEPS = [
+  { id: 'ge_electives', label: 'GE Electives', type: 'GE Elective' },
+  { id: 'free_electives', label: 'Free Electives', type: 'Elective' },
+  { id: 'majors', label: 'Majors', type: 'Major' },
+  { id: 'required_academic', label: 'Required Academic', type: 'Required Academic' },
+  { id: 'required_non_academic', label: 'Required Non-Academic', type: 'Required Non-Academic' },
+  { id: 'summary', label: 'Summary', type: 'summary' },
+];
+
+const PlanOverview = ({ semesterGrid, onDeleteCourse, onClearAll, courseTypeCounts, currentStepType, filteredCourses, activeCourse, currentStep, courseSteps, courses }) => {
+  const years = [1, 2, 3, 4];
+  const isDragging = activeCourse !== null;
+  const [showCurriculum, setShowCurriculum] = useState(false);
+
+  const handleSemesterClick = (year, semester) => {
+    // TODO: Handle semester click
+    console.log(`Clicked ${year} Year, ${semester} Semester`);
   };
-  
-  Object.values(planData).forEach(yearData => {
-    Object.values(yearData).forEach(semData => {
-      semData.forEach(course => {
-        if (course.course_type in courseTypeStats) {
-          courseTypeStats[course.course_type]++;
-        }
-      });
-    });
-  });
-  
+
+  const handleCurriculumViewToggle = (checked) => {
+    setShowCurriculum(checked);
+    console.log('Curriculum view toggled:', checked);
+    
+    // Log required courses when curriculum view is toggled
+    if (courses) {
+      const requiredAcademic = courses.filter(course => course.course_type === 'Required Academic');
+      const requiredNonAcademic = courses.filter(course => course.course_type === 'Required Non-Academic');
+      
+      console.log('Required Academic Courses:', requiredAcademic);
+      console.log('Required Non-Academic Courses:', requiredNonAcademic);
+    }
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Warnings Panel */}
-      {warnings.length > 0 && (
-        <Card className="p-4">
-          <div 
-            className="flex items-center justify-between cursor-pointer"
-            onClick={() => setExpandedWarnings(!expandedWarnings)}
-          >
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="text-yellow-500" />
-              <span className="font-medium">Warnings ({warnings.length})</span>
-            </div>
-            {expandedWarnings ? <ChevronUp /> : <ChevronDown />}
-          </div>
-          
-          {expandedWarnings && (
-            <div className="mt-2 space-y-2">
-              {warnings.map((warning, index) => (
-                <div 
-                  key={index} 
-                  className={`flex items-center space-x-2 ${getWarningColor(warning.type)}`}
-                >
-                  <span>{getWarningIcon(warning.type)}</span>
-                  <span>{warning.message}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-      )}
-      
-      {/* View Toggle */}
-      <div className="flex justify-end">
-        <Button
-          variant="outline"
-          onClick={() => setViewByType(!viewByType)}
-        >
-          {viewByType ? 'View by Semester' : 'View by Course Type'}
-        </Button>
+    <div className="h-full flex flex-col">
+      <div className="pt-2 px-2">
+        <StepProgress 
+          currentStep={currentStep}
+          courseSteps={courseSteps}
+        />
       </div>
-      
-      {/* Course Statistics */}
-      <Card className="p-4">
-        <h3 className="font-medium mb-2">Course Statistics</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p>Required Academic: {courseTypeStats.required_academic}</p>
-            <p>Required Non-Academic: {courseTypeStats.required_non_academic}</p>
-          </div>
-          <div>
-            <p>GE Electives: {courseTypeStats.ge_elective}</p>
-            <p>Electives: {courseTypeStats.elective}</p>
-            <p>Majors: {courseTypeStats.major}</p>
-          </div>
+      <InfoMessage 
+        isDragging={isDragging} 
+        currentStepType={currentStepType}
+        courseTypeCounts={courseTypeCounts}
+        filteredCourses={filteredCourses}
+        semesterGrid={semesterGrid}
+      />
+      <div className="flex justify-between items-center mb-4 pr-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-lg font-semibold">Plan Overview</h2>
         </div>
-      </Card>
-      
-      {/* Plan Display */}
-      {viewByType ? (
-        // View by Course Type
-        <div className="space-y-4">
-          {Object.entries(courseTypeStats).map(([type, count]) => (
-            <Card key={type} className="p-4">
-              <h3 className="font-medium mb-2">
-                {type.split('_').map(word => 
-                  word.charAt(0).toUpperCase() + word.slice(1)
-                ).join(' ')} ({count})
-              </h3>
-              <ScrollArea className="h-[200px]">
-                <div className="space-y-2">
-                  {Object.entries(planData).map(([year, yearData]) => (
-                    Object.entries(yearData).map(([sem, courses]) => (
-                      courses
-                        .filter(course => course.course_type === type)
-                        .map((course, index) => (
-                          <div 
-                            key={`${year}-${sem}-${index}`}
-                            className={getCourseItemClass(course)}
-                          >
-                            <div 
-                              className={getCourseIndicatorClass(course, 'bg')}
-                            />
-                            <CourseItemWithPlacement 
-                              course={course} 
-                              planData={planData}
-                            />
-                          </div>
-                        ))
-                    ))
-                  ))}
-                </div>
-              </ScrollArea>
-            </Card>
+        <div className="flex items-center gap-4">
+          {currentStepType !== 'summary' && (
+            <>
+              <CurriculumViewToggle 
+                isEnabled={showCurriculum} 
+                onToggle={handleCurriculumViewToggle}
+              />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-xs text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                onClick={onClearAll}
+              >
+                <Trash2 className="h-3.5 w-3.5 mr-1" />
+                Clear All
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+      <ScrollArea className="flex-1">
+        <div className="grid grid-cols-4 gap-3 pr-4">
+          {years.map((year) => (
+            <YearGrid 
+              key={year}
+              year={year}
+              onSemesterClick={handleSemesterClick}
+              semesterGrid={semesterGrid}
+              onDeleteCourse={currentStepType !== 'summary' ? onDeleteCourse : undefined}
+              activeCourse={currentStepType !== 'summary' ? activeCourse : null}
+              courseTypeCounts={courseTypeCounts}
+              currentStepType={currentStepType}
+              showCurriculum={showCurriculum}
+              courses={courses}
+            />
           ))}
         </div>
-      ) : (
-        // View by Semester
-        <div className="space-y-4">
-          {Object.entries(displayData).map(([year, yearData]) => (
-            <div key={year} className="space-y-2">
-              <h2 className="text-lg font-medium">Year {year}</h2>
-              {Object.entries(yearData).map(([sem, courses]) => {
-                const semesterUnits = calculateSemesterUnits(courses);
-                const status = getSemesterStatus(semesterUnits);
-                
-                return (
-                  <Card key={sem} className="p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="font-medium">{sem}</h3>
-                      <span className={getSemesterStatusColor(status)}>
-                        {semesterUnits} units
-                      </span>
-                    </div>
-                    <ScrollArea className="h-[200px]">
-                      <div className="space-y-2">
-                        {courses.map((course, index) => (
-                          <div 
-                            key={index}
-                            className={getCourseItemClass(course)}
-                          >
-                            <div 
-                              className={getCourseIndicatorClass(course, 'bg')}
-                            />
-                            <CourseItemWithPlacement 
-                              course={course} 
-                              planData={planData}
-                            />
-                            {selectedCourse && isPrescribedSchedule(year, sem, selectedCourse, displayData) && (
-                              <div className="ml-2 text-green-500">
-                                ✓
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  </Card>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      )}
+      </ScrollArea>
     </div>
   );
 };

@@ -16,22 +16,25 @@ const styles = StyleSheet.create({
   page: {
     padding: 30,
     fontFamily: 'Roboto',
+    position: 'relative',
+    minHeight: '100%',
   },
   header: {
     marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 12,
     marginBottom: 5,
+    fontWeight: 'bold',
   },
   info: {
-    fontSize: 12,
+    fontSize: 10,
     marginBottom: 3,
   },
   table: {
@@ -65,10 +68,58 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#666',
     textAlign: 'center',
+    zIndex: 1,
   },
   cell: {
     padding: 5,
     fontSize: 10,
+  },
+  signatorySection: {
+    marginTop: 40,
+    paddingTop: 20,
+    paddingBottom: 60,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  signatoryColumn: {
+    width: '48%',
+  },
+  signatoryColumnLeft: {
+    width: '48%',
+    marginTop: 40,
+  },
+  signatoryRow: {
+    marginBottom: 20,
+  },
+  signatoryLabel: {
+    fontSize: 10,
+    marginBottom: 5,
+  },
+  signatoryHeader: {
+    fontSize: 10,
+    marginBottom: 10,
+    fontWeight: 'bold',
+  },
+  signatoryLine: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#000',
+    marginBottom: 5,
+    height: 20,
+    width: '100%',
+  },
+  signatoryContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 5,
+    width: '100%',
+  },
+  signatoryLeft: {
+    flex: 1,
+  },
+  signatoryRight: {
+    width: 100,
+    textAlign: 'right',
   },
 });
 
@@ -156,8 +207,51 @@ export const GEPlanTemplate = ({ user, program, courses }) => (
         ))}
       </View>
 
+      {/* Signatory Section */}
+      <View style={styles.signatorySection}>
+        {/* Left Column */}
+        <View style={styles.signatoryColumnLeft}>
+          <Text style={styles.signatoryHeader}>RECOMMENDING APPROVAL:</Text>
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of Adviser</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of Unit Head</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+
+          <Text style={styles.signatoryHeader}>APPROVED/DISAPPROVED:</Text>
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of College Secretary</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Right Column */}
+        <View style={styles.signatoryColumn}>
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of Student</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
       <Text style={styles.footer}>
-        Generated on {formatDate(new Date())} | This document is computer-generated and does not require a signature.
+        Generated on {formatDate(new Date())}
       </Text>
     </Page>
   </Document>
@@ -191,8 +285,51 @@ export const FreeElectivesTemplate = ({ user, program, courses }) => (
         ))}
       </View>
 
+      {/* Signatory Section */}
+      <View style={styles.signatorySection}>
+        {/* Left Column */}
+        <View style={styles.signatoryColumnLeft}>
+          <Text style={styles.signatoryHeader}>RECOMMENDING APPROVAL:</Text>
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of Adviser</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of Unit Head</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+
+          <Text style={styles.signatoryHeader}>APPROVED/DISAPPROVED:</Text>
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of College Secretary</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Right Column */}
+        <View style={styles.signatoryColumn}>
+          <View style={styles.signatoryRow}>
+            <View style={styles.signatoryLine} />
+            <View style={styles.signatoryContent}>
+              <Text style={styles.signatoryLabel}>Printed Name and Signature of Student</Text>
+              <Text style={styles.signatoryLabel}>Date</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
       <Text style={styles.footer}>
-        Generated on {formatDate(new Date())} | This document is computer-generated and does not require a signature.
+        Generated on {formatDate(new Date())}
       </Text>
     </Page>
   </Document>
@@ -256,7 +393,7 @@ export const PlanOfCourseworkTemplate = ({ user, program, courses }) => {
         })}
 
         <Text style={styles.footer}>
-          Generated on {formatDate(new Date())} | This document is computer-generated and does not require a signature.
+          Generated on {formatDate(new Date())}
         </Text>
       </Page>
     </Document>

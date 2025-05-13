@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   photo VARCHAR(255),
   program_id INTEGER,
   curriculum_id INTEGER,
+  role VARCHAR(50) DEFAULT 'User' NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -155,11 +156,29 @@ CREATE TABLE IF NOT EXISTS plan_courses (
   sem INTEGER NOT NULL,
   status VARCHAR(50) DEFAULT 'planned', -- planned, in_progress, completed, dropped
   grade VARCHAR(10),
+  units VARCHAR(10),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_plan_courses_plans FOREIGN KEY (plan_id) REFERENCES plans(id) ON DELETE CASCADE,
   CONSTRAINT fk_plan_courses_courses FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
 );
+
+-- Requisites table
+CREATE SEQUENCE requisites_req_id_seq INCREMENT 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1;
+
+CREATE TABLE "public"."requisites" (
+    "req_id" bigint DEFAULT nextval('requisites_req_id_seq') NOT NULL,
+    "course_id" integer NOT NULL,
+    "req_courses" text NOT NULL,
+    "req_type" character varying(50) NOT NULL,
+    "description" text,
+    "count" integer,
+    "is_active" boolean NOT NULL,
+    "created_at" timestamp(0),
+    "updated_at" timestamp(0),
+    "course_id_req" character varying(191),
+    CONSTRAINT "requisites_pkey" PRIMARY KEY ("req_id")
+) WITH (oids = false);
 
 -- Add foreign key constraints
 ALTER TABLE users 

@@ -2,16 +2,24 @@ import { API_BASE_URL } from '@/lib/config';
 
 // Authentication API calls
 export const authAPI = {
+  // Get base URL
+  getBaseUrl: () => {
+    return API_BASE_URL;
+  },
+
   // Get authentication status
   getAuthStatus: async () => {
     try {
+      console.log('[API] Checking auth status...');
       const response = await fetch(`${API_BASE_URL}/auth/status`, {
         method: 'GET',
         credentials: 'include',
       });
-      return await response.json();
+      const data = await response.json();
+      console.log('[API] Auth status response:', data);
+      return data;
     } catch (error) {
-      console.error('Authentication check failed:', error);
+      console.error('[API] Authentication check failed:', error);
       return { authenticated: false };
     }
   },
@@ -19,20 +27,25 @@ export const authAPI = {
   // Logout the user
   logout: async () => {
     try {
+      console.log('[API] Logging out user...');
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'GET',
         credentials: 'include',
       });
-      return await response.json();
+      const data = await response.json();
+      console.log('[API] Logout response:', data);
+      return data;
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('[API] Logout failed:', error);
       return { success: false, error: 'Failed to logout' };
     }
   },
 
   // Get Google authentication URL
   getGoogleAuthUrl: () => {
-    return `${API_BASE_URL}/auth/google`;
+    const url = `${API_BASE_URL}/auth/google`;
+    console.log('[API] Generated Google auth URL:', url);
+    return url;
   },
 
   // Update user's program
@@ -57,9 +70,9 @@ export const authAPI = {
 // Programs API calls
 export const programsAPI = {
   // Get all programs
-  getAllPrograms: async () => {
+  getAllPrograms: async (page = 1, limit = 10) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/programs`);
+      const response = await fetch(`${API_BASE_URL}/api/programs?page=${page}&limit=${limit}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch programs');
@@ -69,13 +82,19 @@ export const programsAPI = {
     } catch (error) {
       console.error('Error fetching programs:', error);
       // Return dummy data as fallback
-      return [
-        { program_id: '1', acronym: 'BSCS', title: 'BS Computer Science' },
-        { program_id: '2', acronym: 'BSIT', title: 'BS Information Technology' },
-        { program_id: '3', acronym: 'BSCS-ST', title: 'BS Computer Science - Software Technology' },
-        { program_id: '4', acronym: 'BBA', title: 'Business Administration' },
-        { program_id: '5', acronym: 'BSPSY', title: 'Psychology' }
-      ];
+      return {
+        data: [
+          { program_id: '1', acronym: 'BSCS', title: 'BS Computer Science' },
+          { program_id: '2', acronym: 'BSIT', title: 'BS Information Technology' },
+          { program_id: '3', acronym: 'BSCS-ST', title: 'BS Computer Science - Software Technology' },
+          { program_id: '4', acronym: 'BBA', title: 'Business Administration' },
+          { program_id: '5', acronym: 'BSPSY', title: 'Psychology' }
+        ],
+        total: 5,
+        page: 1,
+        limit: 10,
+        totalPages: 1
+      };
     }
   },
 
@@ -158,10 +177,17 @@ export const curriculumsAPI = {
         throw new Error('Failed to fetch curriculum structure');
       }
       
-      return await response.json();
+      const data = await response.json();
+      return {
+        success: true,
+        data: data.structures || []
+      };
     } catch (error) {
-      console.error(`Error fetching curriculum structure:`, error);
-      return null;
+      console.error('Error fetching curriculum structure:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Failed to fetch curriculum structure' 
+      };
     }
   },
   
@@ -206,6 +232,42 @@ export const curriculumsAPI = {
     } catch (error) {
       console.error('Error fetching current curriculum courses:', error);
       return [];
+    }
+  },
+
+  // Get course type counts for a curriculum
+  getCurriculumCourseTypeCounts: async (curriculumId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/course-type-counts`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculum course type counts');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching curriculum course type counts:', error);
+      return null;
+    }
+  },
+
+  getCurriculumRequiredCourses: async (curriculumId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/required-courses`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch required courses');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching required courses:', error);
+      return { success: false, error: 'Failed to fetch required courses' };
     }
   },
 };
@@ -258,6 +320,7 @@ export const plansAPI = {
   // Create a new plan
   createPlan: async (curriculumId) => {
     try {
+      console.log('API: Creating plan with curriculum ID:', curriculumId);
       const response = await fetch(`${API_BASE_URL}/api/plans`, {
         method: 'POST',
         headers: {
@@ -269,19 +332,28 @@ export const plansAPI = {
         }),
       });
       
+      console.log('API: Create plan response status:', response.status);
+      const data = await response.json();
+      console.log('API: Create plan response data:', data);
+      
       if (!response.ok) {
-        throw new Error('Failed to create plan');
+        console.error('API: Create plan failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: data
+        });
+        throw new Error(data.error || 'Failed to create plan');
       }
       
-      return await response.json();
+      return data;
     } catch (error) {
-      console.error('Error creating plan:', error);
-      return null;
+      console.error('API: Error creating plan:', error);
+      throw error;
     }
   },
 
   // Add a course to the plan
-  addCourseToPlan: async (planId, courseId, year, semester, status = 'planned') => {
+  addCourseToPlan: async (planId, courseId, year, semester, status = 'planned', units = null) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/plans/courses`, {
         method: 'POST',
@@ -294,7 +366,8 @@ export const plansAPI = {
           courseId, 
           year, 
           semester, 
-          status 
+          status,
+          units
         }),
       });
       
@@ -461,15 +534,43 @@ export const usersAPI = {
 // Course API calls
 export const coursesAPI = {
   // Get all courses
-  getAllCourses: async () => {
+  getAllCourses: async (page = 1, limit = 10, searchQuery = '', filters = {}, sortConfig = {}) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/courses`, {
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(searchQuery && { search: searchQuery }),
+        ...(filters.type?.length && { type: filters.type.join(',') }),
+        ...(filters.semOffered?.length && { semOffered: filters.semOffered.join(',') }),
+        ...(filters.acadGroup?.length && { acadGroup: filters.acadGroup.join(',') }),
+        ...(filters.units?.length && { units: filters.units.join(',') }),
+        ...(filters.whenTaken?.length && { whenTaken: filters.whenTaken.join(',') }),
+        ...(filters.requisites?.length && { requisites: filters.requisites.join(',') }),
+        ...(sortConfig.key && { sortKey: sortConfig.key }),
+        ...(sortConfig.direction && { sortDirection: sortConfig.direction })
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/courses?${queryParams}`, {
         method: 'GET',
         credentials: 'include'
       });
       return await response.json();
     } catch (error) {
       console.error('Failed to fetch all courses:', error);
+      return { success: false, error: 'Failed to fetch courses' };
+    }
+  },
+
+  // Get courses for plan creation
+  getCoursesForPlanCreation: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/courses/plan-creation`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch courses for plan creation:', error);
       return { success: false, error: 'Failed to fetch courses' };
     }
   },
@@ -507,6 +608,30 @@ export const coursesAPI = {
     } catch (error) {
       console.error('Failed to update course:', error);
       return { success: false, error: 'Failed to update course' };
+    }
+  },
+
+  // Get all courses for admin
+  getAllAdminCourses: async (page = 1, limit = 10, searchQuery = '', filters = {}, sortConfig = {}) => {
+    try {
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        ...(searchQuery && { search: searchQuery }),
+        ...(filters.college?.length && { college: filters.college.join(',') }),
+        ...(filters.semester?.length && { semester: filters.semester.join(',') }),
+        ...(sortConfig.key && { sortKey: sortConfig.key }),
+        ...(sortConfig.direction && { sortDirection: sortConfig.direction })
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/courses/admin?${queryParams}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to fetch admin courses:', error);
+      return { success: false, error: 'Failed to fetch courses' };
     }
   },
 }; 

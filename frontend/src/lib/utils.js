@@ -96,7 +96,7 @@ export const getCourseTypeColor = (type) => {
     case "elective":
       return "bg-purple-500";
     case "major":
-      return "bg-red-500";
+      return "bg-green-500";
     case "academic":
       return "bg-blue-500";
     case "non_academic":
@@ -126,7 +126,7 @@ export const getCourseTypeTextColor = (type) => {
     case "elective":
       return "text-purple-500";
     case "major":
-      return "text-red-500";
+      return "text-green-500";
     case "academic":
       return "text-blue-500";
     case "non_academic":
@@ -156,7 +156,7 @@ export const getCourseTypeBorderColor = (type) => {
     case "elective":
       return "border-purple-500";
     case "major":
-      return "border-red-500";
+      return "border-green-500";
     case "academic":
       return "border-blue-500";
     case "non_academic":
@@ -214,15 +214,15 @@ export const getSemesterName = (semester) => {
   switch (semStr) {
     case "1":
     case "1s":
-      return "1st Semester";
+      return "1st Sem";
     case "2":
     case "2s":
-      return "2nd Semester";
+      return "2nd Sem";
     case "m":
     case "3":
       return "Mid Year";
     default:
-      return `Semester ${semester}`;
+      return `Sem ${semester}`;
   }
 };
 
@@ -638,4 +638,101 @@ export const computeCumulativeGWA = (organizedCourses) => {
   // Calculate GWA and format to always show 2 decimal places
   const gwa = weightedSum / totalUnits;
   return Number(gwa.toFixed(2));
+};
+
+/**
+ * Get color classes for course type badge
+ * @param {string} type - Course type
+ * @returns {string} - Tailwind classes for the badge
+ */
+export const getCourseTypeBadgeColor = (type) => {
+  const normalizedType = getNormalizedCourseType(type);
+  
+  switch (normalizedType) {
+    case "ge":
+      return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-700";
+    case "elective":
+      return "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-700";
+    case "major":
+      return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
+    case "academic":
+      return "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700";
+    case "non_academic":
+      return "bg-blue-50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-300 border-blue-100 dark:border-blue-800";
+    case "cognate":
+      return "bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 border-indigo-200 dark:border-indigo-700";
+    case "specialized":
+      return "bg-teal-100 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 border-teal-200 dark:border-teal-700";
+    default:
+      return "bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700";
+  }
+};
+
+/**
+ * Get color classes for college badge
+ * @param {string} college - College code
+ * @returns {string} - Tailwind classes for the badge
+ */
+export const getCollegeBadgeColor = (college) => {
+  switch (college?.toUpperCase()) {
+    case "CAFS":
+      return "bg-pink-100 dark:bg-pink-900/20 text-pink-700 dark:text-pink-400 border-pink-200 dark:border-pink-700";
+    case "CAS":
+      return "bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-700";
+    case "CEM":
+      return "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-700";
+    case "CEAT":
+      return "bg-orange-100 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-700";
+    case "CDC":
+      return "bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-purple-200 dark:border-purple-700";
+    case "CHE":
+      return "bg-cyan-100 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-400 border-cyan-200 dark:border-cyan-700";
+    case "CVM":
+      return "bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-700";
+    case "CFNR":
+      return "bg-lime-100 dark:bg-lime-900/20 text-lime-700 dark:text-lime-400 border-lime-200 dark:border-lime-700";
+    default:
+      return "bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700";
+  }
+};
+
+/**
+ * Get color classes for semester badge
+ * @param {string} semester - Semester code
+ * @returns {string} - Tailwind classes for the badge
+ */
+export const getSemesterBadgeColor = (semester) => {
+  const sem = semester?.toLowerCase();
+  if (sem === "1s" || sem === "1") {
+    return "bg-sky-100 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-700";
+  }
+  if (sem === "2s" || sem === "2") {
+    return "bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-700";
+  }
+  if (sem === "m") {
+    return "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-700";
+  }
+  return "bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-700";
+};
+
+/**
+ * Get color classes for units badge
+ * @param {number} units - Number of units
+ * @returns {string} - Tailwind classes for the badge
+ */
+export const getUnitsBadgeColor = (units) => {
+  const numUnits = Number(units);
+  if (numUnits >= 4) {
+    return "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600";
+  }
+  if (numUnits === 3) {
+    return "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700";
+  }
+  if (numUnits === 2) {
+    return "bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700";
+  }
+  if (numUnits === 1) {
+    return "bg-gray-50 dark:bg-gray-900/30 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700";
+  }
+  return "bg-gray-50 dark:bg-gray-900/20 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700";
 };
