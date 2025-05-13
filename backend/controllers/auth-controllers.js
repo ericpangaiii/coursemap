@@ -38,7 +38,7 @@ export const configurePassport = () => {
         clientSecret: process.env.CLIENT_SECRET,
         callbackURL: process.env.NODE_ENV === 'production' 
           ? `${process.env.PRODUCTION_BACKEND_URL}/auth/google/callback`
-          : '/auth/google/callback',
+          : `${process.env.PRODUCTION_BACKEND_URL}/auth/google/callback`,
         scope: ['profile', 'email']
       },
       async (accessToken, refreshToken, profile, done) => {
