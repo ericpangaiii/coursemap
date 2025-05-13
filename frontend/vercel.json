@@ -1,6 +1,5 @@
 {
   "rewrites": [
-    { "source": "/auth/google/callback", "destination": "/index.html" },
     { "source": "/sign-in", "destination": "/index.html" },
     { "source": "/dashboard", "destination": "/index.html" },
     { "source": "/dashboard/(.*)", "destination": "/index.html" },
