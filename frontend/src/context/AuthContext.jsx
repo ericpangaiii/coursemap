@@ -22,6 +22,12 @@ export const AuthProvider = ({ children }) => {
         console.log('[AuthContext] Current path:', window.location.pathname);
         console.log('[AuthContext] Current URL:', window.location.href);
         
+        // If we're on the dashboard after OAuth callback, wait a bit for session to establish
+        if (window.location.pathname === '/dashboard' && window.location.search.includes('code=')) {
+          console.log('[AuthContext] Detected OAuth callback, waiting for session...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
         const data = await authAPI.getAuthStatus();
         console.log('[AuthContext] Auth status response:', data);
         
