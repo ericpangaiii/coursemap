@@ -5,13 +5,16 @@ export const authAPI = {
   // Get authentication status
   getAuthStatus: async () => {
     try {
+      console.log('[API] Checking auth status...');
       const response = await fetch(`${API_BASE_URL}/auth/status`, {
         method: 'GET',
         credentials: 'include',
       });
-      return await response.json();
+      const data = await response.json();
+      console.log('[API] Auth status response:', data);
+      return data;
     } catch (error) {
-      console.error('Authentication check failed:', error);
+      console.error('[API] Authentication check failed:', error);
       return { authenticated: false };
     }
   },
@@ -19,20 +22,25 @@ export const authAPI = {
   // Logout the user
   logout: async () => {
     try {
+      console.log('[API] Logging out user...');
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'GET',
         credentials: 'include',
       });
-      return await response.json();
+      const data = await response.json();
+      console.log('[API] Logout response:', data);
+      return data;
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('[API] Logout failed:', error);
       return { success: false, error: 'Failed to logout' };
     }
   },
 
   // Get Google authentication URL
   getGoogleAuthUrl: () => {
-    return `${API_BASE_URL}/auth/google`;
+    const url = `${API_BASE_URL}/auth/google`;
+    console.log('[API] Generated Google auth URL:', url);
+    return url;
   },
 
   // Update user's program

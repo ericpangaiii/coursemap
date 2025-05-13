@@ -18,38 +18,37 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        console.log('AuthContext: Checking auth status...');
+        console.log('[AuthContext] Starting auth status check...');
+        console.log('[AuthContext] Current path:', window.location.pathname);
+        console.log('[AuthContext] Current URL:', window.location.href);
+        
         const data = await authAPI.getAuthStatus();
-        console.log('AuthContext: Auth status response:', data);
+        console.log('[AuthContext] Auth status response:', data);
         
         if (data.authenticated) {
-          console.log('AuthContext: User authenticated:', data.user);
+          console.log('[AuthContext] User authenticated:', data.user);
           setUser({
             ...data.user,
             isAdmin: data.user.role === 'Admin'
           });
           setAuthenticated(true);
         } else {
-          console.log('AuthContext: User not authenticated');
+          console.log('[AuthContext] User not authenticated');
           setUser(null);
           setAuthenticated(false);
           hasShownToast.current = false;
-          // Redirect to sign-in if not on sign-in page
-          if (!window.location.pathname.includes('/sign-in')) {
-            console.log('AuthContext: Redirecting to sign-in');
+          
+          // Only redirect if not on sign-in page and not during OAuth callback
+          if (!window.location.pathname.includes('/sign-in') && 
+              !window.location.pathname.includes('/auth/google/callback')) {
+            console.log('[AuthContext] Redirecting to sign-in from:', window.location.pathname);
             window.location.href = '/sign-in';
           }
         }
       } catch (error) {
-        console.error('AuthContext: Authentication check failed:', error);
+        console.error('[AuthContext] Error checking auth status:', error);
         setUser(null);
         setAuthenticated(false);
-        hasShownToast.current = false;
-        // Redirect to sign-in on error
-        if (!window.location.pathname.includes('/sign-in')) {
-          console.log('AuthContext: Redirecting to sign-in due to error');
-          window.location.href = '/sign-in';
-        }
       } finally {
         setLoading(false);
       }
