@@ -20,27 +20,7 @@ const passport = configurePassport();
 // Configure CORS properly
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? (origin, callback) => {
-        // Allow requests from the main production URL and any Vercel preview deployments
-        const allowedOrigins = [
-          process.env.PRODUCTION_FRONTEND_URL,
-          /^https:\/\/.*\.vercel\.app$/  // Allow any subdomain of vercel.app
-        ];
-        
-        // Check if the origin matches any of the allowed patterns
-        const isAllowed = allowedOrigins.some(allowed => {
-          if (allowed instanceof RegExp) {
-            return allowed.test(origin);
-          }
-          return allowed === origin;
-        });
-
-        if (isAllowed) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      }
+    ? process.env.PRODUCTION_FRONTEND_URL 
     : process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -63,18 +43,26 @@ app.use(session({
     pool: pool,
     tableName: 'session',
     createTableIfMissing: true,
-    pruneSessionInterval: 60
+    pruneSessionInterval: 60,
+    schema: {
+      tableName: 'session',
+      columnNames: {
+        session_id: 'sid',
+        expires: 'expires',
+        data: 'sess'
+      }
+    }
   }),
   secret: process.env.SESSION_SECRET,
-  resave: true,
+  resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
-    path: '/'
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
   },
   name: 'connect.sid'
 }));
