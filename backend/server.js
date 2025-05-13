@@ -62,7 +62,7 @@ app.use(session({
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+    domain: process.env.NODE_ENV === 'production' ? 'coursemap-git-deployment-v2-eric-conrad-pangas-projects.vercel.app' : undefined
   },
   name: 'connect.sid'
 }));
