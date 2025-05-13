@@ -37,7 +37,7 @@ export const configurePassport = () => {
         clientID: process.env.CLIENT_ID,
         clientSecret: process.env.CLIENT_SECRET,
         callbackURL: process.env.NODE_ENV === 'production' 
-          ? `${process.env.PRODUCTION_FRONTEND_URL}/auth/google/callback`
+          ? `${process.env.PRODUCTION_BACKEND_URL}/auth/google/callback`
           : '/auth/google/callback',
         scope: ['profile', 'email']
       },
@@ -68,6 +68,12 @@ export const googleLogin = (req, res, next) => {
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
+  console.log('Google callback received:', {
+    query: req.query,
+    session: req.session,
+    cookies: req.cookies
+  });
+
   // Verify environment variables are set
   if (process.env.NODE_ENV === 'production') {
     if (!process.env.PRODUCTION_BACKEND_URL) {
@@ -114,6 +120,12 @@ export const googleCallback = (req, res, next) => {
             : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
         );
       }
+
+      console.log('User logged in successfully:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
       
       // Check if user has a program_id
       const isNewUserWithoutProgram = !user.program_id;
@@ -128,11 +140,13 @@ export const googleCallback = (req, res, next) => {
         redirectPath = 'dashboard';
       }
       
-      return res.redirect(
-        process.env.NODE_ENV === 'production'
-          ? `${process.env.PRODUCTION_FRONTEND_URL}/${redirectPath}`
-          : `${process.env.FRONTEND_URL}/${redirectPath}`
-      );
+      const redirectUrl = process.env.NODE_ENV === 'production'
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/${redirectPath}`
+        : `${process.env.FRONTEND_URL}/${redirectPath}`;
+
+      console.log('Redirecting to:', redirectUrl);
+      
+      return res.redirect(redirectUrl);
     });
   })(req, res, next);
 };
