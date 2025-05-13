@@ -53,7 +53,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    sameSite: 'none',
     // Remove the domain setting entirely - let the browser handle it
     // domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     path: '/'
