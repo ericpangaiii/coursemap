@@ -257,14 +257,14 @@ export const getAuthStatus = (req, res) => {
     // Log the user object for debugging
     console.log('User from session:', req.user);
     
-    // Set session cookie explicitly
+    // Set session cookie explicitly with consistent settings
     res.cookie('connect.sid', req.sessionID, {
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
       domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+      maxAge: 24 * 60 * 60 * 1000
     });
     
     return res.status(200).json({
