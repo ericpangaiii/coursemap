@@ -31,8 +31,6 @@ export const configurePassport = () => {
     }
   });
 
-  // Temporarily comment out Google OAuth configuration
-  /*
   passport.use(
     new GoogleStrategy(
       {
@@ -59,27 +57,17 @@ export const configurePassport = () => {
       }
     )
   );
-  */
 
   return passport;
 };
 
 // Google login handler
 export const googleLogin = (req, res, next) => {
-  // Temporarily redirect to direct login
-  res.redirect('/auth/direct-login');
-  // Original code (commented out)
-  /*
   passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
-  */
 };
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
-  // Temporarily redirect to direct login
-  res.redirect('/auth/direct-login');
-  // Original code (commented out)
-  /*
   console.log('Google callback received:', {
     query: req.query,
     session: req.session,
@@ -161,72 +149,6 @@ export const googleCallback = (req, res, next) => {
       return res.redirect(redirectUrl);
     });
   })(req, res, next);
-  */
-};
-
-// Direct login handler
-export const directLogin = async (req, res) => {
-  try {
-    // Set default URLs based on environment
-    const frontendUrl = process.env.NODE_ENV === 'production'
-      ? process.env.PRODUCTION_FRONTEND_URL || 'https://coursemap-one.vercel.app'
-      : process.env.FRONTEND_URL || 'http://localhost:5173';
-
-    const backendUrl = process.env.NODE_ENV === 'production'
-      ? process.env.PRODUCTION_BACKEND_URL || 'https://coursemap.up.railway.app'
-      : process.env.BACKEND_URL || 'http://localhost:3000';
-
-    console.log('Direct login attempt:', {
-      env: process.env.NODE_ENV,
-      frontendUrl,
-      backendUrl,
-      cookies: req.cookies,
-      session: req.session
-    });
-
-    // Hardcoded user data for direct login
-    const user = {
-      id: 6,
-      name: 'Eric Conrad Panga',
-      email: 'evpanga2@up.edu.ph',
-      role: 'Student',
-      program_id: 1,
-      curriculum_id: 1
-    };
-
-    // Log in the user
-    req.login(user, (err) => {
-      if (err) {
-        console.error('Login error:', err);
-        return res.redirect(`${frontendUrl}/sign-in?error=login_failed`);
-      }
-
-      console.log('User logged in successfully:', {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        session: req.session
-      });
-
-      // Set session cookie options for production
-      if (process.env.NODE_ENV === 'production') {
-        req.session.cookie.secure = true;
-        req.session.cookie.sameSite = 'none';
-        req.session.cookie.domain = '.vercel.app';
-      }
-
-      // Redirect to dashboard
-      const redirectUrl = `${frontendUrl}/dashboard`;
-      console.log('Redirecting to:', redirectUrl);
-      res.redirect(redirectUrl);
-    });
-  } catch (error) {
-    console.error('Direct login error:', error);
-    const frontendUrl = process.env.NODE_ENV === 'production'
-      ? process.env.PRODUCTION_FRONTEND_URL || 'https://coursemap-one.vercel.app'
-      : process.env.FRONTEND_URL || 'http://localhost:5173';
-    res.redirect(`${frontendUrl}/sign-in?error=server_error`);
-  }
 };
 
 // Update user program
