@@ -51,6 +51,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Add this debug middleware after passport initialization
+app.use((req, res, next) => {
+  console.log('Request session:', req.session);
+  console.log('Request user:', req.user);
+  next();
+});
+
 // initialize the routers
 router(app);
 
