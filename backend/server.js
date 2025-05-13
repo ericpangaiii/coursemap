@@ -20,7 +20,27 @@ const passport = configurePassport();
 // Configure CORS properly
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? process.env.PRODUCTION_FRONTEND_URL 
+    ? (origin, callback) => {
+        // Allow requests from the main production URL and any Vercel preview deployments
+        const allowedOrigins = [
+          process.env.PRODUCTION_FRONTEND_URL,
+          /^https:\/\/.*\.vercel\.app$/  // Allow any subdomain of vercel.app
+        ];
+        
+        // Check if the origin matches any of the allowed patterns
+        const isAllowed = allowedOrigins.some(allowed => {
+          if (allowed instanceof RegExp) {
+            return allowed.test(origin);
+          }
+          return allowed === origin;
+        });
+
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      }
     : process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -38,7 +58,6 @@ app.use(express.json());
 const PostgresStore = pgSession(session);
 
 // Configure session middleware
-// In server.js, replace the session configuration with this:
 app.use(session({
   store: new PostgresStore({
     pool: pool,
@@ -47,13 +66,14 @@ app.use(session({
     pruneSessionInterval: 60
   }),
   secret: process.env.SESSION_SECRET,
-  resave: false,
+  resave: true,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     path: '/'
   },
   name: 'connect.sid'
