@@ -18,19 +18,15 @@ export const configurePassport = () => {
   // Add these serialization functions
   passport.serializeUser((user, done) => {
     console.log('Serializing user:', user);
-    done(null, user.id);
+    // Store the entire user object in the session
+    done(null, user);
   });
 
-  passport.deserializeUser(async (id, done) => {
-    console.log('Deserializing user with id:', id);
+  passport.deserializeUser(async (user, done) => {
+    console.log('Deserializing user:', user);
     try {
-      const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-      if (result.rows.length === 0) {
-        console.log('No user found with id:', id);
-        return done(null, false);
-      }
-      console.log('Found user:', result.rows[0]);
-      done(null, result.rows[0]);
+      // Since we're storing the entire user object, we don't need to query the database
+      done(null, user);
     } catch (error) {
       console.error('Error deserializing user:', error);
       done(error, null);

@@ -38,23 +38,30 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   cookie: {
-    secure: true,  // Always true in production
+    secure: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: 'none',  // Required for cross-origin in production
-    domain: '.railway.app',  // Match your backend domain
+    sameSite: 'none',
+    domain: '.railway.app',
     path: '/'
-  }
+  },
+  name: 'connect.sid' // Add this line
 }));
+
+// Add this before passport initialization
+app.use((req, res, next) => {
+  console.log('Session ID:', req.sessionID);
+  next();
+});
 
 // Initialize passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Add this debug middleware after passport initialization
+// Add this after passport initialization
 app.use((req, res, next) => {
-  console.log('Request session:', req.session);
-  console.log('Request user:', req.user);
+  console.log('Session after passport:', req.session);
+  console.log('User after passport:', req.user);
   next();
 });
 
