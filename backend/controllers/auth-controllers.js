@@ -77,8 +77,7 @@ export const googleLogin = (req, res, next) => {
 export const googleCallback = (req, res, next) => {
   console.log('Google callback received:', {
     query: req.query,
-    session: req.session,
-    cookies: req.cookies
+    sessionID: req.sessionID,
   });
 
   // Verify environment variables are set
@@ -242,31 +241,9 @@ export const getAuthStatus = (req, res) => {
   console.log('Session:', JSON.stringify(req.session, null, 2));
   console.log('User:', req.user);
   console.log('Is Authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'undefined');
-  console.log('Cookies:', req.cookies);
-  console.log('Headers:', req.headers);
+  console.log('========================');
   
-  // Set CORS headers dynamically
-  const origin = req.headers.origin;
-  if (origin && (origin.includes('vercel.app') || origin === process.env.PRODUCTION_FRONTEND_URL || origin === process.env.FRONTEND_URL)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Expose-Headers', 'Set-Cookie');
-  
-  if (req.isAuthenticated()) {
-    // Log the user object for debugging
-    console.log('User from session:', req.user);
-    
-    // Set session cookie explicitly with consistent settings
-    res.cookie('connect.sid', req.sessionID, {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      path: '/',
-      domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined,
-      maxAge: 24 * 60 * 60 * 1000
-    });
-    
+  if (req.isAuthenticated() && req.user) {
     return res.status(200).json({
       authenticated: true,
       user: {
@@ -281,6 +258,7 @@ export const getAuthStatus = (req, res) => {
       }
     });
   }
+  
   console.log('User not authenticated');
   return res.status(200).json({
     authenticated: false

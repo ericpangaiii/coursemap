@@ -19,27 +19,11 @@ const passport = configurePassport();
 
 // Configure CORS properly
 const corsOptions = {
-  origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    // Check if the origin is from Vercel
-    if (origin.includes('vercel.app')) {
-      return callback(null, true);
-    }
-    
-    // Check if the origin matches our configured URLs
-    const allowedOrigins = [
-      process.env.PRODUCTION_FRONTEND_URL,
-      process.env.FRONTEND_URL
-    ].filter(Boolean); // Remove any undefined values
-    
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    
-    callback(new Error('Not allowed by CORS'));
-  },
+  origin: [
+    'https://coursemap-git-deployment-v2-eric-conrad-pangas-projects.vercel.app',
+    process.env.PRODUCTION_FRONTEND_URL,
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cookie"],
@@ -62,50 +46,23 @@ app.use(session({
     tableName: 'session',
     createTableIfMissing: true,
     pruneSessionInterval: 60,
-    schema: {
-      tableName: 'session',
-      columnNames: {
-        session_id: 'sid',
-        expires: 'expires',
-        data: 'sess'
-      }
+    errorLog: (err) => {
+      console.error('Session store error:', err);
     }
   }),
   secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: true,
+  resave: false,               // Changed from true
+  saveUninitialized: false,    // Changed from true
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
-    sameSite: 'none', // Required for cross-domain cookies
+    sameSite: 'none',
     path: '/'
+    // Remove domain completely - it's causing issues
   },
   name: 'connect.sid'
 }));
-
-// Add this before passport initialization
-app.use((req, res, next) => {
-  // Set CORS headers for all responses
-  const origin = req.headers.origin;
-  if (origin && (origin.includes('vercel.app') || origin === process.env.PRODUCTION_FRONTEND_URL || origin === process.env.FRONTEND_URL)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Cookie');
-  res.header('Access-Control-Expose-Headers', 'Set-Cookie');
-  
-  // Log request details for debugging
-  console.log('=== Request Debug ===');
-  console.log('URL:', req.url);
-  console.log('Origin:', req.headers.origin);
-  console.log('Cookie:', req.headers.cookie);
-  console.log('Session ID:', req.sessionID);
-  console.log('=== End Request Debug ===');
-  
-  next();
-});
 
 // Initialize passport middleware
 app.use(passport.initialize());
