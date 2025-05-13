@@ -164,27 +164,31 @@ export const googleCallback = (req, res, next) => {
   */
 };
 
-// Temporary direct login for specific user
+// Direct login handler
 export const directLogin = async (req, res) => {
   try {
-    // Hardcoded user data
+    console.log('Direct login attempt:', {
+      env: process.env.NODE_ENV,
+      frontendUrl: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL,
+      backendUrl: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_BACKEND_URL : process.env.BACKEND_URL,
+      cookies: req.cookies,
+      session: req.session
+    });
+
+    // Hardcoded user data for direct login
     const user = {
       id: 6,
-      google_id: '109602320362699715859',
       name: 'Eric Conrad Panga',
       email: 'evpanga2@up.edu.ph',
-      photo: 'https://lh3.googleusercontent.com/a/ACg8ocKcJpFEuhOGAN7pBtkRqwACDAGflk3eqcXmlnnHtdO_bUwSU9k=s96-c',
-      program_id: 11,
-      curriculum_id: 67,
-      role: 'User',
-      created_at: '2025-05-13 04:14:06.067289',
-      updated_at: '2025-05-13 04:18:59.471224'
+      role: 'Student',
+      program_id: 1,
+      curriculum_id: 1
     };
 
     // Log in the user
-    req.login(user, (loginErr) => {
-      if (loginErr) {
-        console.error('Login error:', loginErr);
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Login error:', err);
         return res.redirect(
           process.env.NODE_ENV === 'production'
             ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
@@ -195,8 +199,16 @@ export const directLogin = async (req, res) => {
       console.log('User logged in successfully:', {
         id: user.id,
         email: user.email,
-        role: user.role
+        role: user.role,
+        session: req.session
       });
+
+      // Set session cookie options for production
+      if (process.env.NODE_ENV === 'production') {
+        req.session.cookie.secure = true;
+        req.session.cookie.sameSite = 'none';
+        req.session.cookie.domain = '.vercel.app';
+      }
 
       // Redirect to dashboard
       const redirectUrl = process.env.NODE_ENV === 'production'
@@ -204,15 +216,14 @@ export const directLogin = async (req, res) => {
         : `${process.env.FRONTEND_URL}/dashboard`;
 
       console.log('Redirecting to:', redirectUrl);
-      
-      return res.redirect(redirectUrl);
+      res.redirect(redirectUrl);
     });
   } catch (error) {
     console.error('Direct login error:', error);
-    return res.redirect(
+    res.redirect(
       process.env.NODE_ENV === 'production'
-        ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
-        : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=server_error`
+        : `${process.env.FRONTEND_URL}/sign-in?error=server_error`
     );
   }
 };

@@ -40,7 +40,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL?.replace('https://', '') : undefined,
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     path: '/'
   }
 }));
