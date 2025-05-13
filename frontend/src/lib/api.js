@@ -18,9 +18,7 @@ export const authAPI = {
         method: 'GET',
         credentials: 'include',
         headers: {
-          'Accept': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Accept': 'application/json'
         }
       });
       
