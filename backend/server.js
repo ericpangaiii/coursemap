@@ -78,9 +78,8 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined
+    sameSite: 'none', // Required for cross-domain cookies
+    path: '/'
   },
   name: 'connect.sid'
 }));
@@ -97,7 +96,14 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Cookie');
   res.header('Access-Control-Expose-Headers', 'Set-Cookie');
   
+  // Log request details for debugging
+  console.log('=== Request Debug ===');
+  console.log('URL:', req.url);
+  console.log('Origin:', req.headers.origin);
+  console.log('Cookie:', req.headers.cookie);
   console.log('Session ID:', req.sessionID);
+  console.log('=== End Request Debug ===');
+  
   next();
 });
 

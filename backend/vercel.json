@@ -14,7 +14,7 @@
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Origin": "https://coursemap-git-deployment-v2-eric-conrad-pangas-projects.vercel.app",
         "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
-        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Cookie",
         "Access-Control-Expose-Headers": "Set-Cookie",
         "Access-Control-Max-Age": "86400"
       }
@@ -26,7 +26,7 @@
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Allow-Origin": "https://coursemap-git-deployment-v2-eric-conrad-pangas-projects.vercel.app",
         "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
-        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+        "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Cookie",
         "Access-Control-Expose-Headers": "Set-Cookie",
         "Access-Control-Max-Age": "86400"
       }
