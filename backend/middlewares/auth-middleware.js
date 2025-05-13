@@ -8,7 +8,7 @@ export const isAuthenticated = (req, res, next) => {
 
 // Middleware to check if user is an admin
 export const isAdmin = (req, res, next) => {
-  if (req.isAuthenticated() && req.user.role === 'Admin') {
+  if (req.isAuthenticated() && req.user.role?.toLowerCase() === 'admin') {
     return next();
   }
   res.status(403).json({ error: 'Admin access required' });
@@ -19,7 +19,7 @@ export const authMiddleware = (req, res, next) => {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
-  if (req.user.role !== 'Admin') {
+  if (req.user.role?.toLowerCase() !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
   next();

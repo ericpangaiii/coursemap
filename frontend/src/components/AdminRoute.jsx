@@ -1,27 +1,25 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { LoadingSpinner } from "@/components/ui/loading";
+import { useAuth } from '@/context/AuthContext';
+import { LoadingSpinner } from '@/components/ui/loading';
 
-const AdminRoute = ({ children }) => {
-  const { authenticated, loading, user } = useAuth();
+export const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
 
-  // Show loading indicator while checking auth status
+  console.log('[AdminRoute] Auth state:', { user, loading });
+
   if (loading) {
-    return <LoadingSpinner fullPage />;
-  }
-  
-  // Redirect to sign in if not authenticated
-  if (!authenticated) {
-    return <Navigate to="/sign-in" />;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner fullPage />
+      </div>
+    );
   }
 
-  // Redirect to dashboard if not an admin
-  if (user?.role !== 'Admin') {
-    return <Navigate to="/dashboard" />;
+  if (!user || user.role?.toLowerCase() !== 'admin') {
+    console.log('[AdminRoute] User not authorized:', user);
+    return <Navigate to="/sign-in" replace />;
   }
-  
-  // Render children if authenticated and admin
+
+  console.log('[AdminRoute] Rendering admin content');
   return children;
-};
-
-export default AdminRoute; 
+}; 

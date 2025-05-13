@@ -9,7 +9,7 @@ import AdminCoursesPage from './pages/admin/CoursesPage';
 import AdminCurriculumsPage from './pages/admin/CurriculumsPage';
 import AdminProgramsPage from './pages/admin/ProgramsPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import AdminRoute from './components/AdminRoute';
+import { AdminRoute } from '@/components/AdminRoute';
 import AppLayout from './components/AppLayout';
 import { useAuth } from './context/AuthContext';
 import { LoadingSpinner } from "@/components/ui/loading";

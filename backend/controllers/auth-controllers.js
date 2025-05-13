@@ -1,20 +1,14 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 import pool from '../database/index.js';
-import { findOrCreateUserByGoogleId } from './user-controllers.js';
 
 // Initialize dotenv
 dotenv.config();
 
 // Configure Passport
 export const configurePassport = () => {
-  // Verify Google OAuth environment variables
-  if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET) {
-    console.error('Error: Google OAuth CLIENT_ID and CLIENT_SECRET must be set in .env');
-    process.exit(1);
-  }
-
   passport.serializeUser((user, done) => {
     done(null, user.id);
   });
@@ -32,27 +26,35 @@ export const configurePassport = () => {
   });
 
   passport.use(
-    new GoogleStrategy(
+    new LocalStrategy(
       {
-        clientID: process.env.CLIENT_ID,
-        clientSecret: process.env.CLIENT_SECRET,
-        callbackURL: process.env.NODE_ENV === 'production' 
-          ? `${process.env.PRODUCTION_BACKEND_URL}/auth/google/callback`
-          : '/auth/google/callback',
-        scope: ['profile', 'email']
+        usernameField: 'email',
+        passwordField: 'password'
       },
-      async (accessToken, refreshToken, profile, done) => {
+      async (email, password, done) => {
         try {
-          // Log the profile for debugging
-          console.log('Google Profile:', JSON.stringify(profile, null, 2));
-          
-          // Find or create user with PostgreSQL
-          const user = await findOrCreateUserByGoogleId(profile.id, profile);
-          
+          // Find user by email
+          const result = await pool.query(
+            'SELECT * FROM users WHERE email = $1',
+            [email]
+          );
+
+          if (result.rows.length === 0) {
+            return done(null, false, { message: 'Invalid email or password' });
+          }
+
+          const user = result.rows[0];
+
+          // Compare password
+          const isValid = await bcrypt.compare(password, user.password_hash);
+          if (!isValid) {
+            return done(null, false, { message: 'Invalid email or password' });
+          }
+
           return done(null, user);
         } catch (error) {
-          console.error('Error creating/updating user:', error);
-          return done(error, null);
+          console.error('Error in local strategy:', error);
+          return done(error);
         }
       }
     )
@@ -61,94 +63,120 @@ export const configurePassport = () => {
   return passport;
 };
 
-// Google login handler
-export const googleLogin = (req, res, next) => {
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+// Register new user
+export const register = async (req, res) => {
+  try {
+    const { email, password, name, programId, curriculumId } = req.body;
+
+    // Validate input
+    if (!email || !password || !name || !programId || !curriculumId) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    // Validate UP Mail
+    if (!email.endsWith('@up.edu.ph')) {
+      return res.status(400).json({ error: 'Only UP Mail accounts are allowed' });
+    }
+
+    // Check if email already exists
+    const existingUser = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Create user
+    const result = await pool.query(
+      'INSERT INTO users (email, password_hash, name, program_id, curriculum_id, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [email, passwordHash, name, programId, curriculumId, 'User']
+    );
+
+    // Log in the user
+    req.login(result.rows[0], (err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error logging in after registration' });
+      }
+      res.status(201).json({
+        message: 'Registration successful',
+        user: {
+          id: result.rows[0].id,
+          email: result.rows[0].email,
+          name: result.rows[0].name,
+          program_id: result.rows[0].program_id,
+          curriculum_id: result.rows[0].curriculum_id,
+          role: result.rows[0].role.charAt(0).toUpperCase() + result.rows[0].role.slice(1).toLowerCase()
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error in register:', error);
+    res.status(500).json({ error: 'Failed to register user' });
+  }
 };
 
-// Google callback handler
-export const googleCallback = (req, res, next) => {
-  console.log('Google callback received:', {
-    query: req.query,
-    session: req.session,
-    cookies: req.cookies
-  });
-
-  // Verify environment variables are set
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.PRODUCTION_BACKEND_URL) {
-      console.error('Error: PRODUCTION_BACKEND_URL must be set in production');
-      return res.status(500).send('Server configuration error: PRODUCTION_BACKEND_URL not set');
-    }
-    if (!process.env.PRODUCTION_FRONTEND_URL) {
-      console.error('Error: PRODUCTION_FRONTEND_URL must be set in production');
-      return res.status(500).send('Server configuration error: PRODUCTION_FRONTEND_URL not set');
-    }
-  } else {
-    if (!process.env.FRONTEND_URL) {
-      console.error('Error: FRONTEND_URL must be set in development');
-      return res.status(500).send('Server configuration error: FRONTEND_URL not set');
-    }
-  }
-
-  passport.authenticate('google', (err, user, info) => {
+// Login handler
+export const login = (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
     if (err) {
-      console.error('Authentication error:', err);
-      return res.redirect(
-        process.env.NODE_ENV === 'production'
-          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_error`
-          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_error`
-      );
+      return res.status(500).json({ error: 'Authentication error' });
     }
-    
     if (!user) {
-      console.error('Authentication failed, no user returned');
-      return res.redirect(
-        process.env.NODE_ENV === 'production'
-          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_failed`
-          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_failed`
-      );
+      return res.status(401).json({ error: info.message });
     }
-    
-    // Log in the user
     req.login(user, (loginErr) => {
       if (loginErr) {
-        console.error('Login error:', loginErr);
-        return res.redirect(
-          process.env.NODE_ENV === 'production'
-            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
-            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
-        );
+        return res.status(500).json({ error: 'Error logging in' });
       }
-
-      console.log('User logged in successfully:', {
-        id: user.id,
-        email: user.email,
-        role: user.role
+      res.json({
+        message: 'Login successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          program_id: user.program_id,
+          curriculum_id: user.curriculum_id,
+          role: user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
+        }
       });
-      
-      // Check if user has a program_id
-      const isNewUserWithoutProgram = !user.program_id;
-      
-      // Redirect based on user role and program status
-      let redirectPath;
-      if (user.role === 'Admin') {
-        redirectPath = 'admin';
-      } else if (isNewUserWithoutProgram) {
-        redirectPath = 'degree-select';
-      } else {
-        redirectPath = 'dashboard';
-      }
-      
-      const redirectUrl = process.env.NODE_ENV === 'production'
-        ? `${process.env.PRODUCTION_FRONTEND_URL}/${redirectPath}`
-        : `${process.env.FRONTEND_URL}/${redirectPath}`;
-
-      console.log('Redirecting to:', redirectUrl);
-      
-      return res.redirect(redirectUrl);
     });
   })(req, res, next);
+};
+
+// Logout handler
+export const logout = (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error logging out' });
+    }
+    res.json({ message: 'Logged out successfully' });
+  });
+};
+
+// Check authentication status
+export const getAuthStatus = (req, res) => {
+  if (req.isAuthenticated()) {
+    return res.status(200).json({
+      authenticated: true,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        name: req.user.name,
+        program_id: req.user.program_id || null,
+        curriculum_id: req.user.curriculum_id || null,
+        role: req.user.role ? req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1).toLowerCase() : 'User'
+      }
+    });
+  }
+  return res.status(200).json({
+    authenticated: false
+  });
 };
 
 // Update user program
@@ -214,10 +242,7 @@ export const updateUserProgram = async (req, res) => {
       message: 'Program updated successfully',
       user: {
         id: updatedUser.id,
-        google_id: updatedUser.google_id,
         name: updatedUser.name,
-        email: updatedUser.email,
-        photo: updatedUser.photo || '',
         program_id: updatedUser.program_id,
         curriculum_id: updatedUser.curriculum_id || null
       }
@@ -226,40 +251,4 @@ export const updateUserProgram = async (req, res) => {
     console.error('Error updating program:', error);
     res.status(500).json({ error: 'Failed to update program' });
   }
-};
-
-// Check authentication status
-export const getAuthStatus = (req, res) => {
-  if (req.isAuthenticated()) {
-    // Log the user object for debugging
-    console.log('User from session:', req.user);
-    
-    return res.status(200).json({
-      authenticated: true,
-      user: {
-        id: req.user.id,
-        google_id: req.user.google_id,
-        name: req.user.name,
-        email: req.user.email,
-        photo: req.user.photo || '',
-        program_id: req.user.program_id || null,
-        curriculum_id: req.user.curriculum_id || null,
-        role: req.user.role || 'User'
-      }
-    });
-  }
-  return res.status(200).json({
-    authenticated: false
-  });
-};
-
-// Logout user
-export const logoutUser = (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Failed to logout' });
-    }
-    // Instead of redirect, return success JSON response
-    return res.status(200).json({ success: true, message: 'Logged out successfully' });
-  });
 }; 

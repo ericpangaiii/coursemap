@@ -2,6 +2,54 @@ import { API_BASE_URL } from '@/lib/config';
 
 // Authentication API calls
 export const authAPI = {
+  // Register new user
+  register: async (userData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(userData),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Registration failed');
+      }
+      return data;
+    } catch (error) {
+      console.error('[API] Registration failed:', error);
+      throw error;
+    }
+  },
+
+  // Login user
+  login: async (credentials) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(credentials),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+      // Check if we have a user object in the response
+      if (!data.user) {
+        throw new Error('Invalid response from server');
+      }
+      return data;
+    } catch (error) {
+      console.error('[API] Login failed:', error);
+      throw error;
+    }
+  },
+
   // Get authentication status
   getAuthStatus: async () => {
     try {
@@ -24,7 +72,7 @@ export const authAPI = {
     try {
       console.log('[API] Logging out user...');
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'GET',
+        method: 'POST',
         credentials: 'include',
       });
       const data = await response.json();
@@ -452,17 +500,27 @@ export const usersAPI = {
   getAllUsers: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users`, {
-        credentials: 'include'
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Not authenticated');
+        }
+        if (response.status === 403) {
+          throw new Error('Admin access required');
+        }
         throw new Error('Failed to fetch users');
       }
       
       return await response.json();
     } catch (error) {
       console.error('Error fetching users:', error);
-      return [];
+      throw error;
     }
   },
 
@@ -470,17 +528,27 @@ export const usersAPI = {
   getUserById: async (id) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
-        credentials: 'include'
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Not authenticated');
+        }
+        if (response.status === 403) {
+          throw new Error('Admin access required');
+        }
         throw new Error('Failed to fetch user');
       }
       
       return await response.json();
     } catch (error) {
       console.error(`Error fetching user with ID ${id}:`, error);
-      return null;
+      throw error;
     }
   },
 
@@ -497,13 +565,19 @@ export const usersAPI = {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Not authenticated');
+        }
+        if (response.status === 403) {
+          throw new Error('Admin access required');
+        }
         throw new Error('Failed to update user');
       }
 
       return await response.json();
     } catch (error) {
       console.error('Error updating user:', error);
-      return null;
+      throw error;
     }
   },
 
@@ -512,16 +586,25 @@ export const usersAPI = {
       const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: 'DELETE',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Not authenticated');
+        }
+        if (response.status === 403) {
+          throw new Error('Admin access required');
+        }
         throw new Error('Failed to delete user');
       }
 
       return true;
     } catch (error) {
       console.error('Error deleting user:', error);
-      return false;
+      throw error;
     }
   },
 };
