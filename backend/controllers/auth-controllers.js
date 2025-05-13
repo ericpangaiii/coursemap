@@ -237,15 +237,26 @@ export const updateUserProgram = async (req, res) => {
 
 // Check authentication status
 export const getAuthStatus = (req, res) => {
-  console.log('getAuthStatus called');
-  console.log('Session:', req.session);
+  console.log('=== getAuthStatus Debug ===');
+  console.log('Session ID:', req.sessionID);
+  console.log('Session:', JSON.stringify(req.session, null, 2));
   console.log('User:', req.user);
+  console.log('Is Authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'undefined');
   console.log('Cookies:', req.cookies);
   console.log('Headers:', req.headers);
   
   if (req.isAuthenticated()) {
     // Log the user object for debugging
     console.log('User from session:', req.user);
+    
+    // Set session cookie explicitly
+    res.cookie('connect.sid', req.sessionID, {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
     
     return res.status(200).json({
       authenticated: true,

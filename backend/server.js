@@ -54,15 +54,14 @@ app.use(session({
     }
   }),
   secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
+  resave: true,
+  saveUninitialized: true,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? 'coursemap-git-deployment-v2-eric-conrad-pangas-projects.vercel.app' : undefined
+    path: '/'
   },
   name: 'connect.sid'
 }));
@@ -86,6 +85,7 @@ app.use((req, res, next) => {
   console.log('User:', req.user);
   console.log('Is Authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'undefined');
   console.log('Cookies:', req.cookies);
+  console.log('Headers:', req.headers);
   console.log('=== End Debug ===');
   next();
 });
