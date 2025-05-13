@@ -80,7 +80,7 @@ app.use(session({
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/',
-    domain: undefined
+    domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined
   },
   name: 'connect.sid'
 }));

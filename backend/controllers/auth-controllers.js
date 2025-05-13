@@ -263,7 +263,7 @@ export const getAuthStatus = (req, res) => {
       httpOnly: true,
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
-      domain: undefined,
+      domain: process.env.NODE_ENV === 'production' ? 'up.railway.app' : undefined,
       maxAge: 24 * 60 * 60 * 1000
     });
     
