@@ -19,9 +19,27 @@ const passport = configurePassport();
 
 // Configure CORS properly
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.PRODUCTION_FRONTEND_URL 
-    : process.env.FRONTEND_URL,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if the origin is from Vercel
+    if (origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    
+    // Check if the origin matches our configured URLs
+    const allowedOrigins = [
+      process.env.PRODUCTION_FRONTEND_URL,
+      process.env.FRONTEND_URL
+    ].filter(Boolean); // Remove any undefined values
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Cookie"],
@@ -70,10 +88,11 @@ app.use(session({
 // Add this before passport initialization
 app.use((req, res, next) => {
   // Set CORS headers for all responses
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('vercel.app') || origin === process.env.PRODUCTION_FRONTEND_URL || origin === process.env.FRONTEND_URL)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
-    ? process.env.PRODUCTION_FRONTEND_URL 
-    : process.env.FRONTEND_URL);
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Cookie');
   res.header('Access-Control-Expose-Headers', 'Set-Cookie');
