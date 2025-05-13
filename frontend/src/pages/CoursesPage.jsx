@@ -518,7 +518,7 @@ const CoursesPage = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </th>
-                        <th className="text-left py-2 px-2 w-60 text-gray-500 dark:text-gray-400">
+                        <th className="text-left py-2 px-2 w-80 text-gray-500 dark:text-gray-400">
                           Description
                         </th>
                         <th className={`text-left py-2 px-2 w-48 ${
@@ -668,7 +668,7 @@ const CoursesPage = () => {
                         <th className="text-left py-2 px-2 w-32 text-gray-500 dark:text-gray-400">
                           Units
                         </th>
-                        <th className="text-left py-2 px-2 w-21 text-gray-500 dark:text-gray-400">
+                        <th className="text-left py-2 px-2 w-22 text-gray-500 dark:text-gray-400">
                           Requisites
                         </th>
                       </tr>
@@ -689,12 +689,12 @@ const CoursesPage = () => {
                             </td>
                             <td className="py-2 px-2">
                               <div className="space-y-0.5">
-                                <div className="font-medium text-gray-900 dark:text-gray-100">{course.course_code}</div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{course.course_code}</div>
                                 <div className="text-xs text-gray-500 dark:text-gray-300">{course.title}</div>
                               </div>
                             </td>
                             <td className="py-2 px-2">
-                              <div className="text-[10px] text-gray-600 dark:text-gray-300 line-clamp-3">
+                              <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-3">
                                 {course.description}
                               </div>
                             </td>

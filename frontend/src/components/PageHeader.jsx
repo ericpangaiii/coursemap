@@ -65,17 +65,17 @@ const PageHeader = ({ title }) => {
           <PopoverContent className="p-4" side="left" align="start" sideOffset={5} alignOffset={-30}>
             <div className="space-y-3">
               <div>
-                <h3 className="text-s font-medium text-gray-900 dark:text-gray-100">{user?.name || "Guest"}</h3>
-                <p className="text-s text-gray-500 dark:text-gray-400">{user?.email || ""}</p>
+                <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100">{user?.name || "Guest"}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || ""}</p>
               </div>
               <div className="space-y-1.5">
                 <div>
-                  <p className="text-s font-medium text-gray-500 dark:text-gray-400">Degree Program</p>
-                  <p className="text-s text-gray-900 dark:text-gray-100">{programTitle}</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Degree Program</p>
+                  <p className="text-xs text-gray-900 dark:text-gray-100">{programTitle}</p>
                 </div>
                 <div>
-                  <p className="text-s font-medium text-gray-500 dark:text-gray-400">Curriculum</p>
-                  <p className="text-s text-gray-900 dark:text-gray-100">{curriculumName}</p>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Curriculum</p>
+                  <p className="text-xs text-gray-900 dark:text-gray-100">{curriculumName}</p>
                 </div>
               </div>
             </div>
