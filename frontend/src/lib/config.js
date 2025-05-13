@@ -1,7 +1,7 @@
 // Environment variables must be prefixed with VITE_ to be exposed to the client
 
 // Backend API base URL 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://coursemap.up.railway.app';
 
 // Frontend URL
 export const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || 'http://localhost:5173';

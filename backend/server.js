@@ -38,6 +38,7 @@ app.use(express.json());
 const PostgresStore = pgSession(session);
 
 // Configure session middleware
+// In server.js, replace the session configuration with this:
 app.use(session({
   store: new PostgresStore({
     pool: pool,
@@ -53,7 +54,8 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000,
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+    // Remove the domain setting entirely - let the browser handle it
+    // domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     path: '/'
   },
   name: 'connect.sid'
@@ -71,8 +73,14 @@ app.use(passport.session());
 
 // Add this after passport initialization
 app.use((req, res, next) => {
-  console.log('Session after passport:', req.session);
-  console.log('User after passport:', req.user);
+  console.log('=== Session Debug ===');
+  console.log('URL:', req.url);
+  console.log('Session ID:', req.sessionID);
+  console.log('Session:', JSON.stringify(req.session, null, 2));
+  console.log('User:', req.user);
+  console.log('Is Authenticated:', req.isAuthenticated ? req.isAuthenticated() : 'undefined');
+  console.log('Cookies:', req.cookies);
+  console.log('=== End Debug ===');
   next();
 });
 
