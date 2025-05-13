@@ -15,18 +15,24 @@ export const configurePassport = () => {
     process.exit(1);
   }
 
+  // Add these serialization functions
   passport.serializeUser((user, done) => {
+    console.log('Serializing user:', user);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id, done) => {
+    console.log('Deserializing user with id:', id);
     try {
       const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
       if (result.rows.length === 0) {
+        console.log('No user found with id:', id);
         return done(null, false);
       }
+      console.log('Found user:', result.rows[0]);
       done(null, result.rows[0]);
     } catch (error) {
+      console.error('Error deserializing user:', error);
       done(error, null);
     }
   });
@@ -230,6 +236,12 @@ export const updateUserProgram = async (req, res) => {
 
 // Check authentication status
 export const getAuthStatus = (req, res) => {
+  console.log('getAuthStatus called');
+  console.log('Session:', req.session);
+  console.log('User:', req.user);
+  console.log('Cookies:', req.cookies);
+  console.log('Headers:', req.headers);
+  
   if (req.isAuthenticated()) {
     // Log the user object for debugging
     console.log('User from session:', req.user);
@@ -248,6 +260,7 @@ export const getAuthStatus = (req, res) => {
       }
     });
   }
+  console.log('User not authenticated');
   return res.status(200).json({
     authenticated: false
   });
