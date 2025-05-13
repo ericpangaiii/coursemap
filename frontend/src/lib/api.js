@@ -12,15 +12,22 @@ export const authAPI = {
     try {
       console.log('[API] Checking auth status...');
       console.log('[API] Using backend URL:', API_BASE_URL);
+      console.log('[API] Current cookies:', document.cookie);
+      
       const response = await fetch(`${API_BASE_URL}/auth/status`, {
         method: 'GET',
         credentials: 'include',
         headers: {
           'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
         }
       });
+      
       console.log('[API] Response status:', response.status);
       console.log('[API] Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('[API] Set-Cookie header:', response.headers.get('set-cookie'));
+      
       const data = await response.json();
       console.log('[API] Auth status response:', data);
       return data;

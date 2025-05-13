@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
 
   // Check authentication status on component mount
   useEffect(() => {
-    const checkAuthStatus = async () => {
+    const checkAuthStatus = async (retryCount = 0) => {
       try {
         console.log('[AuthContext] Starting auth status check...');
         console.log('[AuthContext] Current path:', window.location.pathname);
@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
         // If we're on the dashboard after OAuth callback, wait a bit for session to establish
         if (window.location.pathname === '/dashboard' && window.location.search.includes('code=')) {
           console.log('[AuthContext] Detected OAuth callback, waiting for session...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Increased wait time
         }
         
         const data = await authAPI.getAuthStatus();
@@ -40,6 +40,14 @@ export const AuthProvider = ({ children }) => {
           setAuthenticated(true);
         } else {
           console.log('[AuthContext] User not authenticated');
+          
+          // If we're on dashboard after OAuth and not authenticated, retry a few times
+          if (window.location.pathname === '/dashboard' && window.location.search.includes('code=') && retryCount < 3) {
+            console.log(`[AuthContext] Retrying auth check (attempt ${retryCount + 1})...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return checkAuthStatus(retryCount + 1);
+          }
+          
           setUser(null);
           setAuthenticated(false);
           hasShownToast.current = false;
@@ -53,6 +61,14 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('[AuthContext] Error checking auth status:', error);
+        
+        // If we're on dashboard after OAuth and got an error, retry a few times
+        if (window.location.pathname === '/dashboard' && window.location.search.includes('code=') && retryCount < 3) {
+          console.log(`[AuthContext] Retrying auth check after error (attempt ${retryCount + 1})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return checkAuthStatus(retryCount + 1);
+        }
+        
         setUser(null);
         setAuthenticated(false);
       } finally {
