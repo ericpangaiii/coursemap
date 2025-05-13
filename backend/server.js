@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from "express";
 import cors from "cors";
 import session from 'express-session';
+import pgSession from 'connect-pg-simple';
 import { configurePassport } from './controllers/auth-controllers.js';
 import router from "./routes.js";
 import { connectDatabase } from './database/index.js';
@@ -32,20 +33,29 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+// Create session store
+const PostgresStore = pgSession(session);
+
 // Configure session middleware
 app.use(session({
+  store: new PostgresStore({
+    pool: pool,
+    tableName: 'session',
+    createTableIfMissing: true,
+    pruneSessionInterval: 60 // Remove expired sessions every 60 minutes
+  }),
   secret: process.env.SESSION_SECRET,
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
   cookie: {
     secure: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: 'none',
-    domain: '.railway.app',
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
     path: '/'
   },
-  name: 'connect.sid' // Add this line
+  name: 'connect.sid'
 }));
 
 // Add this before passport initialization
@@ -63,27 +73,6 @@ app.use((req, res, next) => {
   console.log('Session after passport:', req.session);
   console.log('User after passport:', req.user);
   next();
-});
-
-passport.serializeUser((user, done) => {
-  console.log('Serializing user:', user);
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  console.log('Deserializing user with id:', id);
-  try {
-    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-    if (result.rows.length === 0) {
-      console.log('No user found with id:', id);
-      return done(null, false);
-    }
-    console.log('Found user:', result.rows[0]);
-    done(null, result.rows[0]);
-  } catch (error) {
-    console.error('Error deserializing user:', error);
-    done(error, null);
-  }
 });
 
 // initialize the routers
