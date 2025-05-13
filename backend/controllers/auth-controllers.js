@@ -40,7 +40,7 @@ export const configurePassport = () => {
         clientSecret: process.env.CLIENT_SECRET,
         callbackURL: process.env.NODE_ENV === 'production' 
           ? `${process.env.PRODUCTION_BACKEND_URL}/auth/google/callback`
-          : `${process.env.BACKEND_URL || 'http://localhost:3000'}/auth/google/callback`,
+          : '/auth/google/callback',
         scope: ['profile', 'email']
       },
       async (accessToken, refreshToken, profile, done) => {
@@ -76,59 +76,89 @@ export const googleLogin = (req, res, next) => {
 
 // Google callback handler
 export const googleCallback = (req, res, next) => {
-  // Log environment variables for debugging
-  console.log('Environment variables:', {
-    NODE_ENV: process.env.NODE_ENV,
-    PRODUCTION_FRONTEND_URL: process.env.PRODUCTION_FRONTEND_URL,
-    FRONTEND_URL: process.env.FRONTEND_URL
+  // Temporarily redirect to direct login
+  res.redirect('/auth/direct-login');
+  // Original code (commented out)
+  /*
+  console.log('Google callback received:', {
+    query: req.query,
+    session: req.session,
+    cookies: req.cookies
   });
 
-  // Set default frontend URL based on environment
-  const frontendUrl = process.env.NODE_ENV === 'production'
-    ? process.env.PRODUCTION_FRONTEND_URL || 'https://coursemap-one.vercel.app'
-    : process.env.FRONTEND_URL || 'http://localhost:5173';
-
   // Verify environment variables are set
-  if (!frontendUrl) {
-    console.error('Error: Frontend URL not set');
-    return res.redirect('/sign-in?error=server_config');
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.PRODUCTION_BACKEND_URL) {
+      console.error('Error: PRODUCTION_BACKEND_URL must be set in production');
+      return res.status(500).send('Server configuration error: PRODUCTION_BACKEND_URL not set');
+    }
+    if (!process.env.PRODUCTION_FRONTEND_URL) {
+      console.error('Error: PRODUCTION_FRONTEND_URL must be set in production');
+      return res.status(500).send('Server configuration error: PRODUCTION_FRONTEND_URL not set');
+    }
+  } else {
+    if (!process.env.FRONTEND_URL) {
+      console.error('Error: FRONTEND_URL must be set in development');
+      return res.status(500).send('Server configuration error: FRONTEND_URL not set');
+    }
   }
 
   passport.authenticate('google', (err, user, info) => {
     if (err) {
       console.error('Authentication error:', err);
-      return res.redirect(`${frontendUrl}/sign-in?error=authentication_error`);
+      return res.redirect(
+        process.env.NODE_ENV === 'production'
+          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_error`
+          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_error`
+      );
     }
     
     if (!user) {
       console.error('Authentication failed, no user returned');
-      return res.redirect(`${frontendUrl}/sign-in?error=authentication_failed`);
+      return res.redirect(
+        process.env.NODE_ENV === 'production'
+          ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=authentication_failed`
+          : `${process.env.FRONTEND_URL}/sign-in?error=authentication_failed`
+      );
     }
     
     // Log in the user
     req.login(user, (loginErr) => {
       if (loginErr) {
         console.error('Login error:', loginErr);
-        return res.redirect(`${frontendUrl}/sign-in?error=login_failed`);
+        return res.redirect(
+          process.env.NODE_ENV === 'production'
+            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
+            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
+        );
       }
-      
-      // Log the user object for debugging
-      console.log('User after login:', user);
+
+      console.log('User logged in successfully:', {
+        id: user.id,
+        email: user.email,
+        role: user.role
+      });
       
       // Check if user has a program_id
       const isNewUserWithoutProgram = !user.program_id;
       
       // Redirect based on user role and program status
-      let redirectPath = 'dashboard'; // Default path
-      
+      let redirectPath;
       if (user.role === 'Admin') {
         redirectPath = 'admin';
       } else if (isNewUserWithoutProgram) {
         redirectPath = 'degree-select';
+      } else {
+        redirectPath = 'dashboard';
       }
       
-      console.log('Redirecting to:', `${frontendUrl}/${redirectPath}`);
-      return res.redirect(`${frontendUrl}/${redirectPath}`);
+      const redirectUrl = process.env.NODE_ENV === 'production'
+        ? `${process.env.PRODUCTION_FRONTEND_URL}/${redirectPath}`
+        : `${process.env.FRONTEND_URL}/${redirectPath}`;
+
+      console.log('Redirecting to:', redirectUrl);
+      
+      return res.redirect(redirectUrl);
     });
   })(req, res, next);
   */
@@ -137,10 +167,19 @@ export const googleCallback = (req, res, next) => {
 // Direct login handler
 export const directLogin = async (req, res) => {
   try {
+    // Set default URLs based on environment
+    const frontendUrl = process.env.NODE_ENV === 'production'
+      ? process.env.PRODUCTION_FRONTEND_URL || 'https://coursemap-one.vercel.app'
+      : process.env.FRONTEND_URL || 'http://localhost:5173';
+
+    const backendUrl = process.env.NODE_ENV === 'production'
+      ? process.env.PRODUCTION_BACKEND_URL || 'https://coursemap.up.railway.app'
+      : process.env.BACKEND_URL || 'http://localhost:3000';
+
     console.log('Direct login attempt:', {
       env: process.env.NODE_ENV,
-      frontendUrl: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL : process.env.FRONTEND_URL,
-      backendUrl: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_BACKEND_URL : process.env.BACKEND_URL,
+      frontendUrl,
+      backendUrl,
       cookies: req.cookies,
       session: req.session
     });
@@ -159,11 +198,7 @@ export const directLogin = async (req, res) => {
     req.login(user, (err) => {
       if (err) {
         console.error('Login error:', err);
-        return res.redirect(
-          process.env.NODE_ENV === 'production'
-            ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=login_failed`
-            : `${process.env.FRONTEND_URL}/sign-in?error=login_failed`
-        );
+        return res.redirect(`${frontendUrl}/sign-in?error=login_failed`);
       }
 
       console.log('User logged in successfully:', {
@@ -181,20 +216,16 @@ export const directLogin = async (req, res) => {
       }
 
       // Redirect to dashboard
-      const redirectUrl = process.env.NODE_ENV === 'production'
-        ? `${process.env.PRODUCTION_FRONTEND_URL}/dashboard`
-        : `${process.env.FRONTEND_URL}/dashboard`;
-
+      const redirectUrl = `${frontendUrl}/dashboard`;
       console.log('Redirecting to:', redirectUrl);
       res.redirect(redirectUrl);
     });
   } catch (error) {
     console.error('Direct login error:', error);
-    res.redirect(
-      process.env.NODE_ENV === 'production'
-        ? `${process.env.PRODUCTION_FRONTEND_URL}/sign-in?error=server_error`
-        : `${process.env.FRONTEND_URL}/sign-in?error=server_error`
-    );
+    const frontendUrl = process.env.NODE_ENV === 'production'
+      ? process.env.PRODUCTION_FRONTEND_URL || 'https://coursemap-one.vercel.app'
+      : process.env.FRONTEND_URL || 'http://localhost:5173';
+    res.redirect(`${frontendUrl}/sign-in?error=server_error`);
   }
 };
 
