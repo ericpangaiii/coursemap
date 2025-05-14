@@ -25,9 +25,20 @@ const corsOptions = {
       ]
     : process.env.FRONTEND_URL,
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-  exposedHeaders: ["Set-Cookie"]
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: [
+    "Content-Type", 
+    "Authorization", 
+    "X-Requested-With", 
+    "Accept",
+    "Origin",
+    "Host",
+    "Referer",
+    "User-Agent",
+    "Access-Control-Allow-Origin",
+    "Access-Control-Allow-Credentials"
+  ],
+  exposedHeaders: ["Set-Cookie", "Authorization"]
 };
 
 // Apply CORS middleware with proper options
@@ -44,7 +55,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.railway.app' : undefined,
+    domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let the browser handle the domain
     path: '/'
   }
 }));
