@@ -26,7 +26,8 @@ const corsOptions = {
   exposedHeaders: ["Set-Cookie"],
   preflightContinue: false,
   optionsSuccessStatus: 204,
-  maxAge: 86400 // 24 hours
+  maxAge: 86400, // 24 hours
+  sameSite: 'none'
 };
 
 // Apply CORS middleware with proper options
@@ -42,9 +43,10 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-  }
+    sameSite: 'none',
+    path: '/'
+  },
+  proxy: true
 }));
 
 // Initialize passport middleware
