@@ -18,8 +18,12 @@ const passport = configurePassport();
 // Configure CORS properly
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://coursemap-ohrm2635s-eric-conrad-pangas-projects.vercel.app', 'https://coursemap-git-email-password-auth-eric-conrad-pangas-projects.vercel.app']
-    : process.env.FRONTEND_URL,
+    ? [
+        'https://coursemap-ohrm2635s-eric-conrad-pangas-projects.vercel.app',
+        'https://coursemap-git-email-password-auth-eric-conrad-pangas-projects.vercel.app',
+        'https://coursemap-one.vercel.app'
+      ]
+    : ['http://localhost:5173'],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
@@ -27,7 +31,7 @@ const corsOptions = {
   preflightContinue: false,
   optionsSuccessStatus: 204,
   maxAge: 86400, // 24 hours
-  sameSite: 'none'
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
 };
 
 // Apply CORS middleware with proper options
@@ -43,7 +47,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: 'none',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/'
   },
   proxy: true
