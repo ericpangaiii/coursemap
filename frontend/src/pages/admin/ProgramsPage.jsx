@@ -97,14 +97,14 @@ const AdminProgramsPage = () => {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="flex-1 overflow-auto">
       {isLoading ? (
         <LoadingSpinner fullPage />
       ) : (
-        <div className="container mx-auto p-2">
+        <div className="px-8 py-2 pr-12">
           <PageHeader title="Programs Management" />
 
-          <Card className="mb-6 w-full max-w-[1300px]">
+          <Card className="mb-6">
             <CardContent className="p-6">
               {/* Search Bar and Items Per Page */}
               <div className="space-y-3">
@@ -198,14 +198,14 @@ const AdminProgramsPage = () => {
           </Card>
 
           {/* Programs List Card */}
-          <Card className="mb-6 w-full max-w-[1300px]">
+          <Card className="mb-6">
             <CardHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
                   {totalPrograms} {totalPrograms === 1 ? 'program' : 'programs'} found
                 </span>
               </div>
-        </CardHeader>
+            </CardHeader>
             <CardContent className="p-4">
               <div className="overflow-x-auto">
                 <table className="w-full table-fixed">
@@ -361,8 +361,8 @@ const AdminProgramsPage = () => {
                   </tbody>
                 </table>
               </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
 
           {/* Pagination */}
           {totalPages > 1 && (

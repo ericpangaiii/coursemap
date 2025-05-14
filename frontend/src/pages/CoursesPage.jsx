@@ -144,17 +144,15 @@ const CoursesPage = () => {
   };
 
   return (
-    <div className="w-full max-w-full p-2">
+    <div className="flex-1 overflow-auto">
       {isLoading ? (
-        <div className="fixed inset-0 flex justify-center items-center">
-          <LoadingSpinner className="w-8 h-8" />
-        </div>
+        <LoadingSpinner fullPage />
       ) : (
-        <>
-          <PageHeader title="Course Catalog" />
+        <div className="px-8 py-2 pr-12">
+          <PageHeader title="Courses" />
           
           {/* Main Content Card */}
-          <Card className="mb-6 w-full max-w-[1300px]">
+          <Card className="mb-6">
             <CardContent className="p-6">
               {/* Search and Filters */}
               <div className="space-y-3">
@@ -451,7 +449,7 @@ const CoursesPage = () => {
           </Card>
 
           {/* Course List Card */}
-          <Card className="mb-6 w-full max-w-[1300px]">
+          <Card className="mb-6">
             <CardHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
@@ -518,10 +516,10 @@ const CoursesPage = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </th>
-                        <th className="text-left py-2 px-2 w-80 text-gray-500 dark:text-gray-400">
+                        <th className="text-left py-2 px-2 w-64 text-gray-500 dark:text-gray-400">
                           Description
                         </th>
-                        <th className={`text-left py-2 px-2 w-48 ${
+                        <th className={`text-left py-2 px-2 w-36 ${
                           sortConfig.key === 'course_type' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                         } rounded-md`}>
                           <DropdownMenu>
@@ -569,7 +567,7 @@ const CoursesPage = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </th>
-                        <th className={`text-left py-2 px-2 w-24 ${
+                        <th className={`text-left py-2 px-2 w-16 ${
                           sortConfig.key === 'acad_group' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                         } rounded-md`}>
                           <DropdownMenu>
@@ -617,7 +615,7 @@ const CoursesPage = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </th>
-                        <th className={`text-left py-2 px-3 w-32 ${
+                        <th className={`text-left py-2 px-3 w-20 ${
                           sortConfig.key === 'sem_offered' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                         } rounded-md`}>
                           <DropdownMenu>
@@ -665,10 +663,10 @@ const CoursesPage = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </th>
-                        <th className="text-left py-2 px-2 w-32 text-gray-500 dark:text-gray-400">
+                        <th className="text-left py-2 px-2 w-20 text-gray-500 dark:text-gray-400">
                           Units
                         </th>
-                        <th className="text-left py-2 px-2 w-22 text-gray-500 dark:text-gray-400">
+                        <th className="text-left py-2 px-2 w-20 text-gray-500 dark:text-gray-400">
                           Requisites
                         </th>
                       </tr>
@@ -879,7 +877,7 @@ const CoursesPage = () => {
               </Pagination>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );

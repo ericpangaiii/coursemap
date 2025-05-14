@@ -70,13 +70,16 @@ const ProfilePage = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                {user?.photo && <AvatarImage src={user.photo} alt={user?.name} />}
-                {!user?.photo && <AvatarFallback>{getInitials(user?.name)}</AvatarFallback>}
-              </Avatar>
+              <div className="h-16 w-16 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <span className="text-2xl font-semibold text-gray-600 dark:text-gray-300">
+                  {user ? `${user.first_name[0]}${user.last_name[0]}` : 'U'}
+                </span>
+              </div>
               <div>
-                <h2 className="text-2xl font-bold">{user?.name}</h2>
-                <p className="text-gray-500">{user?.email}</p>
+                <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+                  {user ? `${user.first_name}` : 'Loading...'}
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
               </div>
             </div>
             

@@ -63,19 +63,108 @@ export const configurePassport = () => {
   return passport;
 };
 
+// Email validation function
+const validateEmail = (email) => {
+  const errors = [];
+  
+  if (!email) {
+    errors.push('Email is required');
+  } else {
+    if (!email.endsWith('@up.edu.ph')) {
+      errors.push('Only UP Mail accounts are allowed');
+    }
+    if (!/^[A-Za-z0-9._%+-]+@up\.edu\.ph$/.test(email)) {
+      errors.push('Invalid UP Mail format');
+    }
+  }
+  
+  return errors;
+};
+
+// Password validation function
+const validatePassword = (password, isRegistration = false) => {
+  const errors = [];
+  
+  if (!password) {
+    errors.push('Password is required');
+  } else {
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+    
+    // Only check character type requirements during registration
+    if (isRegistration) {
+      if (!/[A-Z]/.test(password)) {
+        errors.push('Password must contain at least one uppercase letter');
+      }
+      if (!/[a-z]/.test(password)) {
+        errors.push('Password must contain at least one lowercase letter');
+      }
+      if (!/[0-9]/.test(password)) {
+        errors.push('Password must contain at least one number');
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        errors.push('Password must contain at least one special character');
+      }
+    }
+  }
+  
+  return errors;
+};
+
+// Name validation function
+const validateName = (firstName, middleName, lastName, suffix) => {
+  const errors = [];
+  
+  if (!firstName) {
+    errors.push('First name is required');
+  } else if (firstName.length < 2) {
+    errors.push('First name must be at least 2 characters long');
+  }
+  
+  if (middleName && middleName.length < 2) {
+    errors.push('Middle name must be at least 2 characters long if provided');
+  }
+  
+  if (!lastName) {
+    errors.push('Last name is required');
+  } else if (lastName.length < 2) {
+    errors.push('Last name must be at least 2 characters long');
+  }
+  
+  if (suffix && suffix.length > 10) {
+    errors.push('Suffix must not exceed 10 characters');
+  }
+  
+  return errors;
+};
+
 // Register new user
 export const register = async (req, res) => {
   try {
-    const { email, password, name, programId, curriculumId } = req.body;
+    const { 
+      email, 
+      password, 
+      firstName, 
+      middleName, 
+      lastName, 
+      suffix, 
+      programId, 
+      curriculumId 
+    } = req.body;
 
-    // Validate input
-    if (!email || !password || !name || !programId || !curriculumId) {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    // Validate UP Mail
-    if (!email.endsWith('@up.edu.ph')) {
-      return res.status(400).json({ error: 'Only UP Mail accounts are allowed' });
+    // Validate all fields
+    const emailErrors = validateEmail(email);
+    const passwordErrors = validatePassword(password, true); // Pass true for registration
+    const nameErrors = validateName(firstName, middleName, lastName, suffix);
+    
+    const allErrors = [...emailErrors, ...passwordErrors, ...nameErrors];
+    
+    if (allErrors.length > 0) {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: allErrors
+      });
     }
 
     // Check if email already exists
@@ -98,8 +187,28 @@ export const register = async (req, res) => {
 
       // Create user
       const result = await pool.query(
-        'INSERT INTO users (email, password_hash, name, program_id, curriculum_id, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-        [email, passwordHash, name, programId, curriculumId, 'User']
+        `INSERT INTO users (
+          email, 
+          password_hash, 
+          first_name, 
+          middle_name, 
+          last_name, 
+          suffix, 
+          program_id, 
+          curriculum_id, 
+          role
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [
+          email, 
+          passwordHash, 
+          firstName, 
+          middleName || null, 
+          lastName, 
+          suffix || null, 
+          programId, 
+          curriculumId, 
+          'User'
+        ]
       );
 
       const newUser = result.rows[0];
@@ -123,7 +232,10 @@ export const register = async (req, res) => {
           user: {
             id: newUser.id,
             email: newUser.email,
-            name: newUser.name,
+            firstName: newUser.first_name,
+            middleName: newUser.middle_name,
+            lastName: newUser.last_name,
+            suffix: newUser.suffix,
             program_id: newUser.program_id,
             curriculum_id: newUser.curriculum_id,
             role: newUser.role.charAt(0).toUpperCase() + newUser.role.slice(1).toLowerCase()
@@ -159,7 +271,10 @@ export const login = (req, res, next) => {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          first_name: user.first_name,
+          middle_name: user.middle_name,
+          last_name: user.last_name,
+          suffix: user.suffix,
           program_id: user.program_id,
           curriculum_id: user.curriculum_id,
           role: user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
@@ -187,7 +302,10 @@ export const getAuthStatus = (req, res) => {
       user: {
         id: req.user.id,
         email: req.user.email,
-        name: req.user.name,
+        first_name: req.user.first_name,
+        middle_name: req.user.middle_name,
+        last_name: req.user.last_name,
+        suffix: req.user.suffix,
         program_id: req.user.program_id || null,
         curriculum_id: req.user.curriculum_id || null,
         role: req.user.role ? req.user.role.charAt(0).toUpperCase() + req.user.role.slice(1).toLowerCase() : 'User'

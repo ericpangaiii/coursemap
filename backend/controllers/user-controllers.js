@@ -14,11 +14,18 @@ export const getAllUsers = async (req, res) => {
         p.title as program_title,
         p.acronym as program_acronym,
         p.college as college,
-        c.name as curriculum_name
+        c.name as curriculum_name,
+        CONCAT(
+          u.first_name,
+          CASE WHEN u.middle_name IS NOT NULL THEN ' ' || u.middle_name ELSE '' END,
+          ' ',
+          u.last_name,
+          CASE WHEN u.suffix IS NOT NULL THEN ' ' || u.suffix ELSE '' END
+        ) as full_name
       FROM users u
       LEFT JOIN programs p ON u.program_id = p.program_id
       LEFT JOIN curriculums c ON u.curriculum_id = c.curriculum_id
-      ORDER BY u.name ASC
+      ORDER BY u.last_name ASC, u.first_name ASC
     `);
     res.json(result.rows);
   } catch (error) {
@@ -32,7 +39,16 @@ export const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(`
-      SELECT u.*, p.title as program_title 
+      SELECT 
+        u.*, 
+        p.title as program_title,
+        CONCAT(
+          u.first_name,
+          CASE WHEN u.middle_name IS NOT NULL THEN ' ' || u.middle_name ELSE '' END,
+          ' ',
+          u.last_name,
+          CASE WHEN u.suffix IS NOT NULL THEN ' ' || u.suffix ELSE '' END
+        ) as full_name
       FROM users u
       LEFT JOIN programs p ON u.program_id = p.program_id
       WHERE u.id = $1
@@ -52,11 +68,27 @@ export const getUserById = async (req, res) => {
 // Create a new user (usually done through auth, but included for completeness)
 export const createUser = async (req, res) => {
   try {
-    const { google_id, name, email, photo, program_id } = req.body;
+    const { 
+      email, 
+      password, 
+      firstName, 
+      middleName, 
+      lastName, 
+      suffix, 
+      program_id 
+    } = req.body;
     
     const result = await pool.query(
-      'INSERT INTO users (google_id, name, email, photo, program_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [google_id, name, email, photo, program_id]
+      `INSERT INTO users (
+        email, 
+        password_hash, 
+        first_name, 
+        middle_name, 
+        last_name, 
+        suffix, 
+        program_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [email, password, firstName, middleName || null, lastName, suffix || null, program_id]
     );
     
     res.status(201).json(result.rows[0]);

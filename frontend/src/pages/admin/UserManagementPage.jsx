@@ -253,15 +253,15 @@ const UserManagementPage = () => {
   }
 
   return (
-    <div className="container mx-auto">
+    <div className="flex-1 overflow-auto">
       {isLoadingUsers ? (
         <LoadingSpinner fullPage />
       ) : (
-        <div className="container mx-auto p-2">
+        <div className="px-8 py-2 pr-12">
           <PageHeader title="Users Management" />
           
           {/* Main Content Card */}
-          <Card className="mb-6 w-full max-w-[1300px]">
+          <Card className="mb-6">
             <CardContent className="p-6">
               {/* Search and Filters */}
               <div className="space-y-3">
@@ -539,7 +539,7 @@ const UserManagementPage = () => {
           </Card>
 
           {/* User List Card */}
-          <Card className="mb-6 w-full max-w-[1300px]">
+          <Card className="mb-6">
             <CardHeader className="pb-0">
               <div className="flex items-center justify-between">
                 <span className="px-3 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-[hsl(220,10%,25%)] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-[hsl(220,10%,30%)]">
@@ -856,7 +856,9 @@ const UserManagementPage = () => {
                           } hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,14%)] transition-colors`}
                         >
                           <td className="py-2 px-2 text-sm text-gray-500 dark:text-gray-400">{index + 1}</td>
-                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.name}</td>
+                          <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">
+                            {`${user.first_name} ${user.middle_name ? user.middle_name + ' ' : ''}${user.last_name}${user.suffix ? ' ' + user.suffix : ''}`}
+                          </td>
                           <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.email}</td>
                           <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.program_acronym || 'N/A'}</td>
                           <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.curriculum_name || 'N/A'}</td>

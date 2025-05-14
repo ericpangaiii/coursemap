@@ -596,170 +596,156 @@ const ProgressPage = () => {
   }
   
   return (
-    <div className="w-full max-w-full p-2">
+    <div className="px-8 py-2 pr-12">
       <PageHeader 
         title="Academic Progress" 
         description="Track your progress towards completing your degree requirements."
       />
       
-      <div className="container mx-auto max-w-7xl">
-        {error ? (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-700">{error}</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              <div className="space-y-6">
-                {/* Top cards container */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Overall Degree Progress Card */}
-                  <Card className="w-full">
-                    <CardHeader>
-                      <CardTitle>Overall Degree Progress</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="flex justify-between mb-2 pr-1.5">
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                            {totalRequired > 0 ? `${completedCourses}/${totalRequired}` : ''}
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
-                          <div 
-                            className="h-3 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-1000 ease-in-out"
-                            style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Course Status Cards */}
-                  <Card className="w-full">
-                    <CardHeader>
-                      <CardTitle>Course Status</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-3 gap-2">
-                        {/* Planned Courses Card */}
-                        <div className="text-center py-2 px-1 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
-                          <div className="text-2xl font-bold text-blue-600 dark:text-blue-500">
-                            {planData?.courses?.filter(course => course.status === 'planned').length || 0}
-                          </div>
-                          <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                            Planned
-                          </p>
-                        </div>
-
-                        {/* Completed Courses Card */}
-                        <div className="text-center py-2 px-1 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                          <div className="text-2xl font-bold text-green-600 dark:text-green-500">
-                            {planData?.courses?.filter(course => course.status === 'completed').length || 0}
-                          </div>
-                          <p className="text-sm font-medium text-green-700 dark:text-green-400">
-                            Completed
-                          </p>
-                        </div>
-
-                        {/* Taken Courses Card */}
-                        <div className="text-center py-2 px-1 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
-                          <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">
-                            {planData?.courses?.filter(course => course.status === 'taken').length || 0}
-                          </div>
-                          <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
-                            Taken
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Course Requirements Card */}
+      {error ? (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <p className="text-red-700">{error}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6">
+            <div className="space-y-6">
+              {/* Top cards container */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Overall Degree Progress Card */}
                 <Card className="w-full">
                   <CardHeader>
-                    <CardTitle>Course Requirements</CardTitle>
+                    <CardTitle>Overall Degree Progress</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className={`grid gap-6 ${
-                      courseTypes.length <= 2 ? 'grid-cols-1 md:grid-cols-2' :
-                      courseTypes.length <= 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
-                      'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                    }`}>
-                      {courseTypes.length > 0 ? (
-                        courseTypes.map(type => (
-                          <CourseTypeCard
-                            key={type}
-                            type={type}
-                            courses={coursesByType[type] || []}
-                            stats={getStatsForType(type)}
-                          />
-                        ))
-                      ) : (
-                        <div className="col-span-full p-8 text-center bg-gray-50 dark:bg-[hsl(220,10%,15%)] rounded-lg border border-gray-200 dark:border-[hsl(220,10%,20%)]">
-                          <p className="text-gray-500 dark:text-gray-400">No courses found in your curriculum.</p>
-                          <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Please contact your program administrator if you believe this is an error.</p>
+                    <div className="space-y-4">
+                      <div className="flex justify-between mb-2 pr-1.5">
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          {totalRequired > 0 ? `${completedCourses}/${totalRequired}` : ''}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3 overflow-hidden">
+                        <div 
+                          className="h-3 rounded-full bg-blue-600 dark:bg-blue-500 transition-all duration-1000 ease-in-out"
+                          style={{ width: `${totalRequired > 0 ? (completedCourses / totalRequired) * 100 : 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Course Status Cards */}
+                <Card className="w-full">
+                  <CardHeader>
+                    <CardTitle>Course Status</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-2">
+                      {/* Planned Courses Card */}
+                      <div className="text-center py-2 px-1 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-500">
+                          {planData?.courses?.filter(course => course.status === 'planned').length || 0}
                         </div>
-                      )}
+                        <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                          Planned
+                        </p>
+                      </div>
+
+                      {/* Completed Courses Card */}
+                      <div className="text-center py-2 px-1 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-500">
+                          {planData?.courses?.filter(course => course.status === 'completed').length || 0}
+                        </div>
+                        <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                          Completed
+                        </p>
+                      </div>
+
+                      {/* Taken Courses Card */}
+                      <div className="text-center py-2 px-1 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">
+                          {planData?.courses?.filter(course => course.status === 'taken').length || 0}
+                        </div>
+                        <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+                          Taken
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-            </div>
 
-            {/* GWAS Chart Card */}
-            <Card className="w-full">
-              <CardHeader>
-                <CardTitle>General Weighted Average by Semester</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
+              {/* Course Requirements Card */}
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle>Course Requirements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className={`grid gap-6 ${
+                    courseTypes.length <= 2 ? 'grid-cols-1 md:grid-cols-2' :
+                    courseTypes.length <= 3 ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' :
+                    'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                  }`}>
+                    {courseTypes.length > 0 ? (
+                      courseTypes.map(type => (
+                        <CourseTypeCard
+                          key={type}
+                          type={type}
+                          courses={coursesByType[type] || []}
+                          stats={getStatsForType(type)}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full p-8 text-center bg-gray-50 dark:bg-[hsl(220,10%,15%)] rounded-lg border border-gray-200 dark:border-[hsl(220,10%,20%)]">
+                        <p className="text-gray-500 dark:text-gray-400">No courses found in your curriculum.</p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">Please contact your program administrator if you believe this is an error.</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* GWAS Chart Card */}
+          <Card className="w-full">
+            <CardHeader className="pb-2">
+              <CardTitle>Grade Weighted Average (GWA) Progress</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[200px]">
+                {gwasData.xAxis.length > 0 ? (
                   <LineChart
                     xAxis={[{ 
-                      data: gwasData.xAxis.length > 0 ? gwasData.xAxis : ['1-1', '1-2', '2-1', '2-2', '3-1', '3-2', '4-1', '4-2'],
-                      scaleType: 'band',
-                      label: 'Semester',
-                      labelStyle: {
-                        fontFamily: 'Poppins'
-                      },
-                      tickLabelStyle: {
-                        fontFamily: 'Poppins'
-                      }
+                      data: gwasData.xAxis,
+                      scaleType: 'point',
+                      label: 'Semester'
+                    }]}
+                    series={[{
+                      data: gwasData.series,
+                      label: 'GWA',
+                      color: '#2563eb'
                     }]}
                     yAxis={[{
                       label: 'GWA',
-                      min: 0,
-                      max: 4,
-                      labelStyle: {
-                        fontFamily: 'Poppins'
-                      },
-                      tickLabelStyle: {
-                        fontFamily: 'Poppins'
-                      }
+                      min: 1,
+                      max: 5
                     }]}
-                    series={[{
-                      data: gwasData.series.length > 0 ? gwasData.series : [0, 0, 0, 0, 0, 0, 0, 0],
-                      color: '#3b82f6'
-                    }]}
-                    height={300}
-                    sx={{
-                      '& .MuiChartsAxis-label': {
-                        fontFamily: 'Poppins'
-                      },
-                      '& .MuiChartsAxis-tickLabel': {
-                        fontFamily: 'Poppins'
-                      }
-                    }}
+                    height={200}
+                    margin={{ top: 10, right: 10, bottom: 30, left: 40 }}
                   />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-      </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
+                    No GWA data available yet
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

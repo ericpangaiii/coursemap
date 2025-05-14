@@ -40,13 +40,20 @@ const PageHeader = ({ title }) => {
   }, [user?.program_id, user?.curriculum_id]);
 
   // Helper to get initials from name
-  const getInitials = (name) => {
-    if (!name) return "?";
-    return name
-      .split(" ")
-      .map(part => part[0])
-      .join("")
-      .toUpperCase();
+  const getInitials = (user) => {
+    if (!user) return "U";
+    // Get all first name initials
+    const firstNames = user.first_name.split(' ');
+    const firstInitials = firstNames.map(name => name[0]).join('');
+    // Get last name initial
+    const lastInitial = user.last_name[0];
+    return `${firstInitials}${lastInitial}`.toUpperCase();
+  };
+
+  // Helper to get full name
+  const getFullName = (user) => {
+    if (!user) return "Guest";
+    return `${user.first_name} ${user.middle_name ? user.middle_name + ' ' : ''}${user.last_name}${user.suffix ? ' ' + user.suffix : ''}`;
   };
 
   return (
@@ -57,15 +64,15 @@ const PageHeader = ({ title }) => {
           <PopoverTrigger asChild>
             <button className="focus:outline-none">
               <Avatar className="h-10 w-10 cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all">
-                <AvatarImage src={user?.photo} alt={user?.name} />
-                <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user?.name || "")}</AvatarFallback>
+                <AvatarImage src={user?.photo} alt={user?.first_name} />
+                <AvatarFallback className="dark:bg-gray-800 dark:text-gray-200">{getInitials(user)}</AvatarFallback>
               </Avatar>
             </button>
           </PopoverTrigger>
           <PopoverContent className="p-4" side="left" align="start" sideOffset={5} alignOffset={-30}>
             <div className="space-y-3">
               <div>
-                <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100">{user?.name || "Guest"}</h3>
+                <h3 className="text-xs font-medium text-gray-900 dark:text-gray-100">{getFullName(user)}</h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email || ""}</p>
               </div>
               <div className="space-y-1.5">
