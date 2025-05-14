@@ -25,7 +25,8 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
   exposedHeaders: ["Set-Cookie"],
   preflightContinue: false,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
+  maxAge: 86400 // 24 hours
 };
 
 // Apply CORS middleware with proper options
@@ -42,7 +43,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: 'lax',
-    path: '/'
+    path: '/',
   }
 }));
 
