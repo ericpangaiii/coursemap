@@ -22,12 +22,11 @@ const corsOptions = {
     : process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
   exposedHeaders: ["Set-Cookie"],
   preflightContinue: false,
   optionsSuccessStatus: 204,
-  maxAge: 86400, // 24 hours
-  sameSite: 'none'
+  maxAge: 86400 // 24 hours
 };
 
 // Apply CORS middleware with proper options
@@ -44,7 +43,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
     sameSite: 'none',
-    path: '/'
+    path: '/',
   },
   proxy: true
 }));
