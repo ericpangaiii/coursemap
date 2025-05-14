@@ -126,12 +126,8 @@ const PDFPreviewModal = ({ open, onOpenChange }) => {
       link.href = url;
       
       // Get user initials
-      const initials = user?.name
-        ? user.name
-            .split(' ')
-            .map(part => part[0])
-            .join('')
-            .toLowerCase()
+      const initials = user
+        ? `${user.first_name.split(' ').map(name => name[0]).join('')}${user.last_name[0]}`.toLowerCase()
         : '';
       
       // Get program acronym from the program data

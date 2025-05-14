@@ -3,8 +3,8 @@ import CourseTypeCard from "@/components/Progress/CourseTypeCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading";
 import { curriculumsAPI, plansAPI } from "@/lib/api";
-import { useEffect, useState } from "react";
 import { LineChart } from '@mui/x-charts/LineChart';
+import { useEffect, useState } from "react";
 
 const ProgressPage = () => {
   const [loading, setLoading] = useState(true);
@@ -569,32 +569,14 @@ const ProgressPage = () => {
 
   // Calculate total required courses
   const calculateTotalRequired = () => {
-    if (!organizedCourses) return 0;
-    
-    let total = 0;
-    Object.values(organizedCourses).forEach(year => {
-      Object.values(year).forEach(semester => {
-        total += semester.length;
-      });
-    });
-    return total;
+    if (!planData?.courses) return 0;
+    return planData.courses.length;
   };
 
   // Calculate completed courses
   const calculateCompletedCourses = () => {
-    if (!organizedCourses) return 0;
-    
-    let completed = 0;
-    Object.values(organizedCourses).forEach(year => {
-      Object.values(year).forEach(semester => {
-        semester.forEach(course => {
-          if (course.grade && !['5.00', 'INC', 'DRP'].includes(course.grade)) {
-            completed++;
-          }
-        });
-      });
-    });
-    return completed;
+    if (!planData?.courses) return 0;
+    return planData.courses.filter(course => course.status === 'completed').length;
   };
 
   const totalRequired = calculateTotalRequired();
@@ -721,7 +703,7 @@ const ProgressPage = () => {
           {/* GWAS Chart Card */}
           <Card className="w-full">
             <CardHeader className="pb-2">
-              <CardTitle>Grade Weighted Average (GWA) Progress</CardTitle>
+              <CardTitle>General Weighted Average Progress</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[200px]">

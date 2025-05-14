@@ -9,7 +9,6 @@ export const authAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify(userData),
@@ -32,7 +31,6 @@ export const authAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify(credentials),
@@ -41,6 +39,10 @@ export const authAPI = {
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
+      // Check if we have a user object in the response
+      if (!data.user) {
+        throw new Error('Invalid response from server');
+      }
       return data;
     } catch (error) {
       console.error('[API] Login failed:', error);
@@ -48,44 +50,37 @@ export const authAPI = {
     }
   },
 
-  // Check authentication status
+  // Get authentication status
   getAuthStatus: async () => {
     try {
       console.log('[API] Checking auth status...');
       const response = await fetch(`${API_BASE_URL}/auth/status`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
+        credentials: 'include',
       });
       const data = await response.json();
       console.log('[API] Auth status response:', data);
       return data;
     } catch (error) {
-      console.error('[API] Auth status check failed:', error);
-      throw error;
+      console.error('[API] Authentication check failed:', error);
+      return { authenticated: false };
     }
   },
 
-  // Logout user
+  // Logout the user
   logout: async () => {
     try {
+      console.log('[API] Logging out user...');
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
+        credentials: 'include',
       });
       const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Logout failed');
-      }
+      console.log('[API] Logout response:', data);
       return data;
     } catch (error) {
       console.error('[API] Logout failed:', error);
-      throw error;
+      return { success: false, error: 'Failed to logout' };
     }
   },
 
@@ -103,7 +98,6 @@ export const authAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ programId, curriculumId }),
@@ -121,12 +115,7 @@ export const programsAPI = {
   // Get all programs
   getAllPrograms: async (page = 1, limit = 10) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/programs?page=${page}&limit=${limit}`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
+      const response = await fetch(`${API_BASE_URL}/api/programs?page=${page}&limit=${limit}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch programs');
@@ -155,12 +144,7 @@ export const programsAPI = {
   // Get program by ID
   getProgramById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/programs/${id}`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
+      const response = await fetch(`${API_BASE_URL}/api/programs/${id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch program');
@@ -179,12 +163,7 @@ export const curriculumsAPI = {
   // Get all curriculums
   getAllCurriculums: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/curriculums`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
+      const response = await fetch(`${API_BASE_URL}/api/curriculums`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch curriculums');
@@ -200,12 +179,7 @@ export const curriculumsAPI = {
   // Get curriculum by ID
   getCurriculumById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/curriculums/${id}`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
+      const response = await fetch(`${API_BASE_URL}/api/curriculums/${id}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch curriculum');
@@ -221,12 +195,7 @@ export const curriculumsAPI = {
   // Get curriculums by program ID
   getCurriculumsByProgramId: async (programId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/programs/${programId}/curriculums`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        credentials: 'include'
-      });
+      const response = await fetch(`${API_BASE_URL}/api/programs/${programId}/curriculums`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch curriculums for program');
@@ -244,9 +213,6 @@ export const curriculumsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/structure`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -273,9 +239,6 @@ export const curriculumsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/my/curriculum/structure`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -298,9 +261,6 @@ export const curriculumsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/my/curriculum/courses`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -323,9 +283,6 @@ export const curriculumsAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/course-type-counts`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -343,9 +300,6 @@ export const curriculumsAPI = {
   getCurriculumRequiredCourses: async (curriculumId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/curriculums/${curriculumId}/required-courses`, {
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -367,9 +321,6 @@ export const plansAPI = {
   getAllPlans: async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/plans`, {
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -392,11 +343,11 @@ export const plansAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/my/plan`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
-        },
-        credentials: 'include'
+        }
       });
       
       if (!response.ok) {
@@ -424,7 +375,6 @@ export const plansAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ 
@@ -459,7 +409,6 @@ export const plansAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ 
@@ -490,7 +439,6 @@ export const plansAPI = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ 
@@ -517,9 +465,6 @@ export const plansAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/plans/courses/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include',
       });
       
@@ -538,9 +483,6 @@ export const plansAPI = {
   getAllPlansByUserId: async (userId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/plans/user/${userId}/all`, {
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       
@@ -566,11 +508,10 @@ export const usersAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -595,11 +536,10 @@ export const usersAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
         method: 'GET',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        credentials: 'include',
       });
       
       if (!response.ok) {
@@ -626,7 +566,6 @@ export const usersAPI = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify(userData),
@@ -653,11 +592,10 @@ export const usersAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
         method: 'DELETE',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        credentials: 'include',
       });
 
       if (!response.ok) {
@@ -699,9 +637,6 @@ export const coursesAPI = {
 
       const response = await fetch(`${API_BASE_URL}/api/courses?${queryParams}`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       return await response.json();
@@ -716,9 +651,6 @@ export const coursesAPI = {
     try {
       const response = await fetch(`${API_BASE_URL}/api/courses/plan-creation`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       return await response.json();
@@ -735,7 +667,6 @@ export const coursesAPI = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify({ courseIds }),
@@ -754,7 +685,6 @@ export const coursesAPI = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         credentials: 'include',
         body: JSON.stringify(updates),
@@ -781,9 +711,6 @@ export const coursesAPI = {
 
       const response = await fetch(`${API_BASE_URL}/api/courses/admin?${queryParams}`, {
         method: 'GET',
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
       return await response.json();

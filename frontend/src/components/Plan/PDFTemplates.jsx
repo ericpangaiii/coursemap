@@ -186,7 +186,7 @@ export const GEPlanTemplate = ({ user, program, courses }) => (
       <View style={styles.header}>
         <Text style={styles.title}>General Education Plan of Study</Text>
         <Text style={styles.subtitle}>Student Information</Text>
-        <Text style={styles.info}>Name: {user?.name || 'N/A'}</Text>
+        <Text style={styles.info}>Name: {user ? `${user.first_name} ${user.middle_name ? user.middle_name + ' ' : ''}${user.last_name}${user.suffix ? ' ' + user.suffix : ''}` : 'N/A'}</Text>
         <Text style={styles.info}>Degree Program: {program?.title || 'N/A'}</Text>
       </View>
 
@@ -264,7 +264,7 @@ export const FreeElectivesTemplate = ({ user, program, courses }) => (
       <View style={styles.header}>
         <Text style={styles.title}>Free Electives Plan of Study</Text>
         <Text style={styles.subtitle}>Student Information</Text>
-        <Text style={styles.info}>Name: {user?.name || 'N/A'}</Text>
+        <Text style={styles.info}>Name: {user ? `${user.first_name} ${user.middle_name ? user.middle_name + ' ' : ''}${user.last_name}${user.suffix ? ' ' + user.suffix : ''}` : 'N/A'}</Text>
         <Text style={styles.info}>Degree Program: {program?.title || 'N/A'}</Text>
       </View>
 
@@ -361,7 +361,7 @@ export const PlanOfCourseworkTemplate = ({ user, program, courses }) => {
         <View style={styles.header}>
           <Text style={styles.title}>Plan of Coursework</Text>
           <Text style={styles.subtitle}>Student Information</Text>
-          <Text style={styles.info}>Name: {user?.name || 'N/A'}</Text>
+          <Text style={styles.info}>Name: {user ? `${user.first_name} ${user.middle_name ? user.middle_name + ' ' : ''}${user.last_name}${user.suffix ? ' ' + user.suffix : ''}` : 'N/A'}</Text>
           <Text style={styles.info}>Degree Program: {program?.title || 'N/A'}</Text>
         </View>
 

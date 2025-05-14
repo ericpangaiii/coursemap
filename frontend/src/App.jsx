@@ -7,8 +7,6 @@ import UserManagementPage from './pages/admin/UserManagementPage';
 import AdminCoursesPage from './pages/admin/CoursesPage';
 import AdminCurriculumsPage from './pages/admin/CurriculumsPage';
 import AdminProgramsPage from './pages/admin/ProgramsPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AdminRoute } from '@/components/AdminRoute';
 import AppLayout from './components/AppLayout';
 import { useAuth } from './context/AuthContext';
 import { LoadingSpinner } from "@/components/ui/loading";
@@ -31,19 +29,19 @@ const App = () => {
           {/* Public routes */}
           <Route path="/sign-in" element={<SignInPage />} />
           
-          {/* Protected routes */}
+          {/* Main routes */}
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/progress" element={<ProtectedRoute><ProgressPage /></ProtectedRoute>} />
-            <Route path="/courses" element={<ProtectedRoute><CoursesPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/progress" element={<ProgressPage />} />
+            <Route path="/courses" element={<CoursesPage />} />
             
             {/* Admin routes */}
             <Route path="/admin">
               <Route index element={<Navigate to="/admin/users" replace />} />
-              <Route path="users" element={<AdminRoute><UserManagementPage /></AdminRoute>} />
-              <Route path="courses" element={<AdminRoute><AdminCoursesPage /></AdminRoute>} />
-              <Route path="curriculums" element={<AdminRoute><AdminCurriculumsPage /></AdminRoute>} />
-              <Route path="programs" element={<AdminRoute><AdminProgramsPage /></AdminRoute>} />
+              <Route path="users" element={<UserManagementPage />} />
+              <Route path="courses" element={<AdminCoursesPage />} />
+              <Route path="curriculums" element={<AdminCurriculumsPage />} />
+              <Route path="programs" element={<AdminProgramsPage />} />
             </Route>
           </Route>
 

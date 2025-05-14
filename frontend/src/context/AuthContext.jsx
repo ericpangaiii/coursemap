@@ -10,14 +10,12 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      console.log('[AuthContext] Starting auth status check...');
-      const data = await authAPI.getAuthStatus();
-      console.log('[AuthContext] Auth status response:', data);
-      
-      if (data.authenticated && data.user) {
+      setLoading(true);
+      const response = await authAPI.getAuthStatus();
+      if (response.authenticated && response.user) {
         setUser({
-          ...data.user,
-          isAdmin: data.user.role?.toLowerCase() === 'admin'
+          ...response.user,
+          isAdmin: response.user.role?.toLowerCase() === 'admin'
         });
         setAuthenticated(true);
       } else {

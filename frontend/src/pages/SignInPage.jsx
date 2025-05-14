@@ -601,7 +601,7 @@ const SignInPage = () => {
             className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 underline-offset-4"
             onClick={() => setIsLogin(!isLogin)}
           >
-            {isLogin ? "Don't have an account? Sign up." : 'Already have an account? Sign in.'}
+            {isLogin ? "Don't have an account? Sign up here." : 'Already have an account? Sign in here.'}
           </Button>
         </CardFooter>
       </Card>

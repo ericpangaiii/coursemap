@@ -56,7 +56,7 @@ const Sidebar = () => {
                 className="h-10 w-10 shrink-0"
               />
               <div className="flex-1 min-w-0 overflow-hidden">
-                <p className="text-l font-medium text-white truncate">CourseMap</p>
+                <p className="text-xl font-medium text-white truncate">CourseMap</p>
               </div>
             </div>
         </SidebarHeader>

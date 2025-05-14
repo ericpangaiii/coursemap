@@ -216,7 +216,7 @@ const SummaryStep = ({ semesterGrid, currentStep, onStepChange, courseTypeCounts
               course.course_id,
               parseInt(year),
               semester,
-              'pending',
+              'planned',
               units
             );
           } catch (error) {

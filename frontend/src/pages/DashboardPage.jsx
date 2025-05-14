@@ -194,7 +194,7 @@ const DashboardPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <Card className="md:col-span-1">
                 <CardHeader>
-                  <CardTitle className="text-gray-900 dark:text-gray-100">Welcome, {user ? `${user.first_name}` : 'Student'}!</CardTitle>
+                  <CardTitle className="text-gray-900 dark:text-gray-100">Welcome back, {user ? `${user.first_name}` : 'Student'}!</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
