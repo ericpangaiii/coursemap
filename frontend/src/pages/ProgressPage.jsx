@@ -85,8 +85,17 @@ const ProgressPage = () => {
         setCurriculumCourses(coursesData);
         
         // Get plan data
-        const planData = await plansAPI.getCurrentPlan();
-        setPlanData(planData);
+        try {
+          const planData = await plansAPI.getCurrentPlan();
+          setPlanData(planData);
+        } catch (planError) {
+          if (planError.message === 'Authentication required') {
+            setError("Please sign in to view your plan.");
+          } else {
+            setError("Failed to load your plan. Please try again later.");
+          }
+          console.error("Error fetching plan:", planError);
+        }
 
         // Organize courses by year and semester
         const organized = {};
