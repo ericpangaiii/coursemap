@@ -18,7 +18,7 @@ const passport = configurePassport();
 // Configure CORS properly
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://coursemap-ohrm2635s-eric-conrad-pangas-projects.vercel.app', 'https://coursemap-git-email-password-auth-eric-conrad-pangas-projects.vercel.app']
+    ? ['https://coursemap-ohrm2635s-eric-conrad-pangas-projects.vercel.app', 'https://coursemap-git-email-password-auth-eric-conrad-pangas-projects.vercel.app', 'https://coursemap-one.vercel.app']
     : process.env.FRONTEND_URL,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
