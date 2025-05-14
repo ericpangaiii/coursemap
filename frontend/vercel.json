@@ -1,15 +1,13 @@
 {
   "rewrites": [
-    { "source": "/sign-in", "destination": "/index.html" },
     { "source": "/dashboard", "destination": "/index.html" },
-    { "source": "/dashboard/(.*)", "destination": "/index.html" },
-    { "source": "/degree-select", "destination": "/index.html" },
+    { "source": "/progress", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/(.*)", "destination": "/index.html" },
-    { "source": "/plans/(.*)", "destination": "/index.html" },
-    { "source": "/courses/(.*)", "destination": "/index.html" },
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/admin/programs", "destination": "/index.html" },
+    { "source": "/admin/curriculums", "destination": "/index.html" },
+    { "source": "/admin/courses", "destination": "/index.html" },
+    { "source": "/admin/users", "destination": "/index.html" },
+    { "source": "/sign-in", "destination": "/index.html" }
   ],
   "headers": [
     {

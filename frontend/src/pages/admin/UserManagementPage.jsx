@@ -553,7 +553,6 @@ const UserManagementPage = () => {
                   <thead>
                     <tr className="text-xs text-gray-500 dark:text-gray-400">
                       <th className="text-left py-2 px-2 w-12">#</th>
-                      <th className="text-left py-2 px-2 w-16">Photo</th>
                       <th className={`text-left py-2 px-2 w-56 ${
                         sortConfig.key === 'name' ? 'text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400'
                       } rounded-md`}>
@@ -857,15 +856,6 @@ const UserManagementPage = () => {
                           } hover:bg-gray-100 dark:hover:bg-[hsl(220,10%,14%)] transition-colors`}
                         >
                           <td className="py-2 px-2 text-sm text-gray-500 dark:text-gray-400">{index + 1}</td>
-                          <td className="py-2 px-2">
-                            {user.photo && (
-                              <img
-                                className="h-8 w-8 rounded-full"
-                                src={user.photo}
-                                alt={user.name}
-                              />
-                            )}
-                          </td>
                           <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.name}</td>
                           <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.email}</td>
                           <td className="py-2 px-2 text-xs text-gray-900 dark:text-gray-100">{user.program_acronym || 'N/A'}</td>
@@ -894,7 +884,7 @@ const UserManagementPage = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" className="py-8">
+                        <td colSpan="8" className="py-8">
                           <div className="flex flex-col items-center justify-center text-gray-500">
                             <SearchX className="h-12 w-12 mb-3" />
                             <p className="text-sm font-medium">No users found</p>

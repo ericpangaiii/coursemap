@@ -19,11 +19,17 @@ export const authToastFunctions = {
   signingIn: () => showLoadingToast(authToasts.signingIn),
   signInSuccess: () => showSuccessToast(authToasts.signInSuccess),
   signInError: () => showErrorToast(authToasts.signInError),
+  signInInvalidCredentials: () => showErrorToast(authToasts.signInInvalidCredentials),
+  signInServerError: () => showErrorToast(authToasts.signInServerError),
+  signInNetworkError: () => showErrorToast(authToasts.signInNetworkError),
   signOutSuccess: () => showSuccessToast(authToasts.signOutSuccess),
   signOutError: () => showErrorToast(authToasts.signOutError),
   invalidEmail: () => showErrorToast(authToasts.invalidEmail),
   accountCreated: () => showSuccessToast(authToasts.accountCreated),
   accountCreationError: () => showErrorToast(authToasts.accountCreationError),
+  accountCreationEmailExists: () => showErrorToast(authToasts.accountCreationEmailExists),
+  accountCreationInvalidData: () => showErrorToast(authToasts.accountCreationInvalidData),
+  accountCreationServerError: () => showErrorToast(authToasts.accountCreationServerError),
   accountSetupComplete: () => showSuccessToast(authToasts.accountSetupComplete),
 };
 

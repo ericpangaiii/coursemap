@@ -6,6 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
 
   const checkAuthStatus = async () => {
     try {
@@ -18,12 +19,15 @@ export const AuthProvider = ({ children }) => {
           ...data.user,
           isAdmin: data.user.role?.toLowerCase() === 'admin'
         });
+        setAuthenticated(true);
       } else {
         setUser(null);
+        setAuthenticated(false);
       }
     } catch (error) {
       console.error('[AuthContext] Auth status check failed:', error);
       setUser(null);
+      setAuthenticated(false);
     } finally {
       setLoading(false);
     }
@@ -41,8 +45,10 @@ export const AuthProvider = ({ children }) => {
           ...data.user,
           isAdmin: data.user.role?.toLowerCase() === 'admin'
         });
+        setAuthenticated(true);
+        return data;
       }
-      return data;
+      return null;
     } catch (error) {
       console.error('[AuthContext] Login failed:', error);
       throw error;
@@ -53,6 +59,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
       setUser(null);
+      setAuthenticated(false);
     } catch (error) {
       console.error('[AuthContext] Logout failed:', error);
       throw error;
@@ -62,6 +69,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     loading,
+    authenticated,
     login,
     logout,
     checkAuthStatus

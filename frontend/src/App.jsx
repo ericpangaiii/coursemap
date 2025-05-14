@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import SignInPage from './pages/SignInPage';
-import DegreeSelectPage from './pages/DegreeSelectPage';
 import DashboardPage from './pages/DashboardPage';
 import ProgressPage from './pages/ProgressPage';
 import CoursesPage from './pages/CoursesPage';
@@ -31,7 +30,6 @@ const App = () => {
         <Routes>
           {/* Public routes */}
           <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/degree-select" element={<ProtectedRoute><DegreeSelectPage /></ProtectedRoute>} />
           
           {/* Protected routes */}
           <Route element={<AppLayout />}>

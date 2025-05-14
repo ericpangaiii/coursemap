@@ -88,33 +88,53 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: 'Email already exists' });
     }
 
-    // Hash password
-    const saltRounds = 10;
-    const passwordHash = await bcrypt.hash(password, saltRounds);
+    // Start a transaction
+    await pool.query('BEGIN');
 
-    // Create user
-    const result = await pool.query(
-      'INSERT INTO users (email, password_hash, name, program_id, curriculum_id, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [email, passwordHash, name, programId, curriculumId, 'User']
-    );
+    try {
+      // Hash password
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Log in the user
-    req.login(result.rows[0], (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Error logging in after registration' });
-      }
-      res.status(201).json({
-        message: 'Registration successful',
-        user: {
-          id: result.rows[0].id,
-          email: result.rows[0].email,
-          name: result.rows[0].name,
-          program_id: result.rows[0].program_id,
-          curriculum_id: result.rows[0].curriculum_id,
-          role: result.rows[0].role.charAt(0).toUpperCase() + result.rows[0].role.slice(1).toLowerCase()
+      // Create user
+      const result = await pool.query(
+        'INSERT INTO users (email, password_hash, name, program_id, curriculum_id, role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+        [email, passwordHash, name, programId, curriculumId, 'User']
+      );
+
+      const newUser = result.rows[0];
+
+      // Create an empty plan for the user
+      await pool.query(
+        'INSERT INTO plans (user_id, curriculum_id) VALUES ($1, $2)',
+        [newUser.id, curriculumId]
+      );
+
+      // Commit the transaction
+      await pool.query('COMMIT');
+
+      // Log in the user
+      req.login(newUser, (err) => {
+        if (err) {
+          return res.status(500).json({ error: 'Error logging in after registration' });
         }
+        res.status(201).json({
+          message: 'Registration successful',
+          user: {
+            id: newUser.id,
+            email: newUser.email,
+            name: newUser.name,
+            program_id: newUser.program_id,
+            curriculum_id: newUser.curriculum_id,
+            role: newUser.role.charAt(0).toUpperCase() + newUser.role.slice(1).toLowerCase()
+          }
+        });
       });
-    });
+    } catch (error) {
+      // Rollback the transaction if any error occurs
+      await pool.query('ROLLBACK');
+      throw error;
+    }
   } catch (error) {
     console.error('Error in register:', error);
     res.status(500).json({ error: 'Failed to register user' });

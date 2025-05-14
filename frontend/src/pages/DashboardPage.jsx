@@ -112,21 +112,23 @@ const DashboardPage = () => {
 
     const fetchData = async () => {
       try {
-        // Fetch program details if user has a program_id
-        if (user?.program_id) {
-          const programData = await programsAPI.getProgramById(user.program_id);
-          if (programData) {
-            setProgramTitle(programData.title);
-            setCollege(programData.college || "Not assigned");
-          }
+        // Only fetch data if we have a user with program_id and curriculum_id
+        if (!user?.program_id || !user?.curriculum_id) {
+          setLoading(false);
+          return;
         }
 
-        // Fetch curriculum details if user has a curriculum_id
-        if (user?.curriculum_id) {
-          const curriculumData = await curriculumsAPI.getCurriculumById(user.curriculum_id);
-          if (curriculumData && curriculumData.name) {
-            setCurriculumName(curriculumData.name);
-          }
+        // Fetch program details
+        const programData = await programsAPI.getProgramById(user.program_id);
+        if (programData) {
+          setProgramTitle(programData.title);
+          setCollege(programData.college || "Not assigned");
+        }
+
+        // Fetch curriculum details
+        const curriculumData = await curriculumsAPI.getCurriculumById(user.curriculum_id);
+        if (curriculumData && curriculumData.name) {
+          setCurriculumName(curriculumData.name);
         }
 
         // Fetch and organize plan data
