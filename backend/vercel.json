@@ -16,7 +16,6 @@
         "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Origin",
         "Access-Control-Expose-Headers": "Set-Cookie",
-        "Access-Control-Max-Age": "86400",
         "Access-Control-Max-Age": "86400"
       }
     },
@@ -29,7 +28,6 @@
         "Access-Control-Allow-Methods": "GET,OPTIONS,PATCH,DELETE,POST,PUT",
         "Access-Control-Allow-Headers": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Origin",
         "Access-Control-Expose-Headers": "Set-Cookie",
-        "Access-Control-Max-Age": "86400",
         "Access-Control-Max-Age": "86400"
       }
     },

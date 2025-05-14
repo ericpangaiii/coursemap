@@ -48,9 +48,6 @@ app.use(session({
     httpOnly: true,
     sameSite: 'none',
     path: '/',
-    domain: process.env.NODE_ENV === 'production' ? 'coursemap.up.railway.app' : undefined
-    path: '/',
-    domain: process.env.NODE_ENV === 'production' ? 'coursemap.up.railway.app' : undefined
   },
   proxy: true
 }));
