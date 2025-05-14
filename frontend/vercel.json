@@ -40,5 +40,9 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_BASE_URL": "https://coursemap.up.railway.app",
+    "VITE_FRONTEND_URL": "https://coursemap-one.vercel.app"
+  }
 } 
