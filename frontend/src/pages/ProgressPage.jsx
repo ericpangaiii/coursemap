@@ -12,7 +12,6 @@ const ProgressPage = () => {
   const [curriculumCourses, setCurriculumCourses] = useState([]);
   const [error, setError] = useState(null);
   const [planData, setPlanData] = useState(null);
-  const [organizedCourses, setOrganizedCourses] = useState({});
   const [gwasData, setGwasData] = useState({ xAxis: [], series: [] });
   
   // Calculate GWAS for each semester
@@ -96,27 +95,6 @@ const ProgressPage = () => {
           }
           console.error("Error fetching plan:", planError);
         }
-
-        // Organize courses by year and semester
-        const organized = {};
-        if (planData?.courses) {
-          planData.courses.forEach(course => {
-            const year = course.year;
-            const sem = course.sem;
-            
-            if (!organized[year]) {
-              organized[year] = {};
-            }
-            
-            if (!organized[year][sem]) {
-              organized[year][sem] = [];
-            }
-            
-            // Add the course to the organized structure
-            organized[year][sem].push(course);
-          });
-        }
-        setOrganizedCourses(organized);
 
       } catch (err) {
         console.error("Error fetching data:", err);
