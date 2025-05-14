@@ -23,7 +23,9 @@ const corsOptions = {
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-  exposedHeaders: ["Set-Cookie"]
+  exposedHeaders: ["Set-Cookie"],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 // Apply CORS middleware with proper options
@@ -39,8 +41,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     httpOnly: true,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? process.env.PRODUCTION_FRONTEND_URL?.replace('https://', '') : undefined,
+    sameSite: 'lax',
     path: '/'
   }
 }));
