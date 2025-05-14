@@ -41,10 +41,6 @@ export const authAPI = {
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
       }
-      // Check if we have a user object in the response
-      if (!data.user) {
-        throw new Error('Invalid response from server');
-      }
       return data;
     } catch (error) {
       console.error('[API] Login failed:', error);
@@ -52,7 +48,7 @@ export const authAPI = {
     }
   },
 
-  // Get authentication status
+  // Check authentication status
   getAuthStatus: async () => {
     try {
       console.log('[API] Checking auth status...');
@@ -61,34 +57,35 @@ export const authAPI = {
         headers: {
           'Accept': 'application/json'
         },
-        credentials: 'include',
+        credentials: 'include'
       });
       const data = await response.json();
       console.log('[API] Auth status response:', data);
       return data;
     } catch (error) {
-      console.error('[API] Authentication check failed:', error);
-      return { authenticated: false };
+      console.error('[API] Auth status check failed:', error);
+      throw error;
     }
   },
 
-  // Logout the user
+  // Logout user
   logout: async () => {
     try {
-      console.log('[API] Logging out user...');
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json'
         },
-        credentials: 'include',
+        credentials: 'include'
       });
       const data = await response.json();
-      console.log('[API] Logout response:', data);
+      if (!response.ok) {
+        throw new Error(data.error || 'Logout failed');
+      }
       return data;
     } catch (error) {
       console.error('[API] Logout failed:', error);
-      return { success: false, error: 'Failed to logout' };
+      throw error;
     }
   },
 
